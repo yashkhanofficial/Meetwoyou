@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Friends - Meetwoyou</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1b; --text: #ffffff; --gray: #b0b3b8; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
+
+        /* Header & Search */
+        .header { background: var(--card); padding: 15px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
+        .search-container { position: relative; margin-top: 10px; }
+        .search-container input { width: 100%; padding: 12px 40px 12px 15px; background: #222; border: 1px solid #333; border-radius: 25px; color: white; outline: none; box-sizing: border-box; }
+        .search-container i { position: absolute; right: 15px; top: 13px; color: var(--gray); }
+
+        /* Tabs */
+        .tabs { display: flex; background: var(--card); border-bottom: 1px solid #333; }
+        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: var(--gray); font-weight: bold; font-size: 14px; }
+        .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+
+        /* User List */
+        .user-list { padding: 15px; max-width: 600px; margin: auto; }
+        .user-card { background: var(--card); padding: 12px; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border: 1px solid #222; transition: 0.3s; }
+        .user-info { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .user-info img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #333; }
+        .user-info b { font-size: 15px; display: block; }
+        .user-info small { color: var(--gray); font-size: 12px; }
+
+        /* Follow Button */
+        .follow-btn { padding: 8px 16px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        .follow-btn.follow { background: var(--primary); color: white; }
+        .follow-btn.following { background: #333; color: white; }
+
+        /* Bottom Nav */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; }
+        .nav-item { color: var(--gray); font-size: 20px; text-align: center; flex: 1; text-decoration: none; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item span { display: block; font-size: 10px; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <a href="home.html" style="color:white;"><i class="fas fa-arrow-left"></i></a>
+        <h3 style="margin:0;">Discover Friends</h3>
+    </div>
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search by name..." oninput="searchUsers()">
+        <i class="fas fa-search"></i>
+    </div>
+</div>
+
+<div class="tabs">
+    <div class="tab active" id="tab-discover" onclick="switchTab('discover')">Discover</div>
+    <div class="tab" id="tab-following" onclick="switchTab('following')">Following</div>
+</div>
+
+<div class="user-list" id="user-display">
+    </div>
+
+<div class="nav-bar">
+    <a href="home.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+    <a href="friends.html" class="nav-item active"><i class="fas fa-users"></i><span>Friends</span></a>
+    <a href="profile.html" class="nav-item"><i class="fas fa-user-edit"></i><span>Profile</span></a>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, arrayUnion, arrayRemove, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
+      authDomain: "meetwoyou-436a2.firebaseapp.com",
+      projectId: "meetwoyou-436a2",
+      storageBucket: "meetwoyou-436a2.firebasestorage.app",
+      messagingSenderId: "612788132077",
+      appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let allUsers = [];
+    let myFollowing = [];
+    let currentTab = 'discover';
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            // ১. নিজের ফলোয়িং লিস্ট লোড করা
+            onSnapshot(doc(db, "users", user.uid), (snap) => {
+                if(snap.exists()) {
+                    myFollowing = snap.data().following || [];
+                    loadUserList();
+                }
+            });
+
+            // ২. সব ইউজার লোড করা
+            onSnapshot(collection(db, "users"), (snap) => {
+                allUsers = [];
+                snap.forEach(uDoc => {
+                    if(uDoc.id !== user.uid) {
+                        allUsers.push({ id: uDoc.id, ...uDoc.data() });
+                    }
+                });
+                loadUserList();
+            });
+        } else {
+            window.location.href = "index.html";
+        }
+    });
+
+    // ৩. লিস্ট ডিসপ্লে করা
+    function loadUserList(filter = "") {
+        const container = document.getElementById('user-display');
+        container.innerHTML = "";
+
+        const listToDisplay = allUsers.filter(u => {
+            const matchesSearch = u.fullName?.toLowerCase().includes(filter.toLowerCase());
+            if (currentTab === 'following') {
+                return matchesSearch && myFollowing.includes(u.id);
+            }
+            return matchesSearch;
+        });
+
+        if(listToDisplay.length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:gray; margin-top:20px;">No users found.</p>`;
+            return;
+        }
+
+        listToDisplay.forEach(u => {
+            const isFollowing = myFollowing.includes(u.id);
+            container.innerHTML += `
+                <div class="user-card">
+                    <div class="user-info" onclick="window.location.href='messages.html?uid=${u.id}'">
+                        <img src="${u.profilePicUrl || 'https://via.placeholder.com/50'}">
+                        <div>
+                            <b>${u.fullName || 'User'}</b>
+                            <small>${u.bio || 'Available'}</small>
+                        </div>
+                    </div>
+                    <button class="follow-btn ${isFollowing ? 'following' : 'follow'}" 
+                            onclick="toggleFollow('${u.id}', ${isFollowing})">
+                        ${isFollowing ? 'Following' : 'Follow'}
+                    </button>
+                </div>`;
+        });
+    }
+
+    // ৪. ফলো/আনফলো লজিক
+    window.toggleFollow = async (targetId, isFollowing) => {
+        const myUid = auth.currentUser.uid;
+        const myRef = doc(db, "users", myUid);
+
+        try {
+            if (isFollowing) {
+                await updateDoc(myRef, { following: arrayRemove(targetId) });
+            } else {
+                await updateDoc(myRef, { following: arrayUnion(targetId) });
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    // ৫. সার্চ এবং ট্যাব সুইচ
+    window.searchUsers = () => {
+        const val = document.getElementById('search-input').value;
+        loadUserList(val);
+    };
+
+    window.switchTab = (tab) => {
+        currentTab = tab;
+        document.getElementById('tab-discover').classList.toggle('active', tab === 'discover');
+        document.getElementById('tab-following').classList.toggle('active', tab === 'following');
+        loadUserList();
+    };
+</script>
+</body>
+</html>
