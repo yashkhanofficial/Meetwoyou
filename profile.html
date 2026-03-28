@@ -1,186 +1,193 @@
-<div class="max-w-5xl mx-auto px-4 py-8 space-y-8">
-
-  <!-- Profile Header -->
-  <div style="background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid #333;">
-    <!-- Cover -->
-    <div style="height: 220px; position: relative; background: linear-gradient(135deg, #8e44ad, #6c3483);">
-      <img id="view-cover" style="width:100%; height:100%; object-fit: cover;" alt="cover">
-      <label for="cover-upload" style="position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.6); padding:10px; border-radius:50%; cursor:pointer;">
-        <i class="fas fa-camera"></i>
-      </label>
-      <input type="file" id="cover-upload" class="hidden" accept="image/*" onchange="uploadImage(this, 'cover')">
-    </div>
-
-    <!-- Avatar + Buttons -->
-    <div style="padding: 0 20px 30px; position: relative;">
-      <div style="position: relative; width: 110px; height: 110px; margin-top: -55px;">
-        <img id="view-avatar" src="https://via.placeholder.com/120" style="width:100%; height:100%; border-radius: 20px; border: 4px solid var(--card); object-fit: cover;">
-        <label for="avatar-upload" style="position:absolute; bottom: -5px; right: -5px; background:#8e44ad; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid var(--card); cursor:pointer;">
-          <i class="fas fa-pen"></i>
-        </label>
-        <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="uploadImage(this, 'avatar')">
-      </div>
-
-      <div style="margin-top: 15px; display:flex; gap:12px; justify-content: flex-end;">
-        <button onclick="openEditModal()" class="btn-main" style="padding:12px 24px; font-size:15px;">Edit Profile</button>
-        <button onclick="copyProfileLink()" style="background:#333; padding:12px 18px; border-radius:12px;">
-          <i class="fas fa-share-alt"></i>
-        </button>
-      </div>
-
-      <div style="text-align:center; margin-top:20px;">
-        <h1 id="view-name" style="font-size:28px; font-weight:bold; margin:0;">Syncing...</h1>
-        <p style="color:#bb86fc; font-size:18px; margin:5px 0;">@<span id="view-username">username</span></p>
-        <p id="view-bio" style="margin-top:15px; color:#ccc; line-height:1.5;">No bio added yet.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Basic Info -->
-  <div style="background:var(--card); padding:20px; border-radius:15px; border:1px solid #333;">
-    <h3 style="color:#bb86fc; margin-bottom:15px;">Basic Information</h3>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; font-size:15px;">
-      <div><strong>Education:</strong> <span id="view-edu">Not set</span></div>
-      <div><strong>Birthday:</strong> <span id="view-dob">Not set</span></div>
-      <div><strong>Country:</strong> <span id="view-country">Not set</span></div>
-      <div><strong>Living:</strong> <span id="view-living">Not set</span></div>
-      <div><strong>Website:</strong> <span id="view-website" style="color:#bb86fc;">Not set</span></div>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Modal -->
-<div id="edit-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.95); display:none; align-items:center; justify-content:center; z-index:2000;">
-  <div style="background:var(--card); width:92%; max-width:420px; border-radius:20px; padding:25px; border:1px solid #444;">
-    <h2 style="margin-bottom:20px; text-align:center;">Edit Profile</h2>
+<div class="max-w-5xl mx-auto space-y-6 pb-28 animate-fade-in">
     
-    <input id="in-name" type="text" placeholder="Full Name" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
-    <input id="in-username" type="text" placeholder="Username" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
-    <textarea id="in-bio" placeholder="Bio" rows="3" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;"></textarea>
-    
-    <input id="in-edu" type="text" placeholder="Education" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
-    <input id="in-dob" type="date" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
-    <input id="in-country" type="text" placeholder="Country" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
-    <input id="in-living" type="text" placeholder="Living in" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
-    <input id="in-website" type="url" placeholder="Website" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
+    <div class="relative bg-slate-900/40 rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
+        <div class="h-48 md:h-64 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 relative group">
+            <img id="view-cover" class="w-full h-full object-cover opacity-60 hidden">
+            <label for="cover-upload" class="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-xl cursor-pointer opacity-0 group-hover:opacity-100 transition border border-white/10">
+                <i class="fas fa-camera text-white"></i>
+            </label>
+            <input type="file" id="cover-upload" class="hidden" accept="image/*">
+        </div>
+        
+        <div class="px-6 md:px-10 pb-8">
+            <div class="relative -mt-16 mb-4 flex flex-col md:flex-row items-center md:items-end justify-between gap-4">
+                <div class="relative group">
+                    <img id="view-avatar" src="https://via.placeholder.com/150" class="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-4 border-[#0b0f1a] object-cover shadow-2xl transition group-hover:scale-105">
+                    <label for="avatar-upload" class="absolute bottom-2 right-2 bg-purple-600 p-2.5 rounded-2xl cursor-pointer shadow-lg hover:bg-purple-500 transition border-2 border-[#0b0f1a]">
+                        <i class="fas fa-pen text-white text-xs"></i>
+                    </label>
+                    <input type="file" id="avatar-upload" class="hidden" accept="image/*">
+                </div>
+                
+                <div class="flex gap-3 mb-2 w-full md:w-auto">
+                    <button onclick="document.getElementById('edit-modal').classList.remove('hidden')" class="flex-1 md:flex-none bg-white/5 hover:bg-white/10 text-white px-8 py-3 rounded-2xl font-bold border border-white/10 transition active:scale-95">Edit Profile</button>
+                    <button class="flex-1 md:flex-none bg-purple-600 hover:bg-purple-500 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-purple-600/20 transition active:scale-95">Add Story</button>
+                </div>
+            </div>
 
-    <button onclick="saveProfileData()" id="save-btn" class="btn-main" style="margin-top:20px;">Save Changes</button>
-  </div>
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl font-black text-white flex items-center justify-center md:justify-start gap-2">
+                    <span id="view-name">Loading...</span>
+                    <i id="verified-badge" class="fas fa-check-circle text-blue-500 text-xl hidden"></i>
+                </h1>
+                <p class="text-purple-400 font-bold">@<span id="view-username">username</span></p>
+                <p id="view-bio" class="mt-3 text-gray-300 max-w-lg text-sm leading-relaxed italic">No bio added yet.</p>
+                
+                <div id="view-socials" class="flex justify-center md:justify-start gap-5 mt-5 text-xl">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 flex justify-around items-center text-center">
+            <div><p id="stat-followers" class="text-2xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase font-bold">Followers</p></div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <div><p id="stat-posts" class="text-2xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase font-bold">Posts</p></div>
+        </div>
+        
+        <div class="md:col-span-2 bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-4">
+            <h3 class="text-xs font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2"><i class="fas fa-info-circle"></i> Personal Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
+                <p><i class="fas fa-graduation-cap w-6 text-gray-500"></i> Education: <span id="view-edu" class="text-white font-medium">Not set</span></p>
+                <p><i class="fas fa-birthday-cake w-6 text-gray-500"></i> Birthday: <span id="view-dob" class="text-white font-medium">Not set</span></p>
+                <p><i class="fas fa-venus-mars w-6 text-gray-500"></i> Gender: <span id="view-gender" class="text-white font-medium">Other</span></p>
+                <p><i class="fas fa-globe w-6 text-gray-500"></i> Website: <span id="view-site" class="text-white font-medium">Not set</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-[#0f172a] w-full max-w-lg rounded-[2.5rem] p-8 border border-white/10 my-10 shadow-2xl">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-black text-white">Update Profile</h2>
+                <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="text-gray-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-2">Full Name</label>
+                    <input type="text" id="in-name" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-white transition">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-2">Username (Unique ID)</label>
+                    <input type="text" id="in-username" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-white transition">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-2">Bio</label>
+                    <textarea id="in-bio" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-white transition h-24"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase ml-2">Education</label>
+                        <input type="text" id="in-edu" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-white">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase ml-2">Gender</label>
+                        <select id="in-gender" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-gray-300">
+                            <option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-2">Date of Birth</label>
+                    <input type="date" id="in-dob" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-gray-300">
+                </div>
+
+                <div class="space-y-3">
+                    <p class="text-xs font-bold text-purple-500 uppercase ml-2">Social Media Links</p>
+                    <div class="relative">
+                        <i class="fab fa-facebook absolute left-4 top-4 text-blue-500"></i>
+                        <input type="text" id="in-fb" placeholder="Facebook Profile Link" class="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl outline-none text-sm">
+                    </div>
+                    <div class="relative">
+                        <i class="fab fa-instagram absolute left-4 top-4 text-pink-500"></i>
+                        <input type="text" id="in-ig" placeholder="Instagram Profile Link" class="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl outline-none text-sm">
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-4">
+                    <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="flex-1 bg-white/5 p-4 rounded-2xl font-bold">Cancel</button>
+                    <button onclick="saveData()" class="flex-1 bg-purple-600 p-4 rounded-2xl font-bold shadow-lg shadow-purple-600/30">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="module">
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // এই স্ক্রিপ্টটি ডাটাবেজ থেকে ডাটা লোড ও সেভ করার কাজ করবে।
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-  const auth = getAuth();
-  const db = getFirestore();
-  let currentUid = null;
+    const db = getFirestore();
+    const auth = getAuth();
 
-  const notify = (msg, type = 'success') => {
-    Swal.fire({
-      toast: true,
-      position: 'top-end',
-      icon: type,
-      title: msg,
-      showConfirmButton: false,
-      timer: 2000
-    });
-  };
+    // ডাটা লোড করার ফাংশন
+    async function loadProfileData() {
+        const user = auth.currentUser;
+        if(!user) return;
 
-  window.openEditModal = () => document.getElementById('edit-modal').style.display = 'flex';
-  window.closeEditModal = () => document.getElementById('edit-modal').style.display = 'none';
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
 
-  window.copyProfileLink = () => {
-    const username = document.getElementById('view-username').innerText.trim();
-    if (!username || username === "username") return notify("Username not loaded", "error");
-    navigator.clipboard.writeText(`\( {window.location.origin}/profile?u= \){username}`);
-    notify("Profile link copied!");
-  };
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            
+            // ভিউ আপডেট
+            document.getElementById('view-name').innerText = data.fullName || user.displayName || "New User";
+            document.getElementById('view-username').innerText = data.username || "user_" + user.uid.slice(0,5);
+            document.getElementById('view-bio').innerText = data.bio || "No bio added yet.";
+            document.getElementById('view-edu').innerText = data.education || "Not set";
+            document.getElementById('view-dob').innerText = data.dob || "Not set";
+            document.getElementById('view-gender').innerText = data.gender || "Other";
+            document.getElementById('view-avatar').src = data.profilePicUrl || user.photoURL || "https://via.placeholder.com/150";
 
-  window.uploadImage = async (input, type) => {
-    const file = input.files[0];
-    if (!file || !currentUid) return notify("Please login", "error");
+            // ইনপুট ফিল্ড আপডেট (এডিট মোডালের জন্য)
+            document.getElementById('in-name').value = data.fullName || "";
+            document.getElementById('in-username').value = data.username || "";
+            document.getElementById('in-bio').value = data.bio || "";
+            document.getElementById('in-edu').value = data.education || "";
+            document.getElementById('in-dob').value = data.dob || "";
+            document.getElementById('in-gender').value = data.gender || "Other";
+            document.getElementById('in-fb').value = data.socials?.facebook || "";
+            document.getElementById('in-ig').value = data.socials?.instagram || "";
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', "Meetwoyou");
-
-    try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/dpgawb5sl/image/upload`, { method: 'POST', body: formData });
-      const data = await res.json();
-      const field = type === 'avatar' ? 'profilePicUrl' : 'coverPicUrl';
-      await updateDoc(doc(db, "users", currentUid), { [field]: data.secure_url });
-      notify(type === 'avatar' ? 'Avatar Updated' : 'Cover Updated');
-    } catch (e) {
-      notify("Upload failed", "error");
+            // সোশ্যাল আইকন দেখানো
+            let socialHtml = "";
+            if(data.socials?.facebook) socialHtml += `<a href="${data.socials.facebook}" target="_blank" class="text-blue-500 hover:scale-110 transition"><i class="fab fa-facebook"></i></a>`;
+            if(data.socials?.instagram) socialHtml += `<a href="${data.socials.instagram}" target="_blank" class="text-pink-500 hover:scale-110 transition"><i class="fab fa-instagram"></i></a>`;
+            document.getElementById('view-socials').innerHTML = socialHtml;
+        }
     }
-  };
 
-  window.saveProfileData = async () => {
-    const btn = document.getElementById('save-btn');
-    btn.innerText = "Saving...";
-    btn.disabled = true;
+    // ডাটা সেভ করার ফাংশন
+    window.saveData = async () => {
+        const user = auth.currentUser;
+        const profileData = {
+            fullName: document.getElementById('in-name').value,
+            username: document.getElementById('in-username').value,
+            bio: document.getElementById('in-bio').value,
+            education: document.getElementById('in-edu').value,
+            dob: document.getElementById('in-dob').value,
+            gender: document.getElementById('in-gender').value,
+            socials: {
+                facebook: document.getElementById('in-fb').value,
+                instagram: document.getElementById('in-ig').value
+            }
+        };
 
-    try {
-      await setDoc(doc(db, "users", currentUid), {
-        fullName: document.getElementById('in-name').value.trim(),
-        username: document.getElementById('in-username').value.trim().toLowerCase(),
-        bio: document.getElementById('in-bio').value.trim(),
-        education: document.getElementById('in-edu').value.trim(),
-        dob: document.getElementById('in-dob').value,
-        country: document.getElementById('in-country').value.trim(),
-        living: document.getElementById('in-living').value.trim(),
-        website: document.getElementById('in-website').value.trim(),
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+        try {
+            await setDoc(doc(db, "users", user.uid), profileData, { merge: true });
+            document.getElementById('edit-modal').classList.add('hidden');
+            loadProfileData(); // সাথে সাথে রিফ্রেশ
+        } catch (e) {
+            alert("Error saving: " + e.message);
+        }
+    };
 
-      closeEditModal();
-      notify("Profile updated successfully!");
-    } catch (e) {
-      notify("Save failed", "error");
-    } finally {
-      btn.innerText = "Save Changes";
-      btn.disabled = false;
-    }
-  };
-
-  // Main Profile Loader
-  const user = auth.currentUser;
-  if (user) {
-    currentUid = user.uid;
-    const userRef = doc(db, "users", user.uid);
-
-    onSnapshot(userRef, (snap) => {
-      if (!snap.exists()) {
-        setDoc(userRef, { fullName: user.displayName || "New User", username: "user_" + user.uid.slice(0,6) });
-        return;
-      }
-
-      const d = snap.data();
-      const u = auth.currentUser;
-
-      document.getElementById('view-name').textContent = d.fullName || u.displayName || "User";
-      document.getElementById('view-username').textContent = d.username || "user_" + u.uid.slice(0,6);
-      document.getElementById('view-bio').textContent = d.bio || "No bio added yet.";
-
-      document.getElementById('view-avatar').src = d.profilePicUrl || u.photoURL || "https://via.placeholder.com/120";
-      if (d.coverPicUrl) document.getElementById('view-cover').src = d.coverPicUrl;
-
-      document.getElementById('view-edu').textContent = d.education || "Not set";
-      document.getElementById('view-dob').textContent = d.dob || "Not set";
-      document.getElementById('view-country').textContent = d.country || "Not set";
-      document.getElementById('view-living').textContent = d.living || "Not set";
-      document.getElementById('view-website').textContent = d.website || "Not set";
-
-      // Fill edit form
-      document.getElementById('in-name').value = d.fullName || "";
-      document.getElementById('in-username').value = d.username || "";
-      document.getElementById('in-bio').value = d.bio || "";
-      document.getElementById('in-edu').value = d.education || "";
-      document.getElementById('in-dob').value = d.dob || "";
-      document.getElementById('in-country').value = d.country || "";
-      document.getElementById('in-living').value = d.living || "";
-      document.getElementById('in-website').value = d.website || "";
-    });
-  }
+    // পেজ লোড হলে ডাটা কল করা
+    loadProfileData();
 </script>
