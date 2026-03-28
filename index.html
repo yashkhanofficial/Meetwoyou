@@ -3,71 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Login & Signup</title>
+    <title>Meetwoyou - Advanced Signup</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .hidden { display: none !important; }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-2 italic">Meetwoyou</h1>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="glass-effect p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/20">
+        <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-2 tracking-tight italic">Meetwoyou</h1>
         
         <div id="login-section">
-            <p class="text-center text-gray-500 mb-8">Welcome back! Login korun</p>
+            <p class="text-center text-gray-500 mb-8 font-medium">আপনার বন্ধুদের সাথে যুক্ত হন</p>
             <div class="space-y-4">
-                <input type="email" id="login-email" placeholder="Email Address" class="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:border-purple-500 focus:outline-none transition">
-                <input type="password" id="login-password" placeholder="Password" class="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:border-purple-500 focus:outline-none transition">
+                <input type="email" id="login-email" placeholder="ইমেইল অ্যাড্রেস" class="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all">
+                <input type="password" id="login-password" placeholder="পাসওয়ার্ড" class="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all">
             </div>
-            <div class="text-right mt-2">
-                <button onclick="showSection('forgot-section')" class="text-xs text-purple-600 hover:underline">Forgot Password?</button>
+            <div class="text-right mt-3">
+                <button onclick="showSection('forgot-section')" class="text-sm text-purple-600 font-semibold hover:text-purple-800 transition">পাসওয়ার্ড ভুলে গেছেন?</button>
             </div>
-            <button class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg shadow-lg mt-6 hover:bg-purple-700 transition">Login</button>
+            <button id="login-btn" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-lg mt-8 hover:bg-purple-700 active:scale-95 transition-all">লগইন করুন</button>
             
-            <div class="mt-6 flex items-center justify-between opacity-50"><hr class="w-full border-gray-300"> <span class="px-2 text-xs text-gray-400">OR</span> <hr class="w-full border-gray-300"></div>
+            <div class="mt-8 flex items-center justify-between opacity-40"><hr class="w-full"> <span class="px-3 text-xs font-bold uppercase">অথবা</span> <hr class="w-full"></div>
             
-            <button id="google-login" class="w-full mt-6 bg-white border border-gray-300 py-3 rounded-lg flex items-center justify-center hover:bg-gray-50 transition shadow-sm">
-                <svg class="w-5 h-5 mr-3" viewBox="0 0 48 48">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.94l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-                </svg>
-                Google diye Login
+            <button id="google-login" class="w-full mt-6 bg-white border border-gray-300 py-4 rounded-xl flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all shadow-sm">
+                <svg class="w-6 h-6 mr-3" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.94l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
+                Google দিয়ে লগইন
             </button>
-
-            <p class="mt-8 text-center text-sm text-gray-600 italic">
-                Account nei? <button onclick="showSection('signup-section')" class="text-purple-600 font-bold hover:underline">New Account khulun</button>
-            </p>
+            <p class="mt-10 text-center text-gray-600">অ্যাকাউন্ট নেই? <button onclick="showSection('signup-section')" class="text-purple-600 font-bold hover:underline">নতুন অ্যাকাউন্ট খুলুন</button></p>
         </div>
 
         <div id="signup-section" class="hidden">
-            <p class="text-center text-gray-500 mb-8">Notun Account create korun</p>
+            <p class="text-center text-gray-500 mb-8 font-medium">ফ্রি অ্যাকাউন্ট তৈরি করুন</p>
             <div class="space-y-4">
-                <input type="text" placeholder="Full Name" class="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:border-green-500 focus:outline-none transition">
-                <input type="email" placeholder="Email" class="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:border-green-500 focus:outline-none transition">
-                <input type="password" placeholder="New Password" class="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:border-green-500 focus:outline-none transition">
+                <input type="text" id="signup-name" placeholder="আপনার পুরো নাম" class="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all">
+                <input type="email" id="signup-email" placeholder="ইমেইল অ্যাড্রেস" class="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all">
+                <input type="password" id="signup-password" placeholder="নতুন পাসওয়ার্ড" class="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all">
             </div>
-            <button class="w-full bg-green-600 text-white font-bold py-3 rounded-lg shadow-lg mt-6 hover:bg-green-700 transition">Sign Up</button>
-            <p class="mt-6 text-center text-sm">
-                Already account ache? <button onclick="showSection('login-section')" class="text-gray-600 hover:underline">Login-e firun</button>
-            </p>
-        </div>
-
-        <div id="forgot-section" class="hidden">
-            <p class="text-center text-gray-500 mb-8">Password Reset korun</p>
-            <input type="email" placeholder="Apnar Email likhun" class="w-full px-4 py-3 rounded-lg bg-gray-100 border mb-6 focus:border-orange-500 focus:outline-none transition">
-            <button class="w-full bg-orange-500 text-white font-bold py-3 rounded-lg shadow-lg hover:bg-orange-600 transition">Reset Link Pathan</button>
-            <p class="mt-6 text-center text-sm">
-                <button onclick="showSection('login-section')" class="text-gray-600 hover:underline">Firiye jan</button>
-            </p>
+            <button id="signup-btn" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg mt-8 hover:bg-green-700 active:scale-95 transition-all">অ্যাকাউন্ট তৈরি করুন</button>
+            <p class="mt-8 text-center text-gray-600">আগে থেকেই অ্যাকাউন্ট আছে? <button onclick="showSection('login-section')" class="text-gray-600 font-bold hover:underline">লগইন করুন</button></p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -82,22 +66,49 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Section Toggle function
-        window.showSection = (sectionId) => {
+        window.showSection = (id) => {
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('signup-section').classList.add('hidden');
-            document.getElementById('forgot-section').classList.add('hidden');
-            document.getElementById(sectionId).classList.remove('hidden');
+            document.getElementById(id).classList.remove('hidden');
         };
 
-        // Google Login Logic
+        // --- SIGNUP LOGIC (Working) ---
+        document.getElementById('signup-btn').onclick = async () => {
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+
+            if(!name || !email || !password) return alert("সবগুলো ঘর পূরণ করুন!");
+            
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCredential.user, { displayName: name });
+                alert("সাফল্যের সাথে অ্যাকাউন্ট তৈরি হয়েছে! স্বাগতম " + name);
+                // এখানে আপনি ড্যাশবোর্ড লোড করতে পারেন
+            } catch (error) {
+                alert("ভুল হয়েছে: " + error.message);
+            }
+        };
+
+        // --- LOGIN LOGIC ---
+        document.getElementById('login-btn').onclick = async () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                const res = await signInWithEmailAndPassword(auth, email, password);
+                alert("লগইন সফল! স্বাগতম " + res.user.displayName);
+            } catch (error) {
+                alert("লগইন হয়নি: " + error.message);
+            }
+        };
+
+        // --- GOOGLE LOGIN ---
         document.getElementById('google-login').onclick = async () => {
             try {
-                const result = await signInWithPopup(auth, provider);
-                alert("Welcome " + result.user.displayName + "!");
-                // Dashboard logic eikhane ashbe...
+                const res = await signInWithPopup(auth, provider);
+                alert("গুগল লগইন সফল: " + res.user.displayName);
             } catch (error) {
-                alert("Error: " + error.message);
+                alert("এরর: " + error.message);
             }
         };
     </script>
