@@ -3,188 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Nexus</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Meetwoyou - Ultimate Social</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { background: #0b0f1a; color: #e2e8f0; font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow: hidden; }
-        
-        .glass-header { 
-            background: rgba(15, 23, 42, 0.9); 
-            backdrop-filter: blur(20px); 
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
-        }
+        :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1b; --text: #ffffff; --gray: #b0b3b8; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 75px; overflow-x: hidden; }
 
-        .sidebar { 
-            background: rgba(255, 255, 255, 0.02); 
-            backdrop-filter: blur(20px); 
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        /* Custom Loader */
+        .loader { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .loader-img { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--primary); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
-        .nav-link { 
-            display: flex; align-items: center; gap: 12px; padding: 12px 18px;
-            border-radius: 12px; transition: 0.3s; color: #94a3b8; cursor: pointer;
-        }
-        .nav-link:hover, .nav-link.active { 
-            background: linear-gradient(45deg, #7c3aed, #4f46e5); 
-            color: white; box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.3);
-        }
+        /* Header */
+        .header { background: var(--card); padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
+        .header h2 { color: var(--primary); margin: 0; font-style: italic; }
 
-        #main-content { 
-            height: calc(100vh - 75px); 
-            overflow-y: auto; scrollbar-width: none;
-        }
+        /* Sections */
+        .section { display: none; padding: 15px; max-width: 600px; margin: auto; }
+        .section.active { display: block; }
 
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .mobile-nav { 
-                background: rgba(15, 23, 42, 0.98); 
-                backdrop-filter: blur(20px);
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            #main-content { height: calc(100vh - 145px); }
-        }
+        /* Post & Story UI */
+        .story-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
+        .story-item { min-width: 80px; height: 130px; background: #222; border-radius: 10px; position: relative; border: 1px solid #333; }
+        .post-card { background: var(--card); border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px solid #222; }
+        .post-img { width: 100%; border-radius: 10px; margin-top: 10px; }
+
+        /* Search & User List */
+        .search-box { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 25px; color: white; margin-bottom: 15px; }
+        .user-card { background: var(--card); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid #222; }
+        .user-card img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+
+        /* Chat Screen */
+        #chat-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
+        .chat-header { background: var(--card); padding: 12px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #333; }
+        .chat-msgs { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 75%; font-size: 14px; }
+        .msg.sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg.received { background: #242526; align-self: flex-start; border-bottom-left-radius: 2px; }
+
+        /* Inputs */
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #222; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
+
+        /* Bottom Nav */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-item { color: var(--gray); font-size: 20px; cursor: pointer; text-align: center; flex: 1; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item span { display: block; font-size: 10px; margin-top: 4px; }
     </style>
 </head>
-<body class="flex h-screen w-full">
+<body>
 
-    <aside class="hidden md:flex sidebar w-64 flex-col p-6 space-y-6">
-        <h1 class="text-2xl font-black italic text-purple-500 px-2">Meetwoyou</h1>
-        <nav class="flex-1 space-y-2">
-            <div onclick="loadPage('newsfeed', this)" class="nav-link active"><i class="fas fa-home"></i> Home</div>
-            <div onclick="loadPage('friends', this)" class="nav-link"><i class="fas fa-users"></i> Connections</div>
-            <div onclick="loadPage('messages', this)" class="nav-link"><i class="fas fa-comment"></i> Messages</div>
-            <div onclick="loadPage('profile', this)" class="nav-link"><i class="fas fa-user"></i> Profile</div>
-            <div onclick="loadPage('settings', this)" class="nav-link"><i class="fas fa-cog"></i> Settings</div>
-        </nav>
-    </aside>
+<div id="loader" class="loader">
+    <div class="loader-img"></div>
+    <p style="margin-top:15px; color:var(--primary)">Meetwoyou Secure Boot...</p>
+</div>
 
-    <main class="flex-1 flex flex-col w-full relative">
-        <header class="glass-header h-[75px] flex items-center justify-between px-6 z-50">
-            <h1 class="md:hidden text-xl font-black italic text-purple-500">M.</h1>
-            <h2 id="page-title" class="text-lg font-bold">HOME FEED</h2>
-            
-            <div class="flex items-center gap-4">
-                <i class="fas fa-bell text-gray-400 cursor-pointer" onclick="loadPage('notifications')"></i>
-                <div class="flex items-center gap-2 cursor-pointer" onclick="loadPage('profile')">
-                    <div class="hidden sm:block text-right">
-                        <p id="user-display-name" class="text-xs font-bold text-white">Loading...</p>
-                    </div>
-                    <img id="user-profile-pic" src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full border-2 border-purple-500 object-cover">
-                </div>
-            </div>
-        </header>
+<div class="header">
+    <h2>Meetwoyou</h2>
+    <i class="fas fa-sign-out-alt" onclick="logout()" style="color:var(--gray)"></i>
+</div>
 
-        <div id="main-content" class="p-4 overflow-x-hidden">
-            <div id="loader" class="flex flex-col items-center justify-center h-full text-gray-500">
-                <div class="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                <p class="mt-4 text-sm font-medium">Syncing Nexus...</p>
-            </div>
+<div id="home-sec" class="section active">
+    <div class="story-bar" id="story-area">
+        <div class="story-item" onclick="alert('Story upload coming soon!')" style="display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:10px;">
+            <i class="fas fa-plus-circle fa-2x"></i><br>Add Story
         </div>
+    </div>
+    <div class="post-card">
+        <textarea id="post-text" placeholder="What's on your mind?"></textarea>
+        <input type="file" id="post-file" accept="image/*">
+        <button class="btn-main" onclick="uploadPost()">Post Status</button>
+    </div>
+    <div id="feed-area"></div>
+</div>
 
-        <nav class="md:hidden mobile-nav fixed bottom-0 w-full h-16 flex items-center justify-around z-50">
-            <i onclick="loadPage('newsfeed', this)" class="fas fa-home text-purple-500 text-xl cursor-pointer"></i>
-            <i onclick="loadPage('friends', this)" class="fas fa-users text-gray-500 text-xl cursor-pointer"></i>
-            <i onclick="loadPage('messages', this)" class="fas fa-comment text-gray-500 text-xl cursor-pointer"></i>
-            <i onclick="loadPage('profile', this)" class="fas fa-user text-gray-500 text-xl cursor-pointer"></i>
-            <i onclick="loadPage('settings', this)" class="fas fa-cog text-gray-500 text-xl cursor-pointer"></i>
-        </nav>
-    </main>
+<div id="search-sec" class="section">
+    <input type="text" class="search-box" id="user-search" placeholder="Search friends by name..." oninput="filterUsers()">
+    <div id="all-users-list"></div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+<div id="profile-sec" class="section">
+    <div style="text-align:center; background:var(--card); padding:20px; border-radius:15px;">
+        <div style="position:relative; width:100px; height:100px; margin:auto;">
+            <img id="p-img" src="https://via.placeholder.com/100" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+            <label for="p-upload" style="position:absolute; bottom:0; right:0; background:var(--primary); padding:6px; border-radius:50%; cursor:pointer;"><i class="fas fa-camera"></i></label>
+            <input type="file" id="p-upload" style="display:none">
+        </div>
+        <input type="text" id="p-name" placeholder="Full Name">
+        <textarea id="p-bio" placeholder="Bio"></textarea>
+        <input type="text" id="p-edu" placeholder="Education">
+        <input type="date" id="p-dob">
+        <button class="btn-main" id="p-save-btn">Update Profile</button>
+    </div>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
-            authDomain: "meetwoyou-436a2.firebaseapp.com",
-            projectId: "meetwoyou-436a2",
-            storageBucket: "meetwoyou-436a2.firebasestorage.app",
-            messagingSenderId: "612788132077",
-            appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+<div id="chat-screen">
+    <div class="chat-header">
+        <i class="fas fa-arrow-left" onclick="closeChat()"></i>
+        <img id="cw-img" src="" style="width:40px; height:40px; border-radius:50%;">
+        <b id="cw-name">User</b>
+    </div>
+    <div class="chat-msgs" id="chat-box"></div>
+    <div class="chat-input">
+        <input type="text" id="m-input" placeholder="Type a message...">
+        <i class="fas fa-microphone" id="v-btn" style="padding:10px; color:var(--gray)"></i>
+        <i class="fas fa-paper-plane" onclick="sendMsg()" style="padding:10px; color:var(--primary)"></i>
+    </div>
+</div>
+
+<div class="nav-bar">
+    <div class="nav-item active" onclick="showSec('home', this)"><i class="fas fa-home"></i><span>Home</span></div>
+    <div class="nav-item" onclick="showSec('search', this)"><i class="fas fa-users"></i><span>Users</span></div>
+    <div class="nav-item" onclick="showSec('profile', this)"><i class="fas fa-user-edit"></i><span>Edit</span></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, orderBy, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
+      authDomain: "meetwoyou-436a2.firebaseapp.com",
+      projectId: "meetwoyou-436a2",
+      storageBucket: "meetwoyou-436a2.firebasestorage.app",
+      messagingSenderId: "612788132077",
+      appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const CLOUD_NAME = "dpgawb5sl";
+    const UPLOAD_PRESET = "Meetwoyou";
+
+    let chatUID = null;
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            document.getElementById('loader').style.display = 'none';
+            loadProfileData(user);
+            loadUsers();
+            loadPosts();
+        } else {
+            window.location.href = "index.html";
+        }
+    });
+
+    // Profile Logic
+    async function loadProfileData(user) {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if(snap.exists()){
+            const d = snap.data();
+            document.getElementById('p-name').value = user.displayName || "";
+            document.getElementById('p-bio').value = d.bio || "";
+            document.getElementById('p-edu').value = d.education || "";
+            document.getElementById('p-dob').value = d.dob || "";
+            document.getElementById('p-img').src = user.photoURL || "https://via.placeholder.com/100";
+        }
+    }
+
+    document.getElementById('p-save-btn').onclick = async () => {
+        const user = auth.currentUser;
+        const btn = document.getElementById('p-save-btn');
+        btn.innerText = "Updating...";
+        
+        let photoUrl = user.photoURL;
+        const file = document.getElementById('p-upload').files[0];
+        if(file){
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', UPLOAD_PRESET);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method:'POST', body:formData});
+            const data = await res.json();
+            photoUrl = data.secure_url;
+        }
+
+        const profileData = {
+            displayName: document.getElementById('p-name').value,
+            bio: document.getElementById('p-bio').value,
+            education: document.getElementById('p-edu').value,
+            dob: document.getElementById('p-dob').value,
+            photoURL: photoUrl
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        await setDoc(doc(db, "users", user.uid), profileData, {merge:true});
+        await updateProfile(user, {displayName: profileData.displayName, photoURL: photoUrl});
+        alert("Profile Updated!");
+        location.reload();
+    };
 
-        // ইউজার ডাটা রিয়েল-টাইম আপডেট
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // ড্যাশবোর্ডে বেসিক ডাটা সেট করা
-                const displayName = user.displayName || "Agent";
-                const photoURL = user.photoURL || "https://via.placeholder.com/40";
-                
-                document.getElementById('user-display-name').innerText = displayName;
-                document.getElementById('user-profile-pic').src = photoURL;
-
-                // Firestore থেকে কাস্টম ডাটা চেক করা (যদি ইউজারনেম থাকে)
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        if (userData.fullName) document.getElementById('user-display-name').innerText = userData.fullName;
-                    }
-                } catch (e) { console.error("Error fetching user data:", e); }
-
-                loadPage('newsfeed');
-            } else {
-                window.location.href = "index.html";
+    // User Search & List
+    async function loadUsers() {
+        const snap = await getDocs(collection(db, "users"));
+        const list = document.getElementById('all-users-list');
+        list.innerHTML = "";
+        snap.forEach(uDoc => {
+            if(uDoc.id !== auth.currentUser.uid){
+                const u = uDoc.data();
+                const div = document.createElement('div');
+                div.className = "user-card";
+                div.innerHTML = `<img src="${u.photoURL || 'https://via.placeholder.com/50'}"> <div><b>${u.displayName}</b><br><small>${u.bio || 'Available'}</small></div>`;
+                div.onclick = () => openChat(uDoc.id, u.displayName, u.photoURL);
+                list.appendChild(div);
             }
         });
+    }
 
-        window.loadPage = async (pageName, element = null) => {
-            const contentArea = document.getElementById('main-content');
-            document.getElementById('page-title').innerText = pageName.toUpperCase();
-            
-            // UI Color Change Logic
-            if(element) {
-                // Sidebar active state
-                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-                if(element.classList.contains('nav-link')) element.classList.add('active');
-
-                // Mobile icons color
-                document.querySelectorAll('.mobile-nav i').forEach(el => {
-                    el.classList.remove('text-purple-500');
-                    el.classList.add('text-gray-500');
-                });
-                element.classList.add('text-purple-500');
-                element.classList.remove('text-gray-500');
-            }
-
-            try {
-                const response = await fetch(`${pageName}.html`);
-                if(!response.ok) throw new Error();
-                const html = await response.text();
-                contentArea.innerHTML = html;
-
-                // বিশেষ কন্ডিশন: প্রোফাইল পেজ লোড হলে Firestore থেকে ডাটা রিফ্রেশ করা
-                if(pageName === 'profile') {
-                    const profileScript = document.createElement('script');
-                    profileScript.type = 'module';
-                    profileScript.innerHTML = `
-                        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-                        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-                        const auth = getAuth();
-                        const db = getFirestore();
-                        const user = auth.currentUser;
-                        if(user) {
-                            const userDoc = await getDoc(doc(db, "users", user.uid));
-                            if(userDoc.exists()) {
-                                const data = userDoc.data();
-                                if(document.getElementById('p-name')) document.getElementById('p-name').innerText = data.fullName || user.displayName;
-                                if(document.getElementById('p-username')) document.getElementById('p-username').innerText = data.username || "user_" + user.uid.slice(0,5);
-                                if(document.getElementById('p-image')) document.getElementById('p-image').src = data.profilePicUrl || user.photoURL || "https://via.placeholder.com/150";
-                            }
-                        }
-                    `;
-                    document.body.appendChild(profileScript);
+    // Chat Logic
+    window.openChat = (uid, name, img) => {
+        chatUID = uid;
+        document.getElementById('cw-name').innerText = name;
+        document.getElementById('cw-img').src = img || 'https://via.placeholder.com/40';
+        document.getElementById('chat-screen').style.display = 'flex';
+        const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
+        onSnapshot(q, (snap) => {
+            const box = document.getElementById('chat-box');
+            box.innerHTML = "";
+            snap.forEach(mDoc => {
+                const m = mDoc.data();
+                if((m.sender === auth.currentUser.uid && m.receiver === uid) || (m.sender === uid && m.receiver === auth.currentUser.uid)){
+                    const div = document.createElement('div');
+                    div.className = m.sender === auth.currentUser.uid ? "msg sent" : "msg received";
+                    div.innerText = m.content;
+                    box.appendChild(div);
                 }
-            } catch (err) {
-                contentArea.innerHTML = `<div class="p-10 text-center"><i class="fas fa-exclamation-triangle text-3xl mb-4 text-purple-500"></i><br>Module <b>${pageName}.html</b> needs encryption.</div>`;
-            }
-        };
-    </script>
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    };
+
+    window.closeChat = () => document.getElementById('chat-screen').style.display = 'none';
+
+    window.sendMsg = async () => {
+        const input = document.getElementById('m-input');
+        if(!input.value || !chatUID) return;
+        await addDoc(collection(db, "messages"), {
+            sender: auth.currentUser.uid,
+            receiver: chatUID,
+            content: input.value,
+            timestamp: serverTimestamp()
+        });
+        input.value = "";
+    };
+
+    // Posts & Feed
+    window.uploadPost = async () => {
+        const text = document.getElementById('post-text').value;
+        const file = document.getElementById('post-file').files[0];
+        if(!text && !file) return;
+
+        let imgUrl = "";
+        if(file){
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', UPLOAD_PRESET);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method:'POST', body:formData});
+            const data = await res.json();
+            imgUrl = data.secure_url;
+        }
+
+        await addDoc(collection(db, "posts"), {
+            uid: auth.currentUser.uid,
+            name: auth.currentUser.displayName,
+            photo: auth.currentUser.photoURL,
+            text: text,
+            img: imgUrl,
+            timestamp: serverTimestamp()
+        });
+        alert("Posted!");
+        location.reload();
+    };
+
+    function loadPosts() {
+        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snap) => {
+            const area = document.getElementById('feed-area');
+            area.innerHTML = "";
+            snap.forEach(pDoc => {
+                const p = pDoc.data();
+                const card = document.createElement('div');
+                card.className = "post-card";
+                card.innerHTML = `<b>${p.name}</b><p>${p.text}</p>${p.img ? `<img src="${p.img}" class="post-img">` : ''}`;
+                area.appendChild(card);
+            });
+        });
+    }
+
+    // UI Navigation
+    window.showSec = (id, el) => {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id + '-sec').classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+    };
+
+    window.logout = () => signOut(auth);
+</script>
 </body>
 </html>
