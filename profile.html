@@ -1,8 +1,9 @@
-<div class="max-w-5xl mx-auto space-y-6 pb-28">
+<div class="max-w-5xl mx-auto space-y-6 pb-28 animate-fade-in">
+    
     <div class="relative bg-slate-900/40 rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
         <div class="h-48 md:h-64 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 relative group">
-            <img id="view-cover" class="w-full h-full object-cover">
-            <label for="cover-upload" class="absolute bottom-4 right-4 bg-black/40 p-2 rounded-xl cursor-pointer border border-white/10 opacity-0 group-hover:opacity-100 transition">
+            <img id="view-cover" class="w-full h-full object-cover opacity-60">
+            <label for="cover-upload" class="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-xl cursor-pointer border border-white/10 opacity-0 group-hover:opacity-100 transition">
                 <i class="fas fa-camera text-white"></i>
             </label>
             <input type="file" id="cover-upload" class="hidden" onchange="uploadToCloudinary(this, 'cover')">
@@ -11,16 +12,20 @@
         <div class="px-6 md:px-10 pb-8">
             <div class="relative -mt-16 mb-4 flex flex-col md:flex-row items-center md:items-end justify-between gap-4">
                 <div class="relative group">
-                    <img id="view-avatar" src="https://via.placeholder.com/150" class="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-4 border-[#0b0f1a] object-cover bg-slate-800 shadow-2xl">
-                    <label for="avatar-upload" class="absolute bottom-2 right-2 bg-purple-600 p-2.5 rounded-2xl cursor-pointer border-2 border-[#0b0f1a]">
+                    <div class="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-4 border-[#0b0f1a] overflow-hidden shadow-2xl bg-slate-800">
+                        <img id="view-avatar" src="https://via.placeholder.com/150" class="w-full h-full object-cover">
+                    </div>
+                    <label for="avatar-upload" class="absolute bottom-2 right-2 bg-purple-600 p-2.5 rounded-2xl cursor-pointer shadow-lg border-2 border-[#0b0f1a]">
                         <i class="fas fa-pen text-white text-xs"></i>
                     </label>
                     <input type="file" id="avatar-upload" class="hidden" onchange="uploadToCloudinary(this, 'avatar')">
                 </div>
                 
                 <div class="flex gap-3 mb-2">
-                    <button onclick="document.getElementById('edit-modal').classList.remove('hidden')" class="bg-white/5 text-white px-8 py-3 rounded-2xl font-bold border border-white/10 hover:bg-white/10 transition">Edit Profile</button>
-                    <button onclick="copyProfileLink()" class="p-4 bg-white/5 rounded-2xl border border-white/10 text-purple-400"><i class="fas fa-share-alt"></i></button>
+                    <button onclick="openEditModal()" class="bg-white/5 text-white px-8 py-3 rounded-2xl font-bold border border-white/10 hover:bg-white/10 transition">Edit Profile</button>
+                    <button onclick="copyProfileLink()" class="p-4 bg-white/5 rounded-2xl border border-white/10 text-purple-400 hover:bg-purple-500/10 transition">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
                 </div>
             </div>
 
@@ -32,78 +37,106 @@
         </div>
     </div>
 
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 flex justify-around items-center text-center">
+            <div><p id="stat-followers" class="text-2xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase font-bold">Followers</p></div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <div><p id="stat-posts" class="text-2xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase font-bold">Posts</p></div>
+        </div>
+        
+        <div class="md:col-span-2 bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-4">
+            <h3 class="text-xs font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2"><i class="fas fa-info-circle"></i> Basic Info</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
+                <p><i class="fas fa-graduation-cap w-6 text-gray-500"></i> Education: <span id="view-edu" class="text-white">Not set</span></p>
+                <p><i class="fas fa-birthday-cake w-6 text-gray-500"></i> Birthday: <span id="view-dob" class="text-white">Not set</span></p>
+                <p><i class="fas fa-venus-mars w-6 text-gray-500"></i> Gender: <span id="view-gender" class="text-white">Other</span></p>
+            </div>
+        </div>
+    </div>
+
     <div id="edit-modal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-[#0f172a] w-full max-w-lg rounded-[2.5rem] p-8 border border-white/10 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div class="flex items-center justify-between mb-8">
-                <h2 class="text-2xl font-black text-white">Edit Profile</h2>
-                <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="text-gray-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+                <h2 class="text-2xl font-black text-white">Update Identity</h2>
+                <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
             </div>
+            
             <div class="space-y-4">
                 <input type="text" id="in-name" placeholder="Full Name" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-purple-500">
                 <input type="text" id="in-username" placeholder="Username" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-purple-500">
-                <textarea id="in-bio" placeholder="Bio" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white h-24 outline-none focus:border-purple-500"></textarea>
+                <textarea id="in-bio" placeholder="Tell us about yourself..." class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white h-24 outline-none focus:border-purple-500"></textarea>
                 <input type="text" id="in-edu" placeholder="Education" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white">
                 <input type="date" id="in-dob" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-gray-400">
-                <button id="save-btn" onclick="saveProfile()" class="w-full bg-purple-600 p-4 rounded-2xl font-bold text-white shadow-lg shadow-purple-600/30">Save Changes</button>
+                <select id="in-gender" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none text-gray-400">
+                    <option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
+                </select>
+                <button id="save-btn" onclick="saveProfileData()" class="w-full bg-purple-600 p-4 rounded-2xl font-bold text-white shadow-lg shadow-purple-600/30">Save Changes</button>
             </div>
         </div>
     </div>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
-        authDomain: "meetwoyou-436a2.firebaseapp.com",
-        projectId: "meetwoyou-436a2",
-        storageBucket: "meetwoyou-436a2.firebasestorage.app",
-        messagingSenderId: "612788132077",
-        appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+    const db = getFirestore();
+    const auth = getAuth();
+
+    // 1. Modal Control
+    window.openEditModal = () => document.getElementById('edit-modal').classList.remove('hidden');
+
+    // 2. Profile Link Copy
+    window.copyProfileLink = () => {
+        const username = document.getElementById('view-username').innerText;
+        const link = `${window.location.origin}/profile?u=${username}`;
+        navigator.clipboard.writeText(link).then(() => alert("Profile Link Copied!"));
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
-    // ১. প্রোফাইল রিয়েল-টাইম লোড করা
+    // 3. Real-time Profile Syncing
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            onSnapshot(doc(db, "users", user.uid), (snap) => {
+            const docRef = doc(db, "users", user.uid);
+            onSnapshot(docRef, (snap) => {
                 if (snap.exists()) {
-                    const d = snap.data();
-                    // UI আপডেট
-                    document.getElementById('view-name').innerText = d.fullName || "Agent";
-                    document.getElementById('view-username').innerText = d.username || "user_" + user.uid.slice(0,5);
-                    document.getElementById('view-bio').innerText = d.bio || "No bio added yet.";
-                    document.getElementById('view-avatar').src = d.profilePicUrl || user.photoURL || "https://via.placeholder.com/150";
-                    document.getElementById('view-cover').src = d.coverPicUrl || "";
+                    const data = snap.data();
+                    
+                    // Header Sync
+                    document.getElementById('view-name').innerText = data.fullName || user.displayName || "Agent";
+                    document.getElementById('view-username').innerText = data.username || "user_" + user.uid.slice(0,5);
+                    document.getElementById('view-bio').innerText = data.bio || "No bio added yet.";
+                    document.getElementById('view-avatar').src = data.profilePicUrl || user.photoURL || "https://via.placeholder.com/150";
+                    document.getElementById('view-cover').src = data.coverPicUrl || "";
 
-                    // এডিট ফিল্ডে ডাটা সেট করা
-                    document.getElementById('in-name').value = d.fullName || "";
-                    document.getElementById('in-username').value = d.username || "";
-                    document.getElementById('in-bio').value = d.bio || "";
-                    document.getElementById('in-edu').value = d.education || "";
-                    document.getElementById('in-dob').value = d.dob || "";
+                    // Basic Info Sync
+                    document.getElementById('view-edu').innerText = data.education || "Not set";
+                    document.getElementById('view-dob').innerText = data.dob || "Not set";
+                    document.getElementById('view-gender').innerText = data.gender || "Other";
+
+                    // Input Field Sync
+                    document.getElementById('in-name').value = data.fullName || "";
+                    document.getElementById('in-username').value = data.username || "";
+                    document.getElementById('in-bio').value = data.bio || "";
+                    document.getElementById('in-edu').value = data.education || "";
+                    document.getElementById('in-dob').value = data.dob || "";
+                    document.getElementById('in-gender').value = data.gender || "Other";
                 } else {
-                    // প্রথমবার ডাটাবেজে ইউজার তৈরি করা
-                    setDoc(doc(db, "users", user.uid), {
+                    // Create initial profile if doesn't exist
+                    setDoc(docRef, {
                         fullName: user.displayName || "Agent",
                         username: "user_" + user.uid.slice(0,5),
-                        bio: "",
-                        profilePicUrl: user.photoURL || ""
+                        profilePicUrl: user.photoURL || "",
+                        createdAt: new Date()
                     });
                 }
             });
         }
     });
 
-    // ২. Cloudinary তে ইমেজ আপলোড
+    // 4. Image Upload to Cloudinary
     window.uploadToCloudinary = async (input, type) => {
         const file = input.files[0];
-        if(!file) return;
+        if (!file) return;
 
         const formData = new FormData();
         formData.append('file', file);
@@ -120,12 +153,12 @@
             const user = auth.currentUser;
             const field = type === 'avatar' ? 'profilePicUrl' : 'coverPicUrl';
             await setDoc(doc(db, "users", user.uid), { [field]: imageUrl }, { merge: true });
-            alert("Image updated!");
+            alert(`${type.toUpperCase()} Updated!`);
         } catch (err) { alert("Upload failed!"); }
     };
 
-    // ৩. প্রোফাইল সেভ করা
-    window.saveProfile = async () => {
+    // 5. Save Profile Data to Firestore
+    window.saveProfileData = async () => {
         const user = auth.currentUser;
         if(!user) return;
         
@@ -139,13 +172,13 @@
             bio: document.getElementById('in-bio').value,
             education: document.getElementById('in-edu').value,
             dob: document.getElementById('in-dob').value,
+            gender: document.getElementById('in-gender').value,
             updatedAt: new Date()
         };
 
         try {
             await setDoc(doc(db, "users", user.uid), updatedData, { merge: true });
             document.getElementById('edit-modal').classList.add('hidden');
-            alert("Success!");
         } catch (e) {
             alert("Error: " + e.message);
         } finally {
@@ -153,4 +186,4 @@
             btn.disabled = false;
         }
     };
-</script>
+                </script>
