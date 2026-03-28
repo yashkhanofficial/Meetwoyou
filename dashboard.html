@@ -62,15 +62,15 @@
     <main class="flex-1 flex flex-col w-full relative">
         <header class="glass-header h-[75px] flex items-center justify-between px-6 z-50">
             <h1 class="md:hidden text-xl font-black italic text-purple-500">M.</h1>
-            <h2 id="page-title" class="text-lg font-bold">Home Feed</h2>
+            <h2 id="page-title" class="text-lg font-bold">HOME FEED</h2>
             
             <div class="flex items-center gap-4">
                 <i class="fas fa-bell text-gray-400 cursor-pointer" onclick="loadPage('notifications')"></i>
                 <div class="flex items-center gap-2 cursor-pointer" onclick="loadPage('profile')">
                     <div class="hidden sm:block text-right">
-                        <p id="user-display-name" class="text-xs font-bold">User</p>
+                        <p id="user-display-name" class="text-xs font-bold text-white">Loading...</p>
                     </div>
-                    <img id="user-profile-pic" src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full border border-purple-500">
+                    <img id="user-profile-pic" src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full border-2 border-purple-500 object-cover">
                 </div>
             </div>
         </header>
@@ -78,22 +78,23 @@
         <div id="main-content" class="p-4 overflow-x-hidden">
             <div id="loader" class="flex flex-col items-center justify-center h-full text-gray-500">
                 <div class="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                <p class="mt-4 text-sm font-medium">Loading Nexus...</p>
+                <p class="mt-4 text-sm font-medium">Syncing Nexus...</p>
             </div>
         </div>
 
         <nav class="md:hidden mobile-nav fixed bottom-0 w-full h-16 flex items-center justify-around z-50">
-            <i onclick="loadPage('newsfeed', this)" class="fas fa-home text-purple-500 text-xl"></i>
-            <i onclick="loadPage('friends', this)" class="fas fa-users text-gray-500 text-xl"></i>
-            <i onclick="loadPage('messages', this)" class="fas fa-comment text-gray-500 text-xl"></i>
-            <i onclick="loadPage('profile', this)" class="fas fa-user text-gray-500 text-xl"></i>
-            <i onclick="loadPage('settings', this)" class="fas fa-cog text-gray-500 text-xl"></i>
+            <i onclick="loadPage('newsfeed', this)" class="fas fa-home text-purple-500 text-xl cursor-pointer"></i>
+            <i onclick="loadPage('friends', this)" class="fas fa-users text-gray-500 text-xl cursor-pointer"></i>
+            <i onclick="loadPage('messages', this)" class="fas fa-comment text-gray-500 text-xl cursor-pointer"></i>
+            <i onclick="loadPage('profile', this)" class="fas fa-user text-gray-500 text-xl cursor-pointer"></i>
+            <i onclick="loadPage('settings', this)" class="fas fa-cog text-gray-500 text-xl cursor-pointer"></i>
         </nav>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -106,11 +107,27 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        onAuthStateChanged(auth, (user) => {
+        // ইউজার ডাটা রিয়েল-টাইম আপডেট
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                document.getElementById('user-display-name').innerText = user.displayName || "Agent";
-                document.getElementById('user-profile-pic').src = user.photoURL || "https://via.placeholder.com/40";
+                // ড্যাশবোর্ডে বেসিক ডাটা সেট করা
+                const displayName = user.displayName || "Agent";
+                const photoURL = user.photoURL || "https://via.placeholder.com/40";
+                
+                document.getElementById('user-display-name').innerText = displayName;
+                document.getElementById('user-profile-pic').src = photoURL;
+
+                // Firestore থেকে কাস্টম ডাটা চেক করা (যদি ইউজারনেম থাকে)
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        if (userData.fullName) document.getElementById('user-display-name').innerText = userData.fullName;
+                    }
+                } catch (e) { console.error("Error fetching user data:", e); }
+
                 loadPage('newsfeed');
             } else {
                 window.location.href = "index.html";
@@ -121,18 +138,51 @@
             const contentArea = document.getElementById('main-content');
             document.getElementById('page-title').innerText = pageName.toUpperCase();
             
-            // UI Color Change
+            // UI Color Change Logic
             if(element) {
-                document.querySelectorAll('.nav-link, i').forEach(el => el.classList.remove('text-purple-500', 'active'));
-                element.classList.add('text-purple-500', 'active');
+                // Sidebar active state
+                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+                if(element.classList.contains('nav-link')) element.classList.add('active');
+
+                // Mobile icons color
+                document.querySelectorAll('.mobile-nav i').forEach(el => {
+                    el.classList.remove('text-purple-500');
+                    el.classList.add('text-gray-500');
+                });
+                element.classList.add('text-purple-500');
+                element.classList.remove('text-gray-500');
             }
 
             try {
                 const response = await fetch(`${pageName}.html`);
                 if(!response.ok) throw new Error();
-                contentArea.innerHTML = await response.text();
+                const html = await response.text();
+                contentArea.innerHTML = html;
+
+                // বিশেষ কন্ডিশন: প্রোফাইল পেজ লোড হলে Firestore থেকে ডাটা রিফ্রেশ করা
+                if(pageName === 'profile') {
+                    const profileScript = document.createElement('script');
+                    profileScript.type = 'module';
+                    profileScript.innerHTML = `
+                        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+                        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+                        const auth = getAuth();
+                        const db = getFirestore();
+                        const user = auth.currentUser;
+                        if(user) {
+                            const userDoc = await getDoc(doc(db, "users", user.uid));
+                            if(userDoc.exists()) {
+                                const data = userDoc.data();
+                                if(document.getElementById('p-name')) document.getElementById('p-name').innerText = data.fullName || user.displayName;
+                                if(document.getElementById('p-username')) document.getElementById('p-username').innerText = data.username || "user_" + user.uid.slice(0,5);
+                                if(document.getElementById('p-image')) document.getElementById('p-image').src = data.profilePicUrl || user.photoURL || "https://via.placeholder.com/150";
+                            }
+                        }
+                    `;
+                    document.body.appendChild(profileScript);
+                }
             } catch (err) {
-                contentArea.innerHTML = `<div class="p-10 text-center">Create <b>${pageName}.html</b> to see this page.</div>`;
+                contentArea.innerHTML = `<div class="p-10 text-center"><i class="fas fa-exclamation-triangle text-3xl mb-4 text-purple-500"></i><br>Module <b>${pageName}.html</b> needs encryption.</div>`;
             }
         };
     </script>
