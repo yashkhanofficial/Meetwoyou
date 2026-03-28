@@ -1,117 +1,100 @@
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profile - Meetwoyou</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <style>
-    .profile-card { background: linear-gradient(135deg, #4f46e5, #7e22ce); }
-  </style>
-</head>
-<body class="bg-[#0b0f1a] text-white min-h-screen pb-20">
-
-<div class="max-w-5xl mx-auto space-y-6 pb-28 animate-fade-in px-4">
+<div class="max-w-5xl mx-auto px-4 py-6 space-y-8 min-h-full">
 
   <!-- Profile Header -->
-  <div class="relative bg-slate-900/40 rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
-    <!-- Cover -->
-    <div class="h-48 md:h-64 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 relative group">
-      <img id="view-cover" class="w-full h-full object-cover opacity-70" alt="cover">
-      <label for="cover-upload" class="absolute bottom-4 right-4 bg-black/50 backdrop-blur-md p-3 rounded-2xl cursor-pointer border border-white/10 hover:bg-black/70 transition">
-        <i class="fas fa-camera text-white"></i>
+  <div class="glass-card rounded-[2.5rem] overflow-hidden border border-white/10">
+    <!-- Cover Photo -->
+    <div class="h-56 md:h-72 relative group profile-header bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700">
+      <img id="view-cover" class="w-full h-full object-cover opacity-75" alt="cover">
+      <label for="cover-upload" class="absolute bottom-6 right-6 bg-black/60 hover:bg-black/80 p-4 rounded-2xl cursor-pointer transition backdrop-blur-md">
+        <i class="fas fa-camera text-2xl"></i>
       </label>
-      <input type="file" id="cover-upload" class="hidden" accept="image/*" onchange="uploadToCloudinary(this, 'cover')">
+      <input type="file" id="cover-upload" class="hidden" accept="image/*" onchange="uploadProfileImage(this, 'cover')">
     </div>
 
-    <!-- Avatar + Buttons -->
-    <div class="px-6 md:px-10 pb-8">
-      <div class="relative -mt-16 mb-6 flex flex-col md:flex-row items-center md:items-end justify-between gap-6">
-        <div class="relative group">
-          <div class="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-4 border-[#0b0f1a] overflow-hidden shadow-2xl bg-slate-800">
-            <img id="view-avatar" src="https://via.placeholder.com/150" class="w-full h-full object-cover" alt="avatar">
+    <div class="px-6 md:px-10 pb-10">
+      <div class="relative -mt-20 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="relative">
+          <div class="w-36 h-36 md:w-44 md:h-44 rounded-3xl border-4 border-[#0b0f1a] overflow-hidden shadow-2xl">
+            <img id="view-avatar" src="https://via.placeholder.com/200" class="w-full h-full object-cover" alt="avatar">
           </div>
-          <label for="avatar-upload" class="absolute bottom-3 right-3 bg-purple-600 p-3 rounded-2xl cursor-pointer shadow-xl border-2 border-[#0b0f1a]">
-            <i class="fas fa-pen text-white text-sm"></i>
+          <label for="avatar-upload" class="absolute bottom-2 right-2 bg-purple-600 p-4 rounded-2xl cursor-pointer shadow-xl border-4 border-[#0b0f1a]">
+            <i class="fas fa-pen"></i>
           </label>
-          <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="uploadToCloudinary(this, 'avatar')">
+          <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="uploadProfileImage(this, 'avatar')">
         </div>
 
         <div class="flex gap-3">
-          <button onclick="openEditModal()" 
-            class="bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-2xl font-semibold border border-white/10 transition flex items-center gap-2">
+          <button onclick="openEditModal()" class="btn-primary flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold">
             <i class="fas fa-edit"></i> Edit Profile
           </button>
-          <button onclick="copyProfileLink()" 
-            class="p-4 bg-white/10 hover:bg-purple-500/20 rounded-2xl border border-white/10 text-purple-400 transition">
-            <i class="fas fa-share-alt"></i>
+          <button onclick="copyProfileLink()" class="glass-card p-4 rounded-2xl hover:bg-white/10 transition">
+            <i class="fas fa-share-alt text-2xl"></i>
           </button>
         </div>
       </div>
 
-      <!-- Name, Username, Bio -->
-      <div class="text-center md:text-left">
-        <h1 id="view-name" class="text-3xl font-black text-white">Syncing...</h1>
-        <p id="view-username-container" class="text-purple-400 font-bold text-xl">@<span id="view-username">username</span></p>
-        <p id="view-bio" class="mt-3 text-gray-400 max-w-lg text-base leading-relaxed">No bio added yet.</p>
+      <!-- Name + Username + Bio -->
+      <div class="mt-8 text-center md:text-left">
+        <h1 id="view-name" class="text-4xl md:text-5xl font-extrabold tracking-tighter">Syncing...</h1>
+        <p class="text-purple-400 text-2xl font-medium">@<span id="view-username">username</span></p>
+        <p id="view-bio" class="mt-5 text-gray-300 text-[17px] leading-relaxed max-w-2xl mx-auto md:mx-0">
+          No bio added yet.
+        </p>
       </div>
     </div>
   </div>
 
   <!-- Stats -->
   <div class="grid grid-cols-3 gap-4">
-    <div class="bg-slate-900/40 p-6 rounded-3xl border border-white/5 text-center">
-      <p id="stat-followers" class="text-3xl font-black text-white">0</p>
-      <p class="text-xs text-gray-500 uppercase tracking-widest">Followers</p>
+    <div class="glass-card p-6 rounded-3xl text-center">
+      <div id="stat-followers" class="text-4xl font-black text-white">0</div>
+      <div class="text-sm text-gray-400">Followers</div>
     </div>
-    <div class="bg-slate-900/40 p-6 rounded-3xl border border-white/5 text-center">
-      <p id="stat-following" class="text-3xl font-black text-white">0</p>
-      <p class="text-xs text-gray-500 uppercase tracking-widest">Following</p>
+    <div class="glass-card p-6 rounded-3xl text-center">
+      <div id="stat-following" class="text-4xl font-black text-white">0</div>
+      <div class="text-sm text-gray-400">Following</div>
     </div>
-    <div class="bg-slate-900/40 p-6 rounded-3xl border border-white/5 text-center">
-      <p id="stat-posts" class="text-3xl font-black text-white">0</p>
-      <p class="text-xs text-gray-500 uppercase tracking-widest">Posts</p>
+    <div class="glass-card p-6 rounded-3xl text-center">
+      <div id="stat-posts" class="text-4xl font-black text-white">0</div>
+      <div class="text-sm text-gray-400">Posts</div>
     </div>
   </div>
 
   <!-- Basic Info -->
-  <div class="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5">
-    <h3 class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-      <i class="fas fa-info-circle"></i> Basic Information
-    </h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 text-sm">
-      <p><i class="fas fa-graduation-cap w-6 text-gray-500"></i> Education: <span id="view-edu" class="text-white font-medium">Not set</span></p>
-      <p><i class="fas fa-birthday-cake w-6 text-gray-500"></i> Birthday: <span id="view-dob" class="text-white font-medium">Not set</span></p>
-      <p><i class="fas fa-map-marker-alt w-6 text-gray-500"></i> Country: <span id="view-country" class="text-white font-medium">Not set</span></p>
-      <p><i class="fas fa-home w-6 text-gray-500"></i> Living in: <span id="view-living" class="text-white font-medium">Not set</span></p>
-      <p><i class="fas fa-globe w-6 text-gray-500"></i> Website: <span id="view-website" class="text-purple-400 font-medium">Not set</span></p>
+  <div class="glass-card p-8 rounded-3xl">
+    <h3 class="uppercase text-purple-400 text-sm font-bold tracking-widest mb-6">Basic Information</h3>
+    <div class="grid md:grid-cols-2 gap-y-6 text-base">
+      <div><span class="text-gray-400">Education:</span> <span id="view-edu" class="font-medium">Not set</span></div>
+      <div><span class="text-gray-400">Birthday:</span> <span id="view-dob" class="font-medium">Not set</span></div>
+      <div><span class="text-gray-400">Country:</span> <span id="view-country" class="font-medium">Not set</span></div>
+      <div><span class="text-gray-400">Living in:</span> <span id="view-living" class="font-medium">Not set</span></div>
+      <div><span class="text-gray-400">Website:</span> <span id="view-website" class="text-purple-400">Not set</span></div>
     </div>
   </div>
 
 </div>
 
-<!-- Edit Modal (Improved) -->
-<div id="edit-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] hidden flex items-center justify-center p-4 overflow-y-auto">
-  <div class="bg-[#0f172a] w-full max-w-lg rounded-3xl p-8 border border-white/10">
+<!-- ==================== EDIT MODAL ==================== -->
+<div id="edit-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl hidden flex items-center justify-center z-[100] p-4">
+  <div class="glass-card w-full max-w-lg rounded-3xl p-8 max-h-[92vh] overflow-y-auto">
     <div class="flex justify-between items-center mb-8">
-      <h2 class="text-2xl font-black">Edit Profile</h2>
-      <button onclick="closeEditModal()" class="text-gray-400 hover:text-white text-2xl">✕</button>
+      <h2 class="text-3xl font-bold">Edit Profile</h2>
+      <button onclick="closeEditModal()" class="text-4xl leading-none text-gray-400 hover:text-white">×</button>
     </div>
 
-    <div class="space-y-5">
-      <input id="in-name" type="text" placeholder="Full Name" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:border-purple-500 outline-none">
-      <input id="in-username" type="text" placeholder="Username (unique)" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:border-purple-500 outline-none">
-      <textarea id="in-bio" placeholder="Bio..." rows="3" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:border-purple-500 outline-none"></textarea>
-      
-      <input id="in-edu" type="text" placeholder="Education" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl">
-      <input id="in-dob" type="date" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white">
-      <input id="in-country" type="text" placeholder="Country" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl">
-      <input id="in-living" type="text" placeholder="Currently living in" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl">
-      <input id="in-website" type="url" placeholder="Website / Portfolio" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl">
+    <div class="space-y-6">
+      <input id="in-name" type="text" placeholder="Full Name" class="input-field w-full px-5 py-4 rounded-2xl">
+      <input id="in-username" type="text" placeholder="Username" class="input-field w-full px-5 py-4 rounded-2xl">
+      <textarea id="in-bio" rows="4" placeholder="Write something about yourself..." class="input-field w-full px-5 py-4 rounded-2xl"></textarea>
 
-      <button onclick="saveProfileData()" id="save-btn"
-        class="w-full bg-purple-600 hover:bg-purple-700 py-4 rounded-2xl font-bold text-lg transition">
+      <input id="in-edu" type="text" placeholder="Education" class="input-field w-full px-5 py-4 rounded-2xl">
+      <input id="in-dob" type="date" class="input-field w-full px-5 py-4 rounded-2xl">
+      <input id="in-country" type="text" placeholder="Country" class="input-field w-full px-5 py-4 rounded-2xl">
+      <input id="in-living" type="text" placeholder="Currently living in" class="input-field w-full px-5 py-4 rounded-2xl">
+      <input id="in-website" type="url" placeholder="Website or Portfolio" class="input-field w-full px-5 py-4 rounded-2xl">
+
+      <button onclick="saveProfileData()" id="save-btn" 
+        class="btn-primary w-full py-4 rounded-2xl font-bold text-lg">
         Save Changes
       </button>
     </div>
@@ -119,120 +102,60 @@
 </div>
 
 <script type="module">
-  import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const db = getFirestore();
-  const auth = getAuth();
+  let currentUid = null;
 
-  let currentUserUid = null;
-
-  // Modal functions
-  window.openEditModal = () => document.getElementById('edit-modal').classList.remove('hidden');
-  window.closeEditModal = () => document.getElementById('edit-modal').classList.add('hidden');
-
-  // Copy Profile Link
-  window.copyProfileLink = () => {
-    const username = document.getElementById('view-username').innerText.trim();
-    if (!username || username === "username") {
-      alert("Username not loaded yet!");
-      return;
-    }
-    const link = `\( {window.location.origin}/profile?u= \){username}`;
-    navigator.clipboard.writeText(link).then(() => {
-      alert("✅ Profile link copied!");
+  // SweetAlert Notify
+  const notify = (msg, icon = 'success') => {
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: icon,
+      title: msg,
+      showConfirmButton: false,
+      timer: 2500,
+      background: '#1e293b',
+      color: '#e2e8f0'
     });
   };
 
-  // Real-time Listener (Improved with better error handling)
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      currentUserUid = user.uid;
-      const docRef = doc(db, "users", user.uid);
+  window.openEditModal = () => document.getElementById('edit-modal').classList.remove('hidden');
+  window.closeEditModal = () => document.getElementById('edit-modal').classList.add('hidden');
 
-      onSnapshot(docRef, (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
+  window.copyProfileLink = () => {
+    const username = document.getElementById('view-username').innerText.trim();
+    if (!username || username === "username") return notify("Username not loaded yet", "error");
+    const link = `\( {window.location.origin}/profile?u= \){username}`;
+    navigator.clipboard.writeText(link).then(() => notify("Profile link copied!"));
+  };
 
-          // Main Profile
-          document.getElementById('view-name').innerText = data.fullName || user.displayName || "User";
-          document.getElementById('view-username').innerText = data.username || "user_" + user.uid.slice(0,6);
-          document.getElementById('view-bio').innerText = data.bio || "No bio added yet.";
-
-          document.getElementById('view-avatar').src = data.profilePicUrl || user.photoURL || "https://via.placeholder.com/150";
-          document.getElementById('view-cover').src = data.coverPicUrl || "https://via.placeholder.com/800x300/4f46e5/ffffff?text=Cover";
-
-          // Extra fields
-          document.getElementById('view-edu').innerText = data.education || "Not set";
-          document.getElementById('view-dob').innerText = data.dob || "Not set";
-          document.getElementById('view-country').innerText = data.country || "Not set";
-          document.getElementById('view-living').innerText = data.living || "Not set";
-          document.getElementById('view-website').innerText = data.website || "Not set";
-
-          // Stats (followers/following/posts) - add your own logic later
-          document.getElementById('stat-followers').innerText = data.followersCount || 0;
-          document.getElementById('stat-following').innerText = data.followingCount || 0;
-          document.getElementById('stat-posts').innerText = data.postsCount || 0;
-
-          // Fill edit form
-          document.getElementById('in-name').value = data.fullName || "";
-          document.getElementById('in-username').value = data.username || "";
-          document.getElementById('in-bio').value = data.bio || "";
-          document.getElementById('in-edu').value = data.education || "";
-          document.getElementById('in-dob').value = data.dob || "";
-          document.getElementById('in-country').value = data.country || "";
-          document.getElementById('in-living').value = data.living || "";
-          document.getElementById('in-website').value = data.website || "";
-        } else {
-          // Create default profile
-          setDoc(docRef, {
-            fullName: user.displayName || "New User",
-            username: "user_" + user.uid.slice(0,6),
-            bio: "",
-            createdAt: new Date().toISOString()
-          });
-        }
-      }, (error) => {
-        console.error("Snapshot error:", error);
-        document.getElementById('view-name').innerText = "Error loading profile";
-      });
-    } else {
-      console.log("No user logged in");
-    }
-  });
-
-  // Cloudinary Upload (unchanged but safer)
-  window.uploadToCloudinary = async (input, type) => {
+  window.uploadProfileImage = async (input, type) => {
     const file = input.files[0];
-    if (!file || !currentUserUid) return alert("Please login first");
+    if (!file || !currentUid) return notify("Please login first", "error");
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'Meetwoyou');   // change if your preset is different
+    formData.append('upload_preset', 'Meetwoyou');
 
     try {
       const res = await fetch('https://api.cloudinary.com/v1_1/dpgawb5sl/image/upload', {
-        method: 'POST',
-        body: formData
+        method: 'POST', body: formData
       });
       const data = await res.json();
-      if (!data.secure_url) throw new Error("Upload failed");
-
       const field = type === 'avatar' ? 'profilePicUrl' : 'coverPicUrl';
-      await updateDoc(doc(db, "users", currentUserUid), { [field]: data.secure_url });
-      alert(`${type === 'avatar' ? 'Profile Picture' : 'Cover Photo'} updated successfully!`);
-    } catch (err) {
-      console.error(err);
-      alert("Upload failed. Please try again.");
+      await updateDoc(doc(db, "users", currentUid), { [field]: data.secure_url });
+      notify(type === 'avatar' ? 'Profile picture updated!' : 'Cover photo updated!');
+    } catch (e) {
+      notify("Upload failed", "error");
     }
   };
 
-  // Save Profile (Fixed)
   window.saveProfileData = async () => {
-    if (!currentUserUid) return alert("Not logged in");
-
     const btn = document.getElementById('save-btn');
-    btn.innerHTML = 'Saving...';
+    btn.innerHTML = "Saving...";
     btn.disabled = true;
 
     const updatedData = {
@@ -248,17 +171,61 @@
     };
 
     try {
-      await setDoc(doc(db, "users", currentUserUid), updatedData, { merge: true });
+      await setDoc(doc(db, "users", currentUid), updatedData, { merge: true });
       closeEditModal();
-      alert("Profile updated successfully!");
+      notify("Profile updated successfully!");
     } catch (e) {
-      alert("Save failed: " + e.message);
+      notify("Save failed: " + e.message, "error");
     } finally {
-      btn.innerHTML = 'Save Changes';
+      btn.innerHTML = "Save Changes";
       btn.disabled = false;
     }
   };
-</script>
 
-</body>
-      </html>
+  // Realtime Profile Data Sync (Dashboard এ load হওয়ার পর)
+  onAuthStateChanged(getAuth(), (user) => {
+    if (!user) return;
+
+    currentUid = user.uid;
+    const userRef = doc(db, "users", user.uid);
+
+    onSnapshot(userRef, (snap) => {
+      if (!snap.exists()) {
+        setDoc(userRef, { fullName: user.displayName || "New User", username: "user_" + user.uid.slice(0,6) });
+        return;
+      }
+
+      const d = snap.data();
+
+      // Main Profile View
+      document.getElementById('view-name').textContent = d.fullName || user.displayName || "User";
+      document.getElementById('view-username').textContent = d.username || "user_" + user.uid.slice(0,6);
+      document.getElementById('view-bio').textContent = d.bio || "No bio added yet.";
+
+      document.getElementById('view-avatar').src = d.profilePicUrl || user.photoURL || "https://via.placeholder.com/200";
+      if (d.coverPicUrl) document.getElementById('view-cover').src = d.coverPicUrl;
+
+      // Basic Info
+      document.getElementById('view-edu').textContent = d.education || "Not set";
+      document.getElementById('view-dob').textContent = d.dob || "Not set";
+      document.getElementById('view-country').textContent = d.country || "Not set";
+      document.getElementById('view-living').textContent = d.living || "Not set";
+      document.getElementById('view-website').textContent = d.website || "Not set";
+
+      // Stats
+      document.getElementById('stat-followers').textContent = d.followersCount || 0;
+      document.getElementById('stat-following').textContent = d.followingCount || 0;
+      document.getElementById('stat-posts').textContent = d.postsCount || 0;
+
+      // Fill Edit Modal
+      document.getElementById('in-name').value = d.fullName || "";
+      document.getElementById('in-username').value = d.username || "";
+      document.getElementById('in-bio').value = d.bio || "";
+      document.getElementById('in-edu').value = d.education || "";
+      document.getElementById('in-dob').value = d.dob || "";
+      document.getElementById('in-country').value = d.country || "";
+      document.getElementById('in-living').value = d.living || "";
+      document.getElementById('in-website').value = d.website || "";
+    });
+  });
+        </script>
