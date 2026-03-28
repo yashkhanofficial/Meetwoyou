@@ -3,115 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Advanced Messenger</title>
+    <title>Meetwoyou - Cyber Social</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1b; --text: #ffffff; --gray: #b0b3b8; --chat-bg: #242526; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
+        :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1b; --text: #ffffff; --gray: #b0b3b8; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px; }
 
-        /* Custom Loader */
-        .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .loader-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--primary); animation: pulse 1.5s infinite; }
+        /* Loader */
+        .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .loader-img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-        /* Header */
-        .app-header { background: var(--card); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
-        .app-header h2 { color: var(--primary); font-style: italic; margin: 0; }
+        /* App Layout */
+        .header { background: var(--card); padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
+        .header h2 { color: var(--primary); margin: 0; font-style: italic; }
 
-        /* Chat Window (WhatsApp Style) */
-        #chat-window { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; flex-direction: column; }
+        /* Sections */
+        .section { display: none; padding: 15px; max-width: 600px; margin: auto; }
+        .section.active { display: block; }
+
+        /* User List Style */
+        .user-item { background: var(--card); padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid #222; }
+        .user-item img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
+
+        /* Chat Window */
+        #chat-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
         .chat-header { background: var(--card); padding: 10px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #333; }
-        .chat-header img { width: 40px; height: 40px; border-radius: 50%; }
-        .call-icons { margin-left: auto; display: flex; gap: 20px; font-size: 18px; color: var(--primary); }
-        
-        .messages-area { flex: 1; padding: 15px; overflow-y: auto; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: contain; }
-        .msg { margin-bottom: 10px; max-width: 70%; padding: 10px; border-radius: 15px; font-size: 14px; position: relative; }
-        .msg.sent { background: var(--primary); align-self: flex-end; margin-left: auto; border-bottom-right-radius: 2px; }
-        .msg.received { background: var(--chat-bg); align-self: flex-start; border-bottom-left-radius: 2px; }
+        .chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 75%; font-size: 14px; position: relative; }
+        .msg.sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg.received { background: #242526; align-self: flex-start; border-bottom-left-radius: 2px; }
 
-        .chat-input-area { background: var(--card); padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .chat-input-area input { flex: 1; background: #222; border: none; padding: 12px; border-radius: 25px; color: white; outline: none; }
-        .attachment-btn { color: var(--gray); font-size: 20px; cursor: pointer; }
+        /* Chat Input */
+        .chat-input { background: var(--card); padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #333; }
+        .chat-input input { flex: 1; background: #222; border: none; padding: 12px; border-radius: 25px; color: white; outline: none; }
+        .icon-btn { color: var(--gray); font-size: 20px; cursor: pointer; transition: 0.2s; }
+        .icon-btn:hover { color: var(--primary); }
+        .recording { color: #ff4d4d !important; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
-        /* Navigation Bar */
+        /* Nav Bar */
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-item { color: var(--gray); text-align: center; font-size: 20px; cursor: pointer; transition: 0.3s; flex: 1; }
+        .nav-item { color: var(--gray); text-align: center; flex: 1; font-size: 20px; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
-        .nav-item span { display: block; font-size: 10px; margin-top: 3px; }
-
-        /* Profile Modal */
-        #profile-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2500; padding-top: 50px; }
-        .modal-content { max-width: 400px; margin: auto; background: var(--card); padding: 25px; border-radius: 20px; text-align: center; }
-        input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
+        .nav-item span { display: block; font-size: 10px; margin-top: 2px; }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loader-overlay">
-    <img src="https://res.cloudinary.com/dpgawb5sl/image/upload/v1743134700/Meetwoyou_loader.jpg" class="loader-img">
-    <p style="margin-top:20px; color:var(--primary); font-weight:bold;">Initializing Meetwoyou...</p>
+<div id="loader" class="loader">
+    <div class="loader-img"></div>
+    <p style="margin-top:15px; color:var(--primary)">Meetwoyou Secure Boot...</p>
 </div>
 
-<div class="app-header">
+<div class="header">
     <h2>Meetwoyou</h2>
-    <div onclick="openChat()"><i class="fas fa-comment-dots" style="font-size: 24px; color: var(--primary);"></i></div>
+    <i class="fas fa-sign-out-alt" id="logout-btn" style="color:var(--gray)"></i>
 </div>
 
-<div id="feed" style="padding: 20px; text-align: center;">
-    <h3>Newsfeed</h3>
-    <p style="color:var(--gray)">Stories and Posts will appear here...</p>
+<div id="home-tab" class="section active">
+    <h3 style="color:var(--primary)">Cyber Feed</h3>
+    <div id="newsfeed">Loading posts...</div>
+</div>
+
+<div id="search-tab" class="section">
+    <h3 style="color:var(--primary)">Find Users</h3>
+    <div id="user-list"></div>
+</div>
+
+<div id="profile-tab" class="section">
+    <h3 style="color:var(--primary)">Edit Identity</h3>
+    <div style="text-align:center; background:var(--card); padding:20px; border-radius:15px;">
+        <img id="profile-preview" src="" style="width:100px; height:100px; border-radius:50%; border:2px solid var(--primary)">
+        <input type="text" id="name-input" placeholder="Display Name">
+        <textarea id="bio-input" placeholder="Bio/Status"></textarea>
+        <button id="save-profile-btn" style="background:var(--primary); border:none; color:white; width:100%; padding:12px; border-radius:8px; font-weight:bold">Save Changes</button>
+    </div>
+</div>
+
+<div id="chat-screen">
+    <div class="chat-header">
+        <i class="fas fa-arrow-left" onclick="closeChat()"></i>
+        <img id="chat-with-img" src="">
+        <b id="chat-with-name">User</b>
+        <div style="margin-left:auto; display:flex; gap:15px; color:var(--primary)">
+            <i class="fas fa-phone-alt"></i>
+            <i class="fas fa-video"></i>
+        </div>
+    </div>
+    <div class="chat-box" id="msg-container"></div>
+    <div class="chat-input">
+        <label for="chat-file"><i class="fas fa-image icon-btn"></i></label>
+        <input type="file" id="chat-file" style="display:none" accept="image/*">
+        <input type="text" id="msg-input" placeholder="Type a message...">
+        <i class="fas fa-microphone icon-btn" id="voice-btn"></i>
+        <i class="fas fa-paper-plane icon-btn" id="send-msg-btn" style="color:var(--primary)"></i>
+    </div>
 </div>
 
 <div class="nav-bar">
-    <div class="nav-item active"><i class="fas fa-home"></i><span>Home</span></div>
-    <div class="nav-item" onclick="alert('Search feature coming soon!')"><i class="fas fa-search"></i><span>Search</span></div>
-    <div class="nav-item" onclick="openChat()"><i class="fas fa-envelope"></i><span>Messages</span></div>
-    <div class="nav-item" onclick="openProfile()"><i class="fas fa-user-circle"></i><span>Profile</span></div>
-</div>
-
-<div id="chat-window">
-    <div class="chat-header">
-        <i class="fas fa-arrow-left" onclick="closeChat()"></i>
-        <img src="https://via.placeholder.com/40" id="chat-user-img">
-        <b id="chat-user-name">Friend Name</b>
-        <div class="call-icons">
-            <i class="fas fa-phone-alt" onclick="alert('Starting Audio Call...')"></i>
-            <i class="fas fa-video" onclick="alert('Starting Video Call...')"></i>
-        </div>
-    </div>
-    <div class="messages-area" id="msg-box">
-        <div class="msg received">Hello! How can I help you?</div>
-        <div class="msg sent">I need some help with my cyber project.</div>
-    </div>
-    <div class="chat-input-area">
-        <label for="file-input" class="attachment-btn"><i class="fas fa-paperclip"></i></label>
-        <input type="file" id="file-input" style="display:none" accept="image/*,video/*">
-        <input type="text" id="chat-msg" placeholder="Type a message...">
-        <i class="fas fa-paper-plane" style="color:var(--primary); font-size:22px;" id="send-btn"></i>
-    </div>
-</div>
-
-<div id="profile-modal">
-    <div class="modal-content">
-        <h3>Secure Identity</h3>
-        <div style="position:relative; width: 100px; height: 100px; margin: auto;">
-            <img id="edit-img" src="https://via.placeholder.com/100" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-            <label for="upload" style="position:absolute; bottom:0; right:0; background:var(--primary); padding:5px; border-radius:50%; cursor:pointer;"><i class="fas fa-camera"></i></label>
-            <input type="file" id="upload" style="display:none">
-        </div>
-        <input type="text" id="name-input" placeholder="Full Name">
-        <textarea id="bio-input" placeholder="Bio"></textarea>
-        <input type="text" id="edu-input" placeholder="Education">
-        <input type="number" id="age-input" placeholder="Age">
-        <button id="save-profile" style="background:var(--primary); color:white; border:none; padding:12px; width:100%; border-radius:8px; font-weight:bold; margin-top:10px;">Save Profile</button>
-        <button onclick="document.getElementById('profile-modal').style.display='none'" style="background:none; border:none; color:var(--gray); margin-top:10px;">Close</button>
-    </div>
+    <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i><span>Home</span></div>
+    <div class="nav-item" onclick="switchTab('search', this)"><i class="fas fa-search"></i><span>Search</span></div>
+    <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user-circle"></i><span>Profile</span></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, orderBy, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -125,50 +124,142 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const CLOUD_NAME = "dpgawb5sl";
+    const UPLOAD_PRESET = "Meetwoyou";
 
+    let currentChatUserId = null;
+    let mediaRecorder;
+    let audioChunks = [];
+
+    // Auth State
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            const docSnap = await getDoc(doc(db, "users", user.uid));
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                document.getElementById('name-input').value = user.displayName || "";
-                document.getElementById('bio-input').value = data.bio || "";
-                document.getElementById('edit-img').src = user.photoURL || "https://via.placeholder.com/100";
+            document.getElementById('loader').style.display = 'none';
+            loadUserList();
+            const snap = await getDoc(doc(db, "users", user.uid));
+            if(snap.exists()){
+                document.getElementById('name-input').value = user.displayName;
+                document.getElementById('profile-preview').src = user.photoURL;
+                document.getElementById('bio-input').value = snap.data().bio || "";
             }
-            setTimeout(() => document.getElementById('loader').style.display = 'none', 1000);
         } else {
             window.location.href = "index.html";
         }
     });
 
-    // Profile Handlers
-    window.openProfile = () => document.getElementById('profile-modal').style.display = 'block';
-    
-    // Chat Handlers
-    window.openChat = () => document.getElementById('chat-window').style.display = 'flex';
-    window.closeChat = () => document.getElementById('chat-window').style.display = 'none';
-
-    // Send Message Logic
-    document.getElementById('send-btn').onclick = async () => {
-        const text = document.getElementById('chat-msg').value;
-        if(!text) return;
-        
-        // Add message to UI (Sent)
-        const msgDiv = document.createElement('div');
-        msgDiv.className = "msg sent";
-        msgDiv.innerText = text;
-        document.getElementById('msg-box').appendChild(msgDiv);
-        document.getElementById('chat-msg').value = "";
-        
-        // Firebase database upload logic for chat can be added here
+    // Switch Tabs
+    window.switchTab = (tab, el) => {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(tab + '-tab').classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
     };
 
-    // File Upload Handler (Photo/Video)
-    document.getElementById('file-input').onchange = (e) => {
-        const file = e.target.files[0];
-        if(file) alert("File selected: " + file.name + "\nSending files feature is ready!");
+    // Load All Users for Search
+    async function loadUserList() {
+        const querySnapshot = await getDocs(collection(db, "users"));
+        const list = document.getElementById('user-list');
+        list.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+            if (doc.id !== auth.currentUser.uid) {
+                const u = doc.data();
+                const div = document.createElement('div');
+                div.className = "user-item";
+                div.innerHTML = `<img src="${u.photoURL || 'https://via.placeholder.com/50'}"> <b>${u.displayName}</b>`;
+                div.onclick = () => openChat(doc.id, u.displayName, u.photoURL);
+                list.appendChild(div);
+            }
+        });
+    }
+
+    // Chat Logic
+    window.openChat = (uid, name, img) => {
+        currentChatUserId = uid;
+        document.getElementById('chat-with-name').innerText = name;
+        document.getElementById('chat-with-img').src = img || 'https://via.placeholder.com/40';
+        document.getElementById('chat-screen').style.display = 'flex';
+        listenMessages(uid);
     };
+
+    window.closeChat = () => {
+        document.getElementById('chat-screen').style.display = 'none';
+        currentChatUserId = null;
+    };
+
+    function listenMessages(chatId) {
+        const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
+        onSnapshot(q, (snapshot) => {
+            const container = document.getElementById('msg-container');
+            container.innerHTML = "";
+            snapshot.forEach(doc => {
+                const m = doc.data();
+                if((m.senderId === auth.currentUser.uid && m.receiverId === chatId) || (m.senderId === chatId && m.receiverId === auth.currentUser.uid)) {
+                    const d = document.createElement('div');
+                    d.className = m.senderId === auth.currentUser.uid ? "msg sent" : "msg received";
+                    
+                    if(m.type === "audio") {
+                        d.innerHTML = `<audio controls src="${m.content}" style="width:200px"></audio>`;
+                    } else if(m.type === "image") {
+                        d.innerHTML = `<img src="${m.content}" style="max-width:200px; border-radius:10px">`;
+                    } else {
+                        d.innerText = m.content;
+                    }
+                    container.appendChild(d);
+                }
+            });
+            container.scrollTop = container.scrollHeight;
+        });
+    }
+
+    // Send Text Message
+    document.getElementById('send-msg-btn').onclick = async () => {
+        const input = document.getElementById('msg-input');
+        if(!input.value || !currentChatUserId) return;
+        await addDoc(collection(db, "messages"), {
+            senderId: auth.currentUser.uid,
+            receiverId: currentChatUserId,
+            content: input.value,
+            type: "text",
+            timestamp: serverTimestamp()
+        });
+        input.value = "";
+    };
+
+    // Voice Message (Audio)
+    const voiceBtn = document.getElementById('voice-btn');
+    voiceBtn.onclick = async () => {
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                voiceBtn.classList.remove('recording');
+                // Upload to Cloudinary
+                const formData = new FormData();
+                formData.append('file', audioBlob);
+                formData.append('upload_preset', UPLOAD_PRESET);
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                await addDoc(collection(db, "messages"), {
+                    senderId: auth.currentUser.uid,
+                    receiverId: currentChatUserId,
+                    content: data.secure_url,
+                    type: "audio",
+                    timestamp: serverTimestamp()
+                });
+            };
+            mediaRecorder.start();
+            voiceBtn.classList.add('recording');
+        } else {
+            mediaRecorder.stop();
+        }
+    };
+
+    // Logout
+    document.getElementById('logout-btn').onclick = () => signOut(auth);
 </script>
-
 </body>
 </html>
