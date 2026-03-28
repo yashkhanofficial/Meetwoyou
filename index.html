@@ -5,22 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meetwoyou - Premium Experience</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body { 
             font-family: 'Inter', sans-serif;
-            background: #0f172a; /* Deep dark background */
+            background: #0f172a;
             overflow: hidden;
         }
-
-        /* Animated Background Particles */
         .bg-animate {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
             z-index: -1;
         }
-
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
@@ -28,41 +27,40 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             animation: fadeInScale 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         @keyframes fadeInScale {
             from { opacity: 0; transform: scale(0.95) translateY(20px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
-
         .input-field {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
             transition: all 0.3s ease;
         }
-
         .input-field:focus {
             background: rgba(255, 255, 255, 0.08);
             border-color: #8b5cf6;
             box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
             outline: none;
         }
-
         .btn-primary {
             background: linear-gradient(45deg, #7c3aed, #4f46e5);
             transition: all 0.3s ease;
         }
-
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(124, 58, 237, 0.4);
         }
-
         .hidden { display: none !important; }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        .pass-container { position: relative; }
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-6">
@@ -73,12 +71,16 @@
         
         <header class="text-center mb-10">
             <h1 class="text-5xl font-extrabold text-white tracking-tighter italic mb-2">Meetwoyou</h1>
-            <p id="subtitle" class="text-gray-400 text-sm font-light">Connect with the world instantly.</p>
+            <p class="text-gray-400 text-sm font-light">Connect with the world instantly.</p>
         </header>
 
         <div id="login-section" class="space-y-5">
             <input type="email" id="login-email" placeholder="Email Address" class="input-field w-full px-5 py-4 rounded-2xl">
-            <input type="password" id="login-password" placeholder="Password" class="input-field w-full px-5 py-4 rounded-2xl">
+            
+            <div class="pass-container">
+                <input type="password" id="login-password" placeholder="Password" class="input-field w-full px-5 py-4 rounded-2xl">
+                <i class="fas fa-eye toggle-password" onclick="togglePass('login-password', this)"></i>
+            </div>
             
             <div class="flex justify-end">
                 <button onclick="showSection('forgot-section')" class="text-xs text-purple-400 hover:text-purple-300 transition font-medium">Forgot Password?</button>
@@ -93,13 +95,13 @@
             </div>
 
            <button id="google-login" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-4 rounded-2xl flex items-center justify-center transition-all">
-    <svg class="w-5 h-5 mr-3" viewBox="0 0 48 48">
-        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.94l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-    </svg>
-    Continue with Google
+                <svg class="w-5 h-5 mr-3" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.94l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                </svg>
+                Continue with Google
            </button>
 
             <p class="text-center text-gray-400 text-sm mt-8">
@@ -114,17 +116,19 @@
                 <input type="text" id="signup-last-name" placeholder="Last Name" class="input-field px-5 py-4 rounded-2xl">
             </div>
             <input type="email" id="signup-email" placeholder="Email Address" class="input-field w-full px-5 py-4 rounded-2xl">
-            <input type="password" id="signup-password" placeholder="Create Password" class="input-field w-full px-5 py-4 rounded-2xl">
+            <div class="pass-container">
+                <input type="password" id="signup-password" placeholder="Create Password" class="input-field w-full px-5 py-4 rounded-2xl">
+                <i class="fas fa-eye toggle-password" onclick="togglePass('signup-password', this)"></i>
+            </div>
             
             <button id="signup-btn" class="btn-primary w-full text-white font-bold py-4 rounded-2xl mt-4">Join Now</button>
-            
-            <button onclick="showSection('login-section')" class="w-full text-gray-400 text-sm hover:text-white transition mt-4 font-medium">Back to Login</button>
+            <button onclick="showSection('login-section')" class="w-full text-gray-400 text-sm hover:text-white transition mt-4 font-medium text-center">Back to Login</button>
         </div>
 
         <div id="forgot-section" class="hidden space-y-6">
             <div class="text-center">
                 <h2 class="text-white font-bold text-xl mb-2">Reset Password</h2>
-                <p class="text-gray-400 text-xs">Enter your email to receive a reset link.</p>
+                <p class="text-gray-400 text-xs">Enter your email for recovery link.</p>
             </div>
             <input type="email" id="forgot-email" placeholder="Recovery Email" class="input-field w-full px-5 py-4 rounded-2xl">
             <button id="reset-btn" class="btn-primary w-full text-white font-bold py-4 rounded-2xl">Send Link</button>
@@ -149,72 +153,87 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
+        // Dynamic Notification Function
+        const notify = (msg, type = 'success') => {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                background: '#1e293b',
+                color: '#fff'
+            });
+            Toast.fire({ icon: type, title: msg });
+        };
+
+        // Toggle Password Show/Hide
+        window.togglePass = (id, icon) => {
+            const el = document.getElementById(id);
+            if (el.type === "password") {
+                el.type = "text";
+                icon.classList.replace("fa-eye", "fa-eye-slash");
+            } else {
+                el.type = "password";
+                icon.classList.replace("fa-eye-slash", "fa-eye");
+            }
+        };
+
         window.showSection = (id) => {
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('signup-section').classList.add('hidden');
             document.getElementById('forgot-section').classList.add('hidden');
-            const el = document.getElementById(id);
-            el.classList.remove('hidden');
+            document.getElementById(id).classList.remove('hidden');
         };
 
-        // --- FORGOT PASSWORD LOGIC ---
-document.getElementById('reset-btn').onclick = async () => {
-    const email = document.getElementById('forgot-email').value;
-    if(!email) return alert("Please enter your email!");
-    try {
-        await sendPasswordResetEmail(auth, email);
-        alert("Password reset email sent! Check your inbox.");
-        showSection('login-section');
-    } catch (error) {
-        alert(error.message);
-    }
-};
+        // SIGNUP
+        document.getElementById('signup-btn').onclick = async () => {
+            const fName = document.getElementById('signup-first-name').value;
+            const lName = document.getElementById('signup-last-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
 
-// --- SIGNUP LOGIC (First/Last Name) ---
-document.getElementById('signup-btn').onclick = async () => {
-    const fName = document.getElementById('signup-first-name').value;
-    const lName = document.getElementById('signup-last-name').value;
-    const email = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
+            if(!fName || !lName || !email || !password) return notify("All fields required!", "error");
+            
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(res.user, { displayName: `${fName} ${lName}` });
+                notify(`Welcome, ${fName}! Redirecting...`);
+                setTimeout(() => window.location.href = "dashboard.html", 2000); 
+            } catch (error) { notify(error.message, "error"); }
+        };
 
-    if(!fName || !lName || !email || !password) return alert("All fields are required!");
-    
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, { displayName: `${fName} ${lName}` });
-        alert(`Account created! Welcome, ${fName}`);
-        // সফলভাবে সাইন-আপ হলে ড্যাশবোর্ডে পাঠাবে
-        window.location.href = "dashboard.html"; 
-    } catch (error) {
-        alert(error.message);
-    }
-};
+        // LOGIN
+        document.getElementById('login-btn').onclick = async () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            if(!email || !password) return notify("Fill all fields!", "warning");
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                notify("Login Successful! Redirecting...");
+                setTimeout(() => window.location.href = "dashboard.html", 1500); 
+            } catch (error) { notify("Invalid Credentials!", "error"); }
+        };
 
-// --- LOGIN LOGIC ---
-document.getElementById('login-btn').onclick = async () => {
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    try {
-        const res = await signInWithEmailAndPassword(auth, email, password);
-        alert("Login Successful!");
-        // ওকে ক্লিক করলে ড্যাশবোর্ডে নিয়ে যাবে
-        window.location.href = "dashboard.html"; 
-    } catch (error) {
-        alert("Invalid Credentials!");
-    }
-};
+        // GOOGLE LOGIN
+        document.getElementById('google-login').onclick = async () => {
+            try {
+                const res = await signInWithPopup(auth, provider);
+                notify("Welcome " + res.user.displayName);
+                setTimeout(() => window.location.href = "dashboard.html", 1500); 
+            } catch (error) { notify(error.message, "error"); }
+        };
 
-// --- GOOGLE LOGIN ---
-document.getElementById('google-login').onclick = async () => {
-    try {
-        const res = await signInWithPopup(auth, provider);
-        alert("Welcome " + res.user.displayName);
-        // গুগল লগইন সফল হলে ড্যাশবোর্ডে পাঠাবে
-        window.location.href = "dashboard.html"; 
-    } catch (error) {
-        alert(error.message);
-    }
-};
+        // RESET PASSWORD
+        document.getElementById('reset-btn').onclick = async () => {
+            const email = document.getElementById('forgot-email').value;
+            if(!email) return notify("Enter email!", "warning");
+            try {
+                await sendPasswordResetEmail(auth, email);
+                notify("Check your email inbox!");
+                showSection('login-section');
+            } catch (error) { notify(error.message, "error"); }
+        };
     </script>
 </body>
 </html>
