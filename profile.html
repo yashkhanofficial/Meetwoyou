@@ -1,139 +1,124 @@
-<div class="max-w-5xl mx-auto px-4 py-6 space-y-8">
+<div class="max-w-5xl mx-auto px-4 py-8 space-y-8">
 
   <!-- Profile Header -->
-  <div class="glass-card rounded-[2.5rem] overflow-hidden border border-white/10">
-    <div class="h-56 md:h-72 relative group profile-header bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700">
-      <img id="view-cover" class="w-full h-full object-cover opacity-75" alt="cover">
-      <label for="cover-upload" class="absolute bottom-6 right-6 bg-black/60 hover:bg-black/80 p-4 rounded-2xl cursor-pointer transition backdrop-blur-md">
-        <i class="fas fa-camera text-2xl"></i>
+  <div style="background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid #333;">
+    <!-- Cover -->
+    <div style="height: 220px; position: relative; background: linear-gradient(135deg, #8e44ad, #6c3483);">
+      <img id="view-cover" style="width:100%; height:100%; object-fit: cover;" alt="cover">
+      <label for="cover-upload" style="position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.6); padding:10px; border-radius:50%; cursor:pointer;">
+        <i class="fas fa-camera"></i>
       </label>
-      <input type="file" id="cover-upload" class="hidden" accept="image/*" onchange="uploadProfileImage(this, 'cover')">
+      <input type="file" id="cover-upload" class="hidden" accept="image/*" onchange="uploadImage(this, 'cover')">
     </div>
 
-    <div class="px-6 md:px-10 pb-10">
-      <div class="relative -mt-20 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="relative">
-          <div class="w-36 h-36 md:w-44 md:h-44 rounded-3xl border-4 border-[#0b0f1a] overflow-hidden shadow-2xl">
-            <img id="view-avatar" src="https://via.placeholder.com/200" class="w-full h-full object-cover" alt="avatar">
-          </div>
-          <label for="avatar-upload" class="absolute bottom-2 right-2 bg-purple-600 p-4 rounded-2xl cursor-pointer shadow-xl border-4 border-[#0b0f1a]">
-            <i class="fas fa-pen"></i>
-          </label>
-          <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="uploadProfileImage(this, 'avatar')">
-        </div>
-
-        <div class="flex gap-3">
-          <button onclick="openEditModal()" class="btn-primary flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold">
-            <i class="fas fa-edit"></i> Edit Profile
-          </button>
-          <button onclick="copyProfileLink()" class="glass-card p-4 rounded-2xl hover:bg-white/10 transition">
-            <i class="fas fa-share-alt text-2xl"></i>
-          </button>
-        </div>
+    <!-- Avatar + Buttons -->
+    <div style="padding: 0 20px 30px; position: relative;">
+      <div style="position: relative; width: 110px; height: 110px; margin-top: -55px;">
+        <img id="view-avatar" src="https://via.placeholder.com/120" style="width:100%; height:100%; border-radius: 20px; border: 4px solid var(--card); object-fit: cover;">
+        <label for="avatar-upload" style="position:absolute; bottom: -5px; right: -5px; background:#8e44ad; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid var(--card); cursor:pointer;">
+          <i class="fas fa-pen"></i>
+        </label>
+        <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="uploadImage(this, 'avatar')">
       </div>
 
-      <div class="mt-8 text-center md:text-left">
-        <h1 id="view-name" class="text-4xl md:text-5xl font-extrabold tracking-tighter">Syncing...</h1>
-        <p class="text-purple-400 text-2xl font-medium">@<span id="view-username">username</span></p>
-        <p id="view-bio" class="mt-5 text-gray-300 text-[17px] leading-relaxed">No bio added yet.</p>
+      <div style="margin-top: 15px; display:flex; gap:12px; justify-content: flex-end;">
+        <button onclick="openEditModal()" class="btn-main" style="padding:12px 24px; font-size:15px;">Edit Profile</button>
+        <button onclick="copyProfileLink()" style="background:#333; padding:12px 18px; border-radius:12px;">
+          <i class="fas fa-share-alt"></i>
+        </button>
+      </div>
+
+      <div style="text-align:center; margin-top:20px;">
+        <h1 id="view-name" style="font-size:28px; font-weight:bold; margin:0;">Syncing...</h1>
+        <p style="color:#bb86fc; font-size:18px; margin:5px 0;">@<span id="view-username">username</span></p>
+        <p id="view-bio" style="margin-top:15px; color:#ccc; line-height:1.5;">No bio added yet.</p>
       </div>
     </div>
   </div>
 
-  <!-- Stats + Basic Info (আগের মতোই রাখলাম) -->
-  <div class="grid grid-cols-3 gap-4">
-    <div class="glass-card p-6 rounded-3xl text-center">
-      <div id="stat-followers" class="text-4xl font-black text-white">0</div>
-      <div class="text-sm text-gray-400">Followers</div>
-    </div>
-    <div class="glass-card p-6 rounded-3xl text-center">
-      <div id="stat-following" class="text-4xl font-black text-white">0</div>
-      <div class="text-sm text-gray-400">Following</div>
-    </div>
-    <div class="glass-card p-6 rounded-3xl text-center">
-      <div id="stat-posts" class="text-4xl font-black text-white">0</div>
-      <div class="text-sm text-gray-400">Posts</div>
-    </div>
-  </div>
-
-  <div class="glass-card p-8 rounded-3xl">
-    <h3 class="uppercase text-purple-400 text-sm font-bold tracking-widest mb-6">Basic Information</h3>
-    <div class="grid md:grid-cols-2 gap-y-6 text-base">
-      <div><span class="text-gray-400">Education:</span> <span id="view-edu" class="font-medium">Not set</span></div>
-      <div><span class="text-gray-400">Birthday:</span> <span id="view-dob" class="font-medium">Not set</span></div>
-      <div><span class="text-gray-400">Country:</span> <span id="view-country" class="font-medium">Not set</span></div>
-      <div><span class="text-gray-400">Living in:</span> <span id="view-living" class="font-medium">Not set</span></div>
-      <div><span class="text-gray-400">Website:</span> <span id="view-website" class="text-purple-400">Not set</span></div>
+  <!-- Basic Info -->
+  <div style="background:var(--card); padding:20px; border-radius:15px; border:1px solid #333;">
+    <h3 style="color:#bb86fc; margin-bottom:15px;">Basic Information</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; font-size:15px;">
+      <div><strong>Education:</strong> <span id="view-edu">Not set</span></div>
+      <div><strong>Birthday:</strong> <span id="view-dob">Not set</span></div>
+      <div><strong>Country:</strong> <span id="view-country">Not set</span></div>
+      <div><strong>Living:</strong> <span id="view-living">Not set</span></div>
+      <div><strong>Website:</strong> <span id="view-website" style="color:#bb86fc;">Not set</span></div>
     </div>
   </div>
 </div>
 
 <!-- Edit Modal -->
-<div id="edit-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl hidden flex items-center justify-center z-[100] p-4">
-  <div class="glass-card w-full max-w-lg rounded-3xl p-8 max-h-[92vh] overflow-y-auto">
-    <div class="flex justify-between items-center mb-8">
-      <h2 class="text-3xl font-bold">Edit Profile</h2>
-      <button onclick="closeEditModal()" class="text-4xl leading-none text-gray-400 hover:text-white">×</button>
-    </div>
+<div id="edit-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.95); display:none; align-items:center; justify-content:center; z-index:2000;">
+  <div style="background:var(--card); width:92%; max-width:420px; border-radius:20px; padding:25px; border:1px solid #444;">
+    <h2 style="margin-bottom:20px; text-align:center;">Edit Profile</h2>
+    
+    <input id="in-name" type="text" placeholder="Full Name" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
+    <input id="in-username" type="text" placeholder="Username" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
+    <textarea id="in-bio" placeholder="Bio" rows="3" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;"></textarea>
+    
+    <input id="in-edu" type="text" placeholder="Education" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
+    <input id="in-dob" type="date" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
+    <input id="in-country" type="text" placeholder="Country" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
+    <input id="in-living" type="text" placeholder="Living in" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
+    <input id="in-website" type="url" placeholder="Website" style="width:100%; padding:14px; margin:8px 0; background:#222; border:1px solid #444; border-radius:10px; color:white;">
 
-    <div class="space-y-6">
-      <input id="in-name" type="text" placeholder="Full Name" class="input-field w-full px-5 py-4 rounded-2xl">
-      <input id="in-username" type="text" placeholder="Username" class="input-field w-full px-5 py-4 rounded-2xl">
-      <textarea id="in-bio" rows="4" placeholder="Write something about yourself..." class="input-field w-full px-5 py-4 rounded-2xl"></textarea>
-
-      <input id="in-edu" type="text" placeholder="Education" class="input-field w-full px-5 py-4 rounded-2xl">
-      <input id="in-dob" type="date" class="input-field w-full px-5 py-4 rounded-2xl">
-      <input id="in-country" type="text" placeholder="Country" class="input-field w-full px-5 py-4 rounded-2xl">
-      <input id="in-living" type="text" placeholder="Currently living in" class="input-field w-full px-5 py-4 rounded-2xl">
-      <input id="in-website" type="url" placeholder="Website or Portfolio" class="input-field w-full px-5 py-4 rounded-2xl">
-
-      <button onclick="saveProfileData()" id="save-btn" class="btn-primary w-full py-4 rounded-2xl font-bold text-lg">
-        Save Changes
-      </button>
-    </div>
+    <button onclick="saveProfileData()" id="save-btn" class="btn-main" style="margin-top:20px;">Save Changes</button>
   </div>
 </div>
 
 <script type="module">
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+  const auth = getAuth();
   const db = getFirestore();
   let currentUid = null;
 
-  const notify = (msg, icon = 'success') => {
-    Swal.fire({ toast: true, position: 'top-end', icon, title: msg, showConfirmButton: false, timer: 2500, background: '#1e293b' });
+  const notify = (msg, type = 'success') => {
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: type,
+      title: msg,
+      showConfirmButton: false,
+      timer: 2000
+    });
   };
 
-  window.openEditModal = () => document.getElementById('edit-modal').classList.remove('hidden');
-  window.closeEditModal = () => document.getElementById('edit-modal').classList.add('hidden');
+  window.openEditModal = () => document.getElementById('edit-modal').style.display = 'flex';
+  window.closeEditModal = () => document.getElementById('edit-modal').style.display = 'none';
 
   window.copyProfileLink = () => {
     const username = document.getElementById('view-username').innerText.trim();
-    if (username === "username" || !username) return notify("Username not loaded yet", "error");
-    navigator.clipboard.writeText(`\( {window.location.origin}/profile?u= \){username}`).then(() => notify("Profile link copied!"));
+    if (!username || username === "username") return notify("Username not loaded", "error");
+    navigator.clipboard.writeText(`\( {window.location.origin}/profile?u= \){username}`);
+    notify("Profile link copied!");
   };
 
-  window.uploadProfileImage = async (input, type) => {
+  window.uploadImage = async (input, type) => {
     const file = input.files[0];
-    if (!file || !currentUid) return notify("Login first", "error");
+    if (!file || !currentUid) return notify("Please login", "error");
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'Meetwoyou');
+    formData.append('upload_preset', "Meetwoyou");
 
     try {
-      const res = await fetch('https://api.cloudinary.com/v1_1/dpgawb5sl/image/upload', { method: 'POST', body: formData });
+      const res = await fetch(`https://api.cloudinary.com/v1_1/dpgawb5sl/image/upload`, { method: 'POST', body: formData });
       const data = await res.json();
       const field = type === 'avatar' ? 'profilePicUrl' : 'coverPicUrl';
       await updateDoc(doc(db, "users", currentUid), { [field]: data.secure_url });
-      notify(type === 'avatar' ? 'Avatar updated!' : 'Cover updated!');
-    } catch (e) { notify("Upload failed", "error"); }
+      notify(type === 'avatar' ? 'Avatar Updated' : 'Cover Updated');
+    } catch (e) {
+      notify("Upload failed", "error");
+    }
   };
 
   window.saveProfileData = async () => {
     const btn = document.getElementById('save-btn');
-    btn.innerHTML = "Saving...";
+    btn.innerText = "Saving...";
     btn.disabled = true;
 
     try {
@@ -150,42 +135,35 @@
       }, { merge: true });
 
       closeEditModal();
-      notify("Profile saved successfully!");
+      notify("Profile updated successfully!");
     } catch (e) {
-      notify("Save error: " + e.message, "error");
+      notify("Save failed", "error");
     } finally {
-      btn.innerHTML = "Save Changes";
+      btn.innerText = "Save Changes";
       btn.disabled = false;
     }
   };
 
-  // ==================== MAIN FIX ====================
-  const auth = getAuth();
+  // Main Profile Loader
   const user = auth.currentUser;
-
   if (user) {
     currentUid = user.uid;
     const userRef = doc(db, "users", user.uid);
 
-    // Force initial load + realtime
     onSnapshot(userRef, (snap) => {
       if (!snap.exists()) {
-        setDoc(userRef, {
-          fullName: user.displayName || "New User",
-          username: "user_" + user.uid.slice(0,6),
-          createdAt: new Date().toISOString()
-        });
+        setDoc(userRef, { fullName: user.displayName || "New User", username: "user_" + user.uid.slice(0,6) });
         return;
       }
 
       const d = snap.data();
+      const u = auth.currentUser;
 
-      // Update UI
-      document.getElementById('view-name').textContent = d.fullName || user.displayName || "User";
-      document.getElementById('view-username').textContent = d.username || "user_" + user.uid.slice(0,6);
+      document.getElementById('view-name').textContent = d.fullName || u.displayName || "User";
+      document.getElementById('view-username').textContent = d.username || "user_" + u.uid.slice(0,6);
       document.getElementById('view-bio').textContent = d.bio || "No bio added yet.";
 
-      document.getElementById('view-avatar').src = d.profilePicUrl || user.photoURL || "https://via.placeholder.com/200";
+      document.getElementById('view-avatar').src = d.profilePicUrl || u.photoURL || "https://via.placeholder.com/120";
       if (d.coverPicUrl) document.getElementById('view-cover').src = d.coverPicUrl;
 
       document.getElementById('view-edu').textContent = d.education || "Not set";
@@ -193,10 +171,6 @@
       document.getElementById('view-country').textContent = d.country || "Not set";
       document.getElementById('view-living').textContent = d.living || "Not set";
       document.getElementById('view-website').textContent = d.website || "Not set";
-
-      document.getElementById('stat-followers').textContent = d.followersCount || 0;
-      document.getElementById('stat-following').textContent = d.followingCount || 0;
-      document.getElementById('stat-posts').textContent = d.postsCount || 0;
 
       // Fill edit form
       document.getElementById('in-name').value = d.fullName || "";
@@ -207,11 +181,6 @@
       document.getElementById('in-country').value = d.country || "";
       document.getElementById('in-living').value = d.living || "";
       document.getElementById('in-website').value = d.website || "";
-    }, (error) => {
-      console.error("Snapshot error:", error);
-      document.getElementById('view-name').textContent = "Error loading profile";
     });
-  } else {
-    console.log("No user");
   }
-               </script>
+</script>
