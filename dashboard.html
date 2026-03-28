@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Cyber Social</title>
+    <title>Meetwoyou - Ultimate Social</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1b; --text: #ffffff; --gray: #b0b3b8; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 75px; overflow-x: hidden; }
 
-        /* Loader */
-        .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .loader-img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        /* Custom Loader */
+        .loader { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .loader-img { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--primary); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
-        /* App Layout */
+        /* Header */
         .header { background: var(--card); padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
         .header h2 { color: var(--primary); margin: 0; font-style: italic; }
 
@@ -22,31 +22,34 @@
         .section { display: none; padding: 15px; max-width: 600px; margin: auto; }
         .section.active { display: block; }
 
-        /* User List Style */
-        .user-item { background: var(--card); padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid #222; }
-        .user-item img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
+        /* Post & Story UI */
+        .story-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
+        .story-item { min-width: 80px; height: 130px; background: #222; border-radius: 10px; position: relative; border: 1px solid #333; }
+        .post-card { background: var(--card); border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px solid #222; }
+        .post-img { width: 100%; border-radius: 10px; margin-top: 10px; }
 
-        /* Chat Window */
-        #chat-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
-        .chat-header { background: var(--card); padding: 10px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #333; }
-        .chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 75%; font-size: 14px; position: relative; }
+        /* Search & User List */
+        .search-box { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 25px; color: white; margin-bottom: 15px; }
+        .user-card { background: var(--card); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid #222; }
+        .user-card img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+
+        /* Chat Screen */
+        #chat-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
+        .chat-header { background: var(--card); padding: 12px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #333; }
+        .chat-msgs { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 75%; font-size: 14px; }
         .msg.sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
         .msg.received { background: #242526; align-self: flex-start; border-bottom-left-radius: 2px; }
 
-        /* Chat Input */
-        .chat-input { background: var(--card); padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #333; }
-        .chat-input input { flex: 1; background: #222; border: none; padding: 12px; border-radius: 25px; color: white; outline: none; }
-        .icon-btn { color: var(--gray); font-size: 20px; cursor: pointer; transition: 0.2s; }
-        .icon-btn:hover { color: var(--primary); }
-        .recording { color: #ff4d4d !important; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        /* Inputs */
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #222; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
 
-        /* Nav Bar */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-item { color: var(--gray); text-align: center; flex: 1; font-size: 20px; cursor: pointer; }
+        /* Bottom Nav */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-item { color: var(--gray); font-size: 20px; cursor: pointer; text-align: center; flex: 1; }
         .nav-item.active { color: var(--primary); }
-        .nav-item span { display: block; font-size: 10px; margin-top: 2px; }
+        .nav-item span { display: block; font-size: 10px; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -58,53 +61,61 @@
 
 <div class="header">
     <h2>Meetwoyou</h2>
-    <i class="fas fa-sign-out-alt" id="logout-btn" style="color:var(--gray)"></i>
+    <i class="fas fa-sign-out-alt" onclick="logout()" style="color:var(--gray)"></i>
 </div>
 
-<div id="home-tab" class="section active">
-    <h3 style="color:var(--primary)">Cyber Feed</h3>
-    <div id="newsfeed">Loading posts...</div>
+<div id="home-sec" class="section active">
+    <div class="story-bar" id="story-area">
+        <div class="story-item" onclick="alert('Story upload coming soon!')" style="display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:10px;">
+            <i class="fas fa-plus-circle fa-2x"></i><br>Add Story
+        </div>
+    </div>
+    <div class="post-card">
+        <textarea id="post-text" placeholder="What's on your mind?"></textarea>
+        <input type="file" id="post-file" accept="image/*">
+        <button class="btn-main" onclick="uploadPost()">Post Status</button>
+    </div>
+    <div id="feed-area"></div>
 </div>
 
-<div id="search-tab" class="section">
-    <h3 style="color:var(--primary)">Find Users</h3>
-    <div id="user-list"></div>
+<div id="search-sec" class="section">
+    <input type="text" class="search-box" id="user-search" placeholder="Search friends by name..." oninput="filterUsers()">
+    <div id="all-users-list"></div>
 </div>
 
-<div id="profile-tab" class="section">
-    <h3 style="color:var(--primary)">Edit Identity</h3>
+<div id="profile-sec" class="section">
     <div style="text-align:center; background:var(--card); padding:20px; border-radius:15px;">
-        <img id="profile-preview" src="" style="width:100px; height:100px; border-radius:50%; border:2px solid var(--primary)">
-        <input type="text" id="name-input" placeholder="Display Name">
-        <textarea id="bio-input" placeholder="Bio/Status"></textarea>
-        <button id="save-profile-btn" style="background:var(--primary); border:none; color:white; width:100%; padding:12px; border-radius:8px; font-weight:bold">Save Changes</button>
+        <div style="position:relative; width:100px; height:100px; margin:auto;">
+            <img id="p-img" src="https://via.placeholder.com/100" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+            <label for="p-upload" style="position:absolute; bottom:0; right:0; background:var(--primary); padding:6px; border-radius:50%; cursor:pointer;"><i class="fas fa-camera"></i></label>
+            <input type="file" id="p-upload" style="display:none">
+        </div>
+        <input type="text" id="p-name" placeholder="Full Name">
+        <textarea id="p-bio" placeholder="Bio"></textarea>
+        <input type="text" id="p-edu" placeholder="Education">
+        <input type="date" id="p-dob">
+        <button class="btn-main" id="p-save-btn">Update Profile</button>
     </div>
 </div>
 
 <div id="chat-screen">
     <div class="chat-header">
         <i class="fas fa-arrow-left" onclick="closeChat()"></i>
-        <img id="chat-with-img" src="">
-        <b id="chat-with-name">User</b>
-        <div style="margin-left:auto; display:flex; gap:15px; color:var(--primary)">
-            <i class="fas fa-phone-alt"></i>
-            <i class="fas fa-video"></i>
-        </div>
+        <img id="cw-img" src="" style="width:40px; height:40px; border-radius:50%;">
+        <b id="cw-name">User</b>
     </div>
-    <div class="chat-box" id="msg-container"></div>
+    <div class="chat-msgs" id="chat-box"></div>
     <div class="chat-input">
-        <label for="chat-file"><i class="fas fa-image icon-btn"></i></label>
-        <input type="file" id="chat-file" style="display:none" accept="image/*">
-        <input type="text" id="msg-input" placeholder="Type a message...">
-        <i class="fas fa-microphone icon-btn" id="voice-btn"></i>
-        <i class="fas fa-paper-plane icon-btn" id="send-msg-btn" style="color:var(--primary)"></i>
+        <input type="text" id="m-input" placeholder="Type a message...">
+        <i class="fas fa-microphone" id="v-btn" style="padding:10px; color:var(--gray)"></i>
+        <i class="fas fa-paper-plane" onclick="sendMsg()" style="padding:10px; color:var(--primary)"></i>
     </div>
 </div>
 
 <div class="nav-bar">
-    <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i><span>Home</span></div>
-    <div class="nav-item" onclick="switchTab('search', this)"><i class="fas fa-search"></i><span>Search</span></div>
-    <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user-circle"></i><span>Profile</span></div>
+    <div class="nav-item active" onclick="showSec('home', this)"><i class="fas fa-home"></i><span>Home</span></div>
+    <div class="nav-item" onclick="showSec('search', this)"><i class="fas fa-users"></i><span>Users</span></div>
+    <div class="nav-item" onclick="showSec('profile', this)"><i class="fas fa-user-edit"></i><span>Edit</span></div>
 </div>
 
 <script type="module">
@@ -127,46 +138,74 @@
     const CLOUD_NAME = "dpgawb5sl";
     const UPLOAD_PRESET = "Meetwoyou";
 
-    let currentChatUserId = null;
-    let mediaRecorder;
-    let audioChunks = [];
+    let chatUID = null;
 
-    // Auth State
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('loader').style.display = 'none';
-            loadUserList();
-            const snap = await getDoc(doc(db, "users", user.uid));
-            if(snap.exists()){
-                document.getElementById('name-input').value = user.displayName;
-                document.getElementById('profile-preview').src = user.photoURL;
-                document.getElementById('bio-input').value = snap.data().bio || "";
-            }
+            loadProfileData(user);
+            loadUsers();
+            loadPosts();
         } else {
             window.location.href = "index.html";
         }
     });
 
-    // Switch Tabs
-    window.switchTab = (tab, el) => {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById(tab + '-tab').classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        el.classList.add('active');
+    // Profile Logic
+    async function loadProfileData(user) {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if(snap.exists()){
+            const d = snap.data();
+            document.getElementById('p-name').value = user.displayName || "";
+            document.getElementById('p-bio').value = d.bio || "";
+            document.getElementById('p-edu').value = d.education || "";
+            document.getElementById('p-dob').value = d.dob || "";
+            document.getElementById('p-img').src = user.photoURL || "https://via.placeholder.com/100";
+        }
+    }
+
+    document.getElementById('p-save-btn').onclick = async () => {
+        const user = auth.currentUser;
+        const btn = document.getElementById('p-save-btn');
+        btn.innerText = "Updating...";
+        
+        let photoUrl = user.photoURL;
+        const file = document.getElementById('p-upload').files[0];
+        if(file){
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', UPLOAD_PRESET);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method:'POST', body:formData});
+            const data = await res.json();
+            photoUrl = data.secure_url;
+        }
+
+        const profileData = {
+            displayName: document.getElementById('p-name').value,
+            bio: document.getElementById('p-bio').value,
+            education: document.getElementById('p-edu').value,
+            dob: document.getElementById('p-dob').value,
+            photoURL: photoUrl
+        };
+
+        await setDoc(doc(db, "users", user.uid), profileData, {merge:true});
+        await updateProfile(user, {displayName: profileData.displayName, photoURL: photoUrl});
+        alert("Profile Updated!");
+        location.reload();
     };
 
-    // Load All Users for Search
-    async function loadUserList() {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        const list = document.getElementById('user-list');
+    // User Search & List
+    async function loadUsers() {
+        const snap = await getDocs(collection(db, "users"));
+        const list = document.getElementById('all-users-list');
         list.innerHTML = "";
-        querySnapshot.forEach((doc) => {
-            if (doc.id !== auth.currentUser.uid) {
-                const u = doc.data();
+        snap.forEach(uDoc => {
+            if(uDoc.id !== auth.currentUser.uid){
+                const u = uDoc.data();
                 const div = document.createElement('div');
-                div.className = "user-item";
-                div.innerHTML = `<img src="${u.photoURL || 'https://via.placeholder.com/50'}"> <b>${u.displayName}</b>`;
-                div.onclick = () => openChat(doc.id, u.displayName, u.photoURL);
+                div.className = "user-card";
+                div.innerHTML = `<img src="${u.photoURL || 'https://via.placeholder.com/50'}"> <div><b>${u.displayName}</b><br><small>${u.bio || 'Available'}</small></div>`;
+                div.onclick = () => openChat(uDoc.id, u.displayName, u.photoURL);
                 list.appendChild(div);
             }
         });
@@ -174,92 +213,93 @@
 
     // Chat Logic
     window.openChat = (uid, name, img) => {
-        currentChatUserId = uid;
-        document.getElementById('chat-with-name').innerText = name;
-        document.getElementById('chat-with-img').src = img || 'https://via.placeholder.com/40';
+        chatUID = uid;
+        document.getElementById('cw-name').innerText = name;
+        document.getElementById('cw-img').src = img || 'https://via.placeholder.com/40';
         document.getElementById('chat-screen').style.display = 'flex';
-        listenMessages(uid);
-    };
-
-    window.closeChat = () => {
-        document.getElementById('chat-screen').style.display = 'none';
-        currentChatUserId = null;
-    };
-
-    function listenMessages(chatId) {
         const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
-        onSnapshot(q, (snapshot) => {
-            const container = document.getElementById('msg-container');
-            container.innerHTML = "";
-            snapshot.forEach(doc => {
-                const m = doc.data();
-                if((m.senderId === auth.currentUser.uid && m.receiverId === chatId) || (m.senderId === chatId && m.receiverId === auth.currentUser.uid)) {
-                    const d = document.createElement('div');
-                    d.className = m.senderId === auth.currentUser.uid ? "msg sent" : "msg received";
-                    
-                    if(m.type === "audio") {
-                        d.innerHTML = `<audio controls src="${m.content}" style="width:200px"></audio>`;
-                    } else if(m.type === "image") {
-                        d.innerHTML = `<img src="${m.content}" style="max-width:200px; border-radius:10px">`;
-                    } else {
-                        d.innerText = m.content;
-                    }
-                    container.appendChild(d);
+        onSnapshot(q, (snap) => {
+            const box = document.getElementById('chat-box');
+            box.innerHTML = "";
+            snap.forEach(mDoc => {
+                const m = mDoc.data();
+                if((m.sender === auth.currentUser.uid && m.receiver === uid) || (m.sender === uid && m.receiver === auth.currentUser.uid)){
+                    const div = document.createElement('div');
+                    div.className = m.sender === auth.currentUser.uid ? "msg sent" : "msg received";
+                    div.innerText = m.content;
+                    box.appendChild(div);
                 }
             });
-            container.scrollTop = container.scrollHeight;
+            box.scrollTop = box.scrollHeight;
         });
-    }
+    };
 
-    // Send Text Message
-    document.getElementById('send-msg-btn').onclick = async () => {
-        const input = document.getElementById('msg-input');
-        if(!input.value || !currentChatUserId) return;
+    window.closeChat = () => document.getElementById('chat-screen').style.display = 'none';
+
+    window.sendMsg = async () => {
+        const input = document.getElementById('m-input');
+        if(!input.value || !chatUID) return;
         await addDoc(collection(db, "messages"), {
-            senderId: auth.currentUser.uid,
-            receiverId: currentChatUserId,
+            sender: auth.currentUser.uid,
+            receiver: chatUID,
             content: input.value,
-            type: "text",
             timestamp: serverTimestamp()
         });
         input.value = "";
     };
 
-    // Voice Message (Audio)
-    const voiceBtn = document.getElementById('voice-btn');
-    voiceBtn.onclick = async () => {
-        if (!mediaRecorder || mediaRecorder.state === "inactive") {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                voiceBtn.classList.remove('recording');
-                // Upload to Cloudinary
-                const formData = new FormData();
-                formData.append('file', audioBlob);
-                formData.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, { method: 'POST', body: formData });
-                const data = await res.json();
-                
-                await addDoc(collection(db, "messages"), {
-                    senderId: auth.currentUser.uid,
-                    receiverId: currentChatUserId,
-                    content: data.secure_url,
-                    type: "audio",
-                    timestamp: serverTimestamp()
-                });
-            };
-            mediaRecorder.start();
-            voiceBtn.classList.add('recording');
-        } else {
-            mediaRecorder.stop();
+    // Posts & Feed
+    window.uploadPost = async () => {
+        const text = document.getElementById('post-text').value;
+        const file = document.getElementById('post-file').files[0];
+        if(!text && !file) return;
+
+        let imgUrl = "";
+        if(file){
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', UPLOAD_PRESET);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method:'POST', body:formData});
+            const data = await res.json();
+            imgUrl = data.secure_url;
         }
+
+        await addDoc(collection(db, "posts"), {
+            uid: auth.currentUser.uid,
+            name: auth.currentUser.displayName,
+            photo: auth.currentUser.photoURL,
+            text: text,
+            img: imgUrl,
+            timestamp: serverTimestamp()
+        });
+        alert("Posted!");
+        location.reload();
     };
 
-    // Logout
-    document.getElementById('logout-btn').onclick = () => signOut(auth);
+    function loadPosts() {
+        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snap) => {
+            const area = document.getElementById('feed-area');
+            area.innerHTML = "";
+            snap.forEach(pDoc => {
+                const p = pDoc.data();
+                const card = document.createElement('div');
+                card.className = "post-card";
+                card.innerHTML = `<b>${p.name}</b><p>${p.text}</p>${p.img ? `<img src="${p.img}" class="post-img">` : ''}`;
+                area.appendChild(card);
+            });
+        });
+    }
+
+    // UI Navigation
+    window.showSec = (id, el) => {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id + '-sec').classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+    };
+
+    window.logout = () => signOut(auth);
 </script>
 </body>
 </html>
