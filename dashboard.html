@@ -5,111 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meetwoyou - Ultimate Social</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1b; --text: #ffffff; --gray: #b0b3b8; }
+        :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1b; --text: #ffffff; --gray: #b0b3b8; --accent: #1da1f2; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 75px; overflow-x: hidden; }
 
-        /* Custom Loader */
+        /* Loader */
         .loader { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .loader-img { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--primary); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .loader-img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } }
 
         /* Header */
         .header { background: var(--card); padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
-        .header h2 { color: var(--primary); margin: 0; font-style: italic; }
+        .header h2 { color: var(--primary); margin: 0; font-style: italic; letter-spacing: 1px; }
 
         /* Sections */
-        .section { display: none; padding: 15px; max-width: 600px; margin: auto; }
+        .section { display: none; padding: 15px; max-width: 600px; margin: auto; animation: fadeIn 0.3s ease; }
         .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Post & Story UI */
-        .story-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
-        .story-item { min-width: 80px; height: 130px; background: #222; border-radius: 10px; position: relative; border: 1px solid #333; }
-        .post-card { background: var(--card); border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px solid #222; }
-        .post-img { width: 100%; border-radius: 10px; margin-top: 10px; }
+        /* Post Card UI */
+        .post-card { background: var(--card); border-radius: 15px; padding: 15px; margin-top: 15px; border: 1px solid #222; }
+        .post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .post-header img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #333; cursor: pointer; }
+        .verify-badge { color: var(--accent); font-size: 12px; margin-left: 4px; }
+        .post-img { width: 100%; border-radius: 12px; margin-top: 10px; border: 1px solid #333; }
+        .post-actions { display: flex; gap: 20px; margin-top: 15px; padding-top: 12px; border-top: 1px solid #282828; }
+        .action-btn { cursor: pointer; color: var(--gray); transition: 0.2s; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .action-btn:hover { color: var(--primary); }
+        .liked { color: #e74c3c !important; }
 
         /* Search & User List */
-        .search-box { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 25px; color: white; margin-bottom: 15px; }
-        .user-card { background: var(--card); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid #222; }
-        .user-card img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+        .search-box { width: 100%; padding: 12px 20px; background: #222; border: 1px solid #333; border-radius: 25px; color: white; margin-bottom: 20px; outline: none; }
+        .user-card { background: var(--card); padding: 12px; border-radius: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
+        .user-card:active { transform: scale(0.98); }
+        .user-card img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; }
 
-        /* Chat Screen */
+        /* Chat UI */
         #chat-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
         .chat-header { background: var(--card); padding: 12px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #333; }
-        .chat-msgs { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 75%; font-size: 14px; }
+        .chat-msgs { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #0a0a0a; }
+        .msg { padding: 10px 16px; border-radius: 18px; max-width: 75%; font-size: 14px; line-height: 1.4; position: relative; }
         .msg.sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
         .msg.received { background: #242526; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .chat-input-area { background: var(--card); padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #333; }
 
         /* Inputs */
-        input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #222; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; }
-        .btn-main { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #222; border: 1px solid #333; color: white; border-radius: 12px; box-sizing: border-box; outline: none; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-main:active { opacity: 0.8; }
 
         /* Bottom Nav */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-item { color: var(--gray); font-size: 20px; cursor: pointer; text-align: center; flex: 1; }
-        .nav-item.active { color: var(--primary); }
-        .nav-item span { display: block; font-size: 10px; margin-top: 4px; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-item { color: var(--gray); font-size: 18px; cursor: pointer; text-align: center; flex: 1; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); transform: translateY(-3px); }
+        .nav-item span { display: block; font-size: 10px; margin-top: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="loader" class="loader">
     <div class="loader-img"></div>
-    <p style="margin-top:15px; color:var(--primary)">Meetwoyou Secure Boot...</p>
+    <p style="margin-top:15px; color:var(--primary); font-weight: bold;">Meetwoyou Secure Boot...</p>
 </div>
 
 <div class="header">
     <h2>Meetwoyou</h2>
-    <i class="fas fa-sign-out-alt" onclick="logout()" style="color:var(--gray)"></i>
+    <i class="fas fa-sign-out-alt" onclick="logout()" style="color:var(--gray); cursor:pointer;"></i>
 </div>
 
 <div id="home-sec" class="section active">
     <div class="story-bar" id="story-area">
-        <div class="story-item" onclick="alert('Story upload coming soon!')" style="display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:10px;">
-            <i class="fas fa-plus-circle fa-2x"></i><br>Add Story
+        <div class="story-item" onclick="alert('Stories coming soon!')" style="display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:10px; cursor:pointer;">
+            <i class="fas fa-plus-circle fa-2x" style="color:var(--primary)"></i><br>Add Story
         </div>
     </div>
     <div class="post-card">
-        <textarea id="post-text" placeholder="What's on your mind?"></textarea>
-        <input type="file" id="post-file" accept="image/*">
-        <button class="btn-main" onclick="uploadPost()">Post Status</button>
+        <textarea id="post-text" placeholder="Share something new..."></textarea>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <label for="post-file" style="cursor:pointer; background:#222; padding:10px; border-radius:10px; flex:1; text-align:center; font-size:13px; border:1px solid #333;">
+                <i class="fas fa-image"></i> Photo
+            </label>
+            <input type="file" id="post-file" accept="image/*" style="display:none">
+            <button class="btn-main" style="flex:2" onclick="uploadPost()">Post Status</button>
+        </div>
     </div>
     <div id="feed-area"></div>
 </div>
 
 <div id="search-sec" class="section">
-    <input type="text" class="search-box" id="user-search" placeholder="Search friends by name..." oninput="filterUsers()">
+    <input type="text" class="search-box" id="user-search" placeholder="Find people..." oninput="filterUsers()">
     <div id="all-users-list"></div>
 </div>
 
 <div id="profile-sec" class="section">
-    <div style="text-align:center; background:var(--card); padding:20px; border-radius:15px;">
-        <div style="position:relative; width:100px; height:100px; margin:auto;">
-            <img id="p-img" src="https://via.placeholder.com/100" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-            <label for="p-upload" style="position:absolute; bottom:0; right:0; background:var(--primary); padding:6px; border-radius:50%; cursor:pointer;"><i class="fas fa-camera"></i></label>
+    <div style="text-align:center; background:var(--card); padding:20px; border-radius:20px; border:1px solid #222;">
+        <div style="position:relative; width:110px; height:110px; margin:auto; margin-bottom:15px;">
+            <img id="p-img" src="https://via.placeholder.com/110" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">
+            <label for="p-upload" style="position:absolute; bottom:5px; right:5px; background:var(--primary); padding:8px; border-radius:50%; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);"><i class="fas fa-camera" style="font-size:12px;"></i></label>
             <input type="file" id="p-upload" style="display:none">
         </div>
+        <h3 id="display-name-view" style="margin:5px 0;">Username</h3>
+        <p id="display-bio-view" style="color:var(--gray); font-size:14px; margin-bottom:20px;">Your bio will appear here</p>
+        
         <input type="text" id="p-name" placeholder="Full Name">
-        <textarea id="p-bio" placeholder="Bio"></textarea>
-        <input type="text" id="p-edu" placeholder="Education">
+        <textarea id="p-bio" placeholder="Describe yourself..."></textarea>
+        <input type="text" id="p-edu" placeholder="Education/Work">
         <input type="date" id="p-dob">
-        <button class="btn-main" id="p-save-btn">Update Profile</button>
+        <button class="btn-main" id="p-save-btn">Save Changes</button>
     </div>
 </div>
 
 <div id="chat-screen">
     <div class="chat-header">
-        <i class="fas fa-arrow-left" onclick="closeChat()"></i>
-        <img id="cw-img" src="" style="width:40px; height:40px; border-radius:50%;">
-        <b id="cw-name">User</b>
+        <i class="fas fa-arrow-left" onclick="closeChat()" style="cursor:pointer; padding:5px;"></i>
+        <img id="cw-img" src="" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+        <div>
+            <b id="cw-name">User</b><br>
+            <small style="color:#2ecc71; font-size:10px;">Online</small>
+        </div>
     </div>
     <div class="chat-msgs" id="chat-box"></div>
-    <div class="chat-input">
-        <input type="text" id="m-input" placeholder="Type a message...">
-        <i class="fas fa-microphone" id="v-btn" style="padding:10px; color:var(--gray)"></i>
-        <i class="fas fa-paper-plane" onclick="sendMsg()" style="padding:10px; color:var(--primary)"></i>
+    <div class="chat-input-area">
+        <input type="text" id="m-input" placeholder="Write a message..." style="margin:0;">
+        <button onclick="sendMsg()" style="background:none; border:none; color:var(--primary); font-size:22px; cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
 
@@ -122,8 +141,9 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, orderBy, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, orderBy, addDoc, serverTimestamp, getDocs, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
       authDomain: "meetwoyou-436a2.firebaseapp.com",
@@ -148,27 +168,31 @@
             loadUsers();
             loadPosts();
         } else {
-            window.location.href = "index.html";
+            window.location.href = "index.html"; 
         }
     });
 
-    // Profile Logic
+    // Profile Management
     async function loadProfileData(user) {
         const snap = await getDoc(doc(db, "users", user.uid));
+        const photo = user.photoURL || "https://via.placeholder.com/100";
+        document.getElementById('p-img').src = photo;
+        document.getElementById('p-name').value = user.displayName || "";
+        document.getElementById('display-name-view').innerText = user.displayName || "User";
+        
         if(snap.exists()){
             const d = snap.data();
-            document.getElementById('p-name').value = user.displayName || "";
             document.getElementById('p-bio').value = d.bio || "";
             document.getElementById('p-edu').value = d.education || "";
             document.getElementById('p-dob').value = d.dob || "";
-            document.getElementById('p-img').src = user.photoURL || "https://via.placeholder.com/100";
+            document.getElementById('display-bio-view').innerText = d.bio || "Available";
         }
     }
 
     document.getElementById('p-save-btn').onclick = async () => {
         const user = auth.currentUser;
         const btn = document.getElementById('p-save-btn');
-        btn.innerText = "Updating...";
+        btn.innerText = "Processing...";
         
         let photoUrl = user.photoURL;
         const file = document.getElementById('p-upload').files[0];
@@ -186,16 +210,17 @@
             bio: document.getElementById('p-bio').value,
             education: document.getElementById('p-edu').value,
             dob: document.getElementById('p-dob').value,
-            photoURL: photoUrl
+            photoURL: photoUrl,
+            lastSeen: serverTimestamp()
         };
 
         await setDoc(doc(db, "users", user.uid), profileData, {merge:true});
         await updateProfile(user, {displayName: profileData.displayName, photoURL: photoUrl});
-        alert("Profile Updated!");
-        location.reload();
+        
+        Swal.fire('Success', 'Profile Updated Successfully!', 'success').then(() => location.reload());
     };
 
-    // User Search & List
+    // User Directory with Auto-Verification Badge
     async function loadUsers() {
         const snap = await getDocs(collection(db, "users"));
         const list = document.getElementById('all-users-list');
@@ -205,19 +230,118 @@
                 const u = uDoc.data();
                 const div = document.createElement('div');
                 div.className = "user-card";
-                div.innerHTML = `<img src="${u.photoURL || 'https://via.placeholder.com/50'}"> <div><b>${u.displayName}</b><br><small>${u.bio || 'Available'}</small></div>`;
+                div.innerHTML = `
+                    <img src="${u.photoURL || 'https://via.placeholder.com/60'}"> 
+                    <div style="flex:1">
+                        <b>${u.displayName} <i class="fas fa-check-circle verify-badge"></i></b>
+                        <br><small style="color:var(--gray)">${u.bio || 'Hey! I am using Meetwoyou'}</small>
+                    </div>
+                    <i class="fas fa-comment-alt" style="color:var(--primary)"></i>
+                `;
                 div.onclick = () => openChat(uDoc.id, u.displayName, u.photoURL);
                 list.appendChild(div);
             }
         });
     }
 
-    // Chat Logic
+    // Advanced Post & Feed with Reactions
+    window.uploadPost = async () => {
+        const text = document.getElementById('post-text').value;
+        const file = document.getElementById('post-file').files[0];
+        if(!text && !file) return Swal.fire('Error', 'Please write something or select a photo', 'error');
+
+        Swal.showLoading();
+        let imgUrl = "";
+        if(file){
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', UPLOAD_PRESET);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method:'POST', body:formData});
+            const data = await res.json();
+            imgUrl = data.secure_url;
+        }
+
+        await addDoc(collection(db, "posts"), {
+            uid: auth.currentUser.uid,
+            name: auth.currentUser.displayName,
+            photo: auth.currentUser.photoURL,
+            text: text,
+            img: imgUrl,
+            likes: 0,
+            timestamp: serverTimestamp()
+        });
+        
+        Swal.fire('Posted', 'Status shared!', 'success');
+        document.getElementById('post-text').value = "";
+        document.getElementById('post-file').value = "";
+    };
+
+    function loadPosts() {
+        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snap) => {
+            const area = document.getElementById('feed-area');
+            area.innerHTML = "";
+            snap.forEach(pDoc => {
+                const p = pDoc.data();
+                const pid = pDoc.id;
+                const card = document.createElement('div');
+                card.className = "post-card";
+                card.innerHTML = `
+                    <div class="post-header">
+                        <img src="${p.photo || 'https://via.placeholder.com/45'}" onclick="viewUserProfile('${p.uid}')">
+                        <div>
+                            <b>${p.name} <i class="fas fa-check-circle verify-badge"></i></b><br>
+                            <small style="color:var(--gray); font-size:10px;">${p.timestamp ? new Date(p.timestamp.toDate()).toLocaleString() : 'Just now'}</small>
+                        </div>
+                    </div>
+                    <p style="font-size:15px; line-height:1.5;">${p.text}</p>
+                    ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
+                    <div class="post-actions">
+                        <div class="action-btn" onclick="handleLike('${pid}')">
+                            <i class="fas fa-heart"></i> <span id="l-${pid}">${p.likes || 0}</span> Likes
+                        </div>
+                        <div class="action-btn" onclick="openChat('${p.uid}', '${p.name}', '${p.photo}')">
+                            <i class="fas fa-comment"></i> Chat
+                        </div>
+                    </div>
+                `;
+                area.appendChild(card);
+            });
+        });
+    }
+
+    window.handleLike = async (pid) => {
+        const postRef = doc(db, "posts", pid);
+        await updateDoc(postRef, { likes: increment(1) });
+    };
+
+    window.viewUserProfile = async (uid) => {
+        const uSnap = await getDoc(doc(db, "users", uid));
+        if(uSnap.exists()){
+            const u = uSnap.data();
+            Swal.fire({
+                title: u.displayName,
+                text: u.bio || "No bio available",
+                imageUrl: u.photoURL || "https://via.placeholder.com/100",
+                imageWidth: 100,
+                imageHeight: 100,
+                imageAlt: 'User profile',
+                confirmButtonText: 'Message',
+                confirmButtonColor: '#8e44ad',
+                showCancelButton: true
+            }).then((result) => {
+                if(result.isConfirmed) openChat(uid, u.displayName, u.photoURL);
+            });
+        }
+    };
+
+    // Chat Functions
     window.openChat = (uid, name, img) => {
         chatUID = uid;
         document.getElementById('cw-name').innerText = name;
         document.getElementById('cw-img').src = img || 'https://via.placeholder.com/40';
         document.getElementById('chat-screen').style.display = 'flex';
+        
         const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
         onSnapshot(q, (snap) => {
             const box = document.getElementById('chat-box');
@@ -239,60 +363,18 @@
 
     window.sendMsg = async () => {
         const input = document.getElementById('m-input');
-        if(!input.value || !chatUID) return;
+        if(!input.value.trim() || !chatUID) return;
+        const msg = input.value;
+        input.value = "";
         await addDoc(collection(db, "messages"), {
             sender: auth.currentUser.uid,
             receiver: chatUID,
-            content: input.value,
+            content: msg,
             timestamp: serverTimestamp()
         });
-        input.value = "";
     };
 
-    // Posts & Feed
-    window.uploadPost = async () => {
-        const text = document.getElementById('post-text').value;
-        const file = document.getElementById('post-file').files[0];
-        if(!text && !file) return;
-
-        let imgUrl = "";
-        if(file){
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', UPLOAD_PRESET);
-            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method:'POST', body:formData});
-            const data = await res.json();
-            imgUrl = data.secure_url;
-        }
-
-        await addDoc(collection(db, "posts"), {
-            uid: auth.currentUser.uid,
-            name: auth.currentUser.displayName,
-            photo: auth.currentUser.photoURL,
-            text: text,
-            img: imgUrl,
-            timestamp: serverTimestamp()
-        });
-        alert("Posted!");
-        location.reload();
-    };
-
-    function loadPosts() {
-        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-        onSnapshot(q, (snap) => {
-            const area = document.getElementById('feed-area');
-            area.innerHTML = "";
-            snap.forEach(pDoc => {
-                const p = pDoc.data();
-                const card = document.createElement('div');
-                card.className = "post-card";
-                card.innerHTML = `<b>${p.name}</b><p>${p.text}</p>${p.img ? `<img src="${p.img}" class="post-img">` : ''}`;
-                area.appendChild(card);
-            });
-        });
-    }
-
-    // UI Navigation
+    // Global Navigation
     window.showSec = (id, el) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id + '-sec').classList.add('active');
@@ -300,7 +382,15 @@
         el.classList.add('active');
     };
 
-    window.logout = () => signOut(auth);
+    window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
+
+    window.filterUsers = () => {
+        const term = document.getElementById('user-search').value.toLowerCase();
+        document.querySelectorAll('.user-card').forEach(card => {
+            const name = card.querySelector('b').innerText.toLowerCase();
+            card.style.display = name.includes(term) ? "flex" : "none";
+        });
+    };
 </script>
 </body>
 </html>
