@@ -1,0 +1,203 @@
+<div class="max-w-2xl mx-auto space-y-6 pb-24">
+    
+    <div class="flex gap-4 overflow-x-auto py-4 scrollbar-hide">
+        <div class="flex-shrink-0 w-20 h-28 relative rounded-2xl border-2 border-dashed border-purple-500/30 flex flex-col items-center justify-center cursor-pointer hover:bg-purple-500/5 transition" onclick="document.getElementById('story-upload').click()">
+            <i class="fas fa-plus text-purple-500 text-xl"></i>
+            <span class="text-[10px] mt-2 font-bold text-gray-400">Add Story</span>
+            <input type="file" id="story-upload" class="hidden" onchange="uploadStory(this)">
+        </div>
+        <div id="story-list" class="flex gap-4"></div>
+    </div>
+
+    <div class="bg-slate-900/40 p-5 rounded-[2rem] border border-white/5 shadow-xl">
+        <div class="flex gap-4">
+            <img id="current-user-img" src="https://via.placeholder.com/50" class="w-12 h-12 rounded-2xl object-cover">
+            <textarea id="post-caption" placeholder="What's on your mind?" class="w-full bg-transparent border-none outline-none text-white resize-none py-2 text-sm"></textarea>
+        </div>
+        <div class="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
+            <button onclick="document.getElementById('post-img-upload').click()" class="text-gray-400 hover:text-purple-400 text-sm flex items-center gap-2">
+                <i class="fas fa-image"></i> Photo
+            </button>
+            <input type="file" id="post-img-upload" class="hidden" accept="image/*">
+            <button id="post-btn" onclick="createNewPost()" class="bg-purple-600 px-6 py-2 rounded-xl text-white font-bold text-sm shadow-lg shadow-purple-600/20 active:scale-95 transition">Post</button>
+        </div>
+    </div>
+
+    <div id="feed-container" class="space-y-6">
+        <div class="text-center py-20 text-gray-500 animate-pulse">Loading Feed...</div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
+        authDomain: "meetwoyou-436a2.firebaseapp.com",
+        projectId: "meetwoyou-436a2",
+        storageBucket: "meetwoyou-436a2.firebasestorage.app",
+        messagingSenderId: "612788132077",
+        appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // ১. স্টোরি আপলোড লজিক (Cloudinary + Firestore)
+    window.uploadStory = async (input) => {
+        const file = input.files[0];
+        if(!file || !auth.currentUser) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'Meetwoyou');
+
+        try {
+            const res = await fetch('https://api.cloudinary.com/v1_1/dpgawb5sl/image/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            await addDoc(collection(db, "stories"), {
+                userId: auth.currentUser.uid,
+                imageUrl: data.secure_url,
+                createdAt: serverTimestamp(),
+                expiresAt: Date.now() + (24 * 60 * 60 * 1000) // ২৪ ঘণ্টা পর
+            });
+            alert("Story Uploaded!");
+        } catch (e) { console.error(e); }
+    };
+
+    // ২. পোস্ট তৈরি করা
+    window.createNewPost = async () => {
+        const caption = document.getElementById('post-caption').value;
+        const imgInput = document.getElementById('post-img-upload');
+        const user = auth.currentUser;
+        if(!caption && !imgInput.files[0]) return;
+
+        const btn = document.getElementById('post-btn');
+        btn.innerText = "Posting...";
+        btn.disabled = true;
+
+        let imageUrl = "";
+        if(imgInput.files[0]) {
+            const formData = new FormData();
+            formData.append('file', imgInput.files[0]);
+            formData.append('upload_preset', 'Meetwoyou');
+            const res = await fetch('https://api.cloudinary.com/v1_1/dpgawb5sl/image/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            imageUrl = data.secure_url;
+        }
+
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        const userData = userSnap.data();
+
+        await addDoc(collection(db, "posts"), {
+            userId: user.uid,
+            userName: userData?.fullName || "Agent",
+            userPic: userData?.profilePicUrl || user.photoURL || "",
+            caption: caption,
+            postImg: imageUrl,
+            likes: [],
+            loveCount: 0,
+            createdAt: serverTimestamp()
+        });
+
+        document.getElementById('post-caption').value = "";
+        imgInput.value = "";
+        btn.innerText = "Post";
+        btn.disabled = false;
+    };
+
+    // ৩. নিউজ ফিড লোড করা
+    onAuthStateChanged(auth, (user) => {
+        if(!user) return;
+        
+        // বর্তমান ইউজারের ছবি সেট করা
+        getDoc(doc(db, "users", user.uid)).then(s => {
+            if(s.exists()) document.getElementById('current-user-img').src = s.data().profilePicUrl;
+        });
+
+        // পোস্ট লোড করা
+        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const container = document.getElementById('feed-container');
+            container.innerHTML = "";
+            snapshot.forEach(postDoc => {
+                const post = postDoc.data();
+                const postId = postDoc.id;
+                const isMyPost = post.userId === user.uid;
+
+                const postHtml = `
+                <div class="bg-slate-900/40 rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl animate-fade-in">
+                    <div class="p-5 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <img src="${post.userPic || 'https://via.placeholder.com/50'}" class="w-10 h-10 rounded-xl object-cover">
+                            <div>
+                                <h4 class="text-white text-sm font-bold">${post.userName}</h4>
+                                <p class="text-[10px] text-gray-500">Just now</p>
+                            </div>
+                        </div>
+                        ${isMyPost ? `<button onclick="deleteMyPost('${postId}')" class="text-gray-600 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>` : ''}
+                    </div>
+                    <div class="px-5 pb-3 text-gray-300 text-sm leading-relaxed">${post.caption}</div>
+                    ${post.postImg ? `<img src="${post.postImg}" class="w-full object-cover max-h-96" ondblclick="likePost('${postId}')">` : ''}
+                    
+                    <div class="p-5 flex gap-6 text-gray-400 text-sm border-t border-white/5">
+                        <span onclick="likePost('${postId}')" class="cursor-pointer hover:text-red-500 transition flex items-center gap-2">
+                            <i class="fas fa-heart ${post.likes?.includes(user.uid) ? 'text-red-500' : ''}"></i> ${post.loveCount || 0}
+                        </span>
+                        <span class="hover:text-blue-400 cursor-pointer flex items-center gap-2"><i class="fas fa-comment"></i> Comment</span>
+                        <span class="hover:text-green-400 cursor-pointer flex items-center gap-2"><i class="fas fa-share"></i> Share</span>
+                    </div>
+                </div>`;
+                container.innerHTML += postHtml;
+            });
+        });
+
+        // স্টোরি লোড করা (Auto-expiry লজিকসহ)
+        const sq = query(collection(db, "stories"), orderBy("createdAt", "desc"));
+        onSnapshot(sq, (snap) => {
+            const sList = document.getElementById('story-list');
+            sList.innerHTML = "";
+            const now = Date.now();
+            snap.forEach(sDoc => {
+                const s = sDoc.data();
+                if(s.expiresAt > now) {
+                    sList.innerHTML += `<div class="flex-shrink-0 w-20 h-28 rounded-2xl border-2 border-purple-600 overflow-hidden bg-slate-800 shadow-xl">
+                        <img src="${s.imageUrl}" class="w-full h-full object-cover transition hover:scale-110">
+                    </div>`;
+                } else {
+                    deleteDoc(doc(db, "stories", sDoc.id)); // ২৪ ঘণ্টা হয়ে গেলে অটো ডিলিট
+                }
+            });
+        });
+    });
+
+    // ৪. ইন্টারঅ্যাকশন ফাংশন
+    window.likePost = async (id) => {
+        const user = auth.currentUser;
+        const postRef = doc(db, "posts", id);
+        const postSnap = await getDoc(postRef);
+        const post = postSnap.data();
+        
+        let likes = post.likes || [];
+        if(likes.includes(user.uid)) {
+            likes = likes.filter(l => l !== user.uid);
+        } else {
+            likes.push(user.uid);
+        }
+        await updateDoc(postRef, { likes: likes, loveCount: likes.length });
+    };
+
+    window.deleteMyPost = async (id) => {
+        if(confirm("Delete this post?")) await deleteDoc(doc(db, "posts", id));
+    };
+</script>
+
+<style>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
