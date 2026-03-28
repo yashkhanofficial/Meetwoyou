@@ -3,188 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Premium Profile</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Meetwoyou - Personalize Your Cyber Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; overflow-x: hidden; }
-        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .input-field { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: white; outline: none; transition: 0.3s ease-in-out; }
-        .input-field:focus { border-color: #8b5cf6; box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); }
+        :root {
+            --primary: #8e44ad;
+            --bg: #0d0d0d;
+            --card: #1a1a1a;
+            --text: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        p { color: #888; font-size: 14px; }
+
+        .profile-pic-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+        }
+
+        #profile-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+        }
+
+        .upload-icon {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: var(--primary);
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #222;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        button:hover { opacity: 0.9; }
         
-        /* Floating Icons for Background */
-        .dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #8b5cf6; filter: blur(5px); opacity: 0.2; }
-        .dot:nth-child(1) { top: 20%; left: 80%; }
-        .dot:nth-child(2) { top: 70%; left: 10%; }
-        .dot:nth-child(3) { top: 50%; left: 90%; }
+        #logout-btn {
+            background: transparent;
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+            margin-top: 15px;
+        }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-6 relative">
-    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-    
-    <div class="glass-panel p-8 md:p-12 rounded-[2.5rem] w-full max-w-2xl shadow-2xl relative overflow-hidden">
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl"></div>
-        
-        <div class="text-center mb-10">
-            <h1 class="text-4xl font-extrabold italic text-purple-400 mb-1">Meetwoyou</h1>
-            <p class="text-gray-400 text-sm">Personalize your cyber professional profile</p>
-        </div>
+<body>
 
-        <div class="flex flex-col md:flex-row md:items-start md:space-x-8">
-            
-            <div class="flex flex-col items-center mb-8 md:mb-0">
-                <div class="relative group">
-                    <div id="user-avatar" class="w-36 h-36 rounded-full border-4 border-purple-500/30 overflow-hidden bg-gray-800 flex items-center justify-center shadow-lg transition-all group-hover:scale-105">
-                        <span id="avatar-placeholder" class="text-5xl">👤</span>
-                    </div>
-                    <label for="photo-upload" class="absolute bottom-1 right-1 bg-purple-600 p-3 rounded-full cursor-pointer hover:bg-purple-700 transition shadow-lg active:scale-95">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    </label>
-                    <input type="file" id="photo-upload" class="hidden" accept="image/*">
-                </div>
-                <p id="upload-status" class="text-gray-500 text-xs mt-3 h-4">Click 📸 to change</p>
-            </div>
+<div class="container">
+    <h1>Meetwoyou</h1>
+    <p>Personalize your cyber professional profile</p>
 
-            <div class="w-full space-y-5">
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase ml-1 tracking-widest">Full Name</label>
-                    <input type="text" id="user-name-input" class="input-field w-full px-5 py-4 rounded-2xl mt-1.5" placeholder="Enter your name">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase ml-1 tracking-widest">Email (ReadOnly)</label>
-                    <input type="email" id="user-email-display" class="input-field w-full px-5 py-4 rounded-2xl mt-1.5 opacity-50 cursor-not-allowed" readonly>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase ml-1 tracking-widest">Bio / Status</label>
-                    <textarea id="user-bio" class="input-field w-full px-5 py-4 rounded-2xl mt-1.5 h-28 resize-none" placeholder="Cyberstudent | Developer..."></textarea>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-5 pt-10 md:pt-12 md:max-w-sm md:ml-auto">
-            <button id="save-profile" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-2xl transition shadow-lg active:scale-95 disabled:bg-gray-600">
-                <span id="save-text">Save Changes</span>
-            </button>
-            <button id="sign-out" class="bg-white/5 hover:bg-red-500/20 text-red-400 font-bold py-4 rounded-2xl border border-white/10 transition">Sign Out</button>
-        </div>
+    <div class="profile-pic-container">
+        <img id="profile-img" src="https://via.placeholder.com/150" alt="Profile">
+        <label for="photo-upload" class="upload-icon">
+            <i class="fas fa-camera"></i>
+        </label>
+        <input type="file" id="photo-upload" style="display:none" accept="image/*">
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <input type="text" id="user-name" placeholder="Full Name">
+    <textarea id="user-bio" rows="3" placeholder="Bio / Status (e.g., Ethical Hacking Student)"></textarea>
 
-        // Your Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
-            authDomain: "meetwoyou-436a2.firebaseapp.com",
-            projectId: "meetwoyou-436a2",
-            storageBucket: "meetwoyou-436a2.firebasestorage.app",
-            messagingSenderId: "612788132077",
-            appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
-        };
+    <button id="save-btn"><i class="fas fa-save"></i> Save Changes</button>
+    <button id="logout-btn">Logout</button>
+</div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const storage = getStorage(app);
-        const db = getFirestore(app);
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // UI Updates with Realtime Firestore Data
-        const loadUserData = async (user) => {
-            if (user) {
-                // Fill Base Info (Auth)
-                document.getElementById('user-name-input').value = user.displayName || "";
-                document.getElementById('user-email-display').value = user.email;
-                
-                // Show Auth Photo immediately
-                if (user.photoURL) {
-                    document.getElementById('user-avatar').innerHTML = `<img src="${user.photoURL}" class="w-full h-full object-cover">`;
-                }
+    // --- YOUR FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSy...", // আপনার সঠিক API Key দিন
+        authDomain: "meetwoyou-436a2.firebaseapp.com",
+        projectId: "meetwoyou-436a2",
+        storageBucket: "meetwoyou-436a2.firebasestorage.app",
+        messagingSenderId: "...",
+        appId: "..."
+    };
 
-                // Load Firestore Data (Bio)
-                const docRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    document.getElementById('user-bio').value = docSnap.data().bio || "";
-                }
-            } else {
-                window.location.href = "index.html"; 
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // --- CLOUDINARY CONFIG ---
+    const CLOUD_NAME = "dpgawb5sl";
+    const UPLOAD_PRESET = "ml_default"; // এটি অবশ্যই "Unsigned" হতে হবে
+
+    // ১. ইউজার লগইন আছে কি না চেক করা এবং ডেটা লোড করা
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            document.getElementById('user-name').value = user.displayName || "";
+            document.getElementById('profile-img').src = user.photoURL || "https://via.placeholder.com/150";
+
+            // Firestore থেকে বায়ো নিয়ে আসা
+            const docSnap = await getDoc(doc(db, "users", user.uid));
+            if (docSnap.exists()) {
+                document.getElementById('user-bio').value = docSnap.data().bio || "";
             }
-        };
+        } else {
+            window.location.href = "index.html"; // লগইন না থাকলে ইনডেক্সে পাঠিয়ে দিবে
+        }
+    });
 
-        // --- WORKING PHOTO UPLOAD ---
-        document.getElementById('photo-upload').onchange = async (e) => {
-            const file = e.target.files[0];
-            const user = auth.currentUser;
-            const statusEl = document.getElementById('upload-status');
-            
-            if(!file || !user) return;
-            
-            statusEl.innerText = "Uploading...";
-            
-            const storageRef = ref(storage, 'profilePhotos/' + user.uid);
-            
-            try {
-                // 1. Upload to Firebase Storage
-                await uploadBytes(storageRef, file);
-                
-                // 2. Get Public URL
-                const downloadURL = await getDownloadURL(storageRef);
-                
-                // 3. Update Auth Profile Photo
-                await updateProfile(user, { photoURL: downloadURL });
-                
-                // Update UI immediately
-                document.getElementById('user-avatar').innerHTML = `<img src="${downloadURL}" class="w-full h-full object-cover">`;
-                statusEl.innerText = "Uploaded successfully!";
-                console.log("Photo URL: " + downloadURL);
-            } catch (error) {
-                statusEl.innerText = "Upload failed.";
-                alert("Photo Error: " + error.message);
-            }
-        };
+    // ২. প্রোফাইল সেভ করার ফাংশন
+    document.getElementById('save-btn').onclick = async () => {
+        const user = auth.currentUser;
+        const name = document.getElementById('user-name').value;
+        const bio = document.getElementById('user-bio').value;
+        const photoFile = document.getElementById('photo-upload').files[0];
 
-        // --- WORKING SAVE CHANGES ---
-        document.getElementById('save-profile').onclick = async () => {
-            const user = auth.currentUser;
-            const newName = document.getElementById('user-name-input').value;
-            const newBio = document.getElementById('user-bio').value;
-            const btn = document.getElementById('save-profile');
-            
-            if(!user) return;
-            
-            btn.disabled = true;
-            document.getElementById('save-text').innerText = "Saving...";
-            
-            try {
-                // 1. Save Name to Auth
-                await updateProfile(user, { displayName: newName });
-                
-                // 2. Save Bio and other data to Firestore (as promised)
-                await setDoc(doc(db, "users", user.uid), {
-                    displayName: newName,
-                    bio: newBio,
-                    email: user.email,
-                    lastUpdated: new Date()
+        if (!user) return;
+
+        try {
+            let finalPhotoURL = user.photoURL;
+
+            // যদি নতুন ফটো সিলেক্ট করা হয়
+            if (photoFile) {
+                const formData = new FormData();
+                formData.append('file', photoFile);
+                formData.append('upload_preset', UPLOAD_PRESET);
+
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                    method: 'POST',
+                    body: formData
                 });
-                
-                alert("Profile and Bio Updated Successfully!");
-            } catch (error) {
-                alert("Save Error: " + error.message);
-            } finally {
-                btn.disabled = false;
-                document.getElementById('save-text').innerText = "Save Changes";
+                const data = await res.json();
+                finalPhotoURL = data.secure_url;
             }
-        };
 
-        // Sign Out
-        document.getElementById('sign-out').onclick = () => {
-            signOut(auth).then(() => window.location.href = "index.html");
-        };
+            // Firestore এ বায়ো ও নাম সেভ
+            await setDoc(doc(db, "users", user.uid), {
+                displayName: name,
+                bio: bio,
+                photoURL: finalPhotoURL
+            }, { merge: true });
 
-        // Auth Listener
-        onAuthStateChanged(auth, loadUserData);
-    </script>
+            // Auth প্রোফাইল আপডেট
+            await updateProfile(user, { displayName: name, photoURL: finalPhotoURL });
+
+            alert("Profile Updated Successfully!");
+            location.reload();
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+    };
+
+    // ৩. লগআউট
+    document.getElementById('logout-btn').onclick = () => {
+        signOut(auth).then(() => {
+            window.location.href = "index.html";
+        });
+    };
+</script>
+
 </body>
 </html>
