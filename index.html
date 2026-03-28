@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Home</title>
+    <title>Meetwoyou - Login & Signup</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="h-screen flex items-center justify-center p-4">
@@ -15,42 +15,57 @@
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-2 italic">Meetwoyou</h1>
         
         <div id="login-section">
-            <p class="text-center text-gray-500 mb-8">স্বাগতম! লগইন করুন</p>
-            <input type="email" id="login-email" placeholder="ইমেইল" class="w-full px-4 py-3 rounded-lg bg-gray-100 border mb-4 focus:outline-none focus:border-purple-500">
-            <input type="password" id="login-password" placeholder="পাসওয়ার্ড" class="w-full px-4 py-3 rounded-lg bg-gray-100 border mb-2 focus:outline-none focus:border-purple-500">
-            <div class="text-right mb-4">
-                <button onclick="showSection('forgot-section')" class="text-xs text-purple-600 hover:underline">পাসওয়ার্ড ভুলে গেছেন?</button>
+            <p class="text-center text-gray-500 mb-8">Welcome back! Login korun</p>
+            <div class="space-y-4">
+                <input type="email" id="login-email" placeholder="Email Address" class="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:border-purple-500 focus:outline-none transition">
+                <input type="password" id="login-password" placeholder="Password" class="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:border-purple-500 focus:outline-none transition">
             </div>
-            <button class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg shadow-md hover:bg-purple-700 transition">লগইন</button>
+            <div class="text-right mt-2">
+                <button onclick="showSection('forgot-section')" class="text-xs text-purple-600 hover:underline">Forgot Password?</button>
+            </div>
+            <button class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg shadow-lg mt-6 hover:bg-purple-700 transition">Login</button>
             
-            <div class="mt-6 flex items-center justify-between opacity-50"><hr class="w-full"> <span class="px-2 text-xs">বা</span> <hr class="w-full"></div>
+            <div class="mt-6 flex items-center justify-between opacity-50"><hr class="w-full border-gray-300"> <span class="px-2 text-xs text-gray-400">OR</span> <hr class="w-full border-gray-300"></div>
             
-            <button id="google-login" class="w-full mt-6 bg-white border border-gray-300 py-3 rounded-lg flex items-center justify-center hover:bg-gray-50 transition">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-5 h-5 mr-2"> Google দিয়ে লগইন
+            <button id="google-login" class="w-full mt-6 bg-white border border-gray-300 py-3 rounded-lg flex items-center justify-center hover:bg-gray-50 transition shadow-sm">
+                <svg class="w-5 h-5 mr-3" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.94l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                </svg>
+                Google diye Login
             </button>
-            <p class="mt-8 text-center text-sm">অ্যাকাউন্ট নেই? <button onclick="showSection('signup-section')" class="text-purple-600 font-bold hover:underline">নতুন অ্যাকাউন্ট তৈরি করুন</button></p>
+
+            <p class="mt-8 text-center text-sm text-gray-600 italic">
+                Account nei? <button onclick="showSection('signup-section')" class="text-purple-600 font-bold hover:underline">New Account khulun</button>
+            </p>
         </div>
 
         <div id="signup-section" class="hidden">
-            <p class="text-center text-gray-500 mb-8">নতুন অ্যাকাউন্ট খুলুন</p>
-            <input type="text" placeholder="পুরো নাম" class="w-full px-4 py-3 rounded-lg bg-gray-100 border mb-4 focus:outline-none focus:border-purple-500">
-            <input type="email" id="signup-email" placeholder="ইমেইল" class="w-full px-4 py-3 rounded-lg bg-gray-100 border mb-4 focus:outline-none focus:border-purple-500">
-            <input type="password" id="signup-password" placeholder="পাসওয়ার্ড" class="w-full px-4 py-3 rounded-lg bg-gray-100 border mb-6 focus:outline-none focus:border-purple-500">
-            <button class="w-full bg-green-600 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-700 transition">অ্যাকাউন্ট খুলুন</button>
-            <p class="mt-6 text-center text-sm"><button onclick="showSection('login-section')" class="text-gray-600 hover:underline">ফিরে যান</button></p>
+            <p class="text-center text-gray-500 mb-8">Notun Account create korun</p>
+            <div class="space-y-4">
+                <input type="text" placeholder="Full Name" class="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:border-green-500 focus:outline-none transition">
+                <input type="email" placeholder="Email" class="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:border-green-500 focus:outline-none transition">
+                <input type="password" placeholder="New Password" class="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:border-green-500 focus:outline-none transition">
+            </div>
+            <button class="w-full bg-green-600 text-white font-bold py-3 rounded-lg shadow-lg mt-6 hover:bg-green-700 transition">Sign Up</button>
+            <p class="mt-6 text-center text-sm">
+                Already account ache? <button onclick="showSection('login-section')" class="text-gray-600 hover:underline">Login-e firun</button>
+            </p>
         </div>
 
         <div id="forgot-section" class="hidden">
-            <p class="text-center text-gray-500 mb-8">পাসওয়ার্ড রিসেট করুন</p>
-            <p class="text-xs text-gray-400 mb-4 text-center">আপনার ইমেইল দিন, আমরা একটি রিসেট লিঙ্ক পাঠাবো।</p>
-            <input type="email" placeholder="আপনার ইমেইল" class="w-full px-4 py-3 rounded-lg bg-gray-100 border mb-6 focus:outline-none focus:border-purple-500">
-            <button class="w-full bg-orange-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-orange-600 transition">লিঙ্ক পাঠান</button>
-            <p class="mt-6 text-center text-sm"><button onclick="showSection('login-section')" class="text-gray-600 hover:underline">ফিরে যান</button></p>
+            <p class="text-center text-gray-500 mb-8">Password Reset korun</p>
+            <input type="email" placeholder="Apnar Email likhun" class="w-full px-4 py-3 rounded-lg bg-gray-100 border mb-6 focus:border-orange-500 focus:outline-none transition">
+            <button class="w-full bg-orange-500 text-white font-bold py-3 rounded-lg shadow-lg hover:bg-orange-600 transition">Reset Link Pathan</button>
+            <p class="mt-6 text-center text-sm">
+                <button onclick="showSection('login-section')" class="text-gray-600 hover:underline">Firiye jan</button>
+            </p>
         </div>
     </div>
 
     <script type="module">
-        // --- Firebase Logic ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
@@ -67,21 +82,22 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Section Toggle Function
-        window.showSection = (id) => {
+        // Section Toggle function
+        window.showSection = (sectionId) => {
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('signup-section').classList.add('hidden');
             document.getElementById('forgot-section').classList.add('hidden');
-            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(sectionId).classList.remove('hidden');
         };
 
-        // Google Login
+        // Google Login Logic
         document.getElementById('google-login').onclick = async () => {
             try {
                 const result = await signInWithPopup(auth, provider);
-                alert("স্বাগতম " + result.user.displayName + "!");
+                alert("Welcome " + result.user.displayName + "!");
+                // Dashboard logic eikhane ashbe...
             } catch (error) {
-                alert("এরর: " + error.message);
+                alert("Error: " + error.message);
             }
         };
     </script>
