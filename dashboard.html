@@ -3,35 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Dashboard</title>
+    <title>Meetwoyou - Cyber Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1a; --text: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { background: var(--card); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+        .container { background: var(--card); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .profile-pic-container { position: relative; width: 120px; height: 120px; margin: 20px auto; }
-        #profile-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); }
+        #profile-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); background: #222; }
         .upload-icon { position: absolute; bottom: 5px; right: 5px; background: var(--primary); padding: 8px; border-radius: 50%; cursor: pointer; }
         input, textarea { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        button:disabled { background: #555; cursor: not-allowed; }
         #logout-btn { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; margin-top: 15px; }
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 999; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999; }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loading-overlay">🚀 Loading Profile...</div>
+<div id="loader" class="loading-overlay">
+    <i class="fas fa-user-secret fa-3x" style="color:var(--primary); margin-bottom:15px;"></i>
+    <p>Initializing Secure Session...</p>
+</div>
 
 <div class="container">
-    <h1 style="color:var(--primary)">Meetwoyou</h1>
+    <h1 style="color:var(--primary); margin-bottom:5px;">Meetwoyou</h1>
+    <p style="font-size:12px; color:#888; margin-bottom:20px;">Cyber Professional Dashboard</p>
+
     <div class="profile-pic-container">
         <img id="profile-img" src="https://via.placeholder.com/150" alt="Profile">
         <label for="photo-upload" class="upload-icon"><i class="fas fa-camera"></i></label>
         <input type="file" id="photo-upload" style="display:none" accept="image/*">
     </div>
-    <input type="text" id="user-name" placeholder="Full Name">
-    <textarea id="user-bio" rows="3" placeholder="Bio / Status"></textarea>
-    <button id="save-btn"><i class="fas fa-save"></i> Save Changes</button>
+
+    <input type="text" id="user-name" placeholder="Display Name">
+    <textarea id="user-bio" rows="3" placeholder="Status (e.g., Ethical Hacking Student)"></textarea>
+
+    <button id="save-btn"><i class="fas fa-shield-alt"></i> Save Profile</button>
     <button id="logout-btn">Logout</button>
 </div>
 
@@ -40,28 +48,30 @@
     import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- আপনার সঠিক ফায়ারবেস কনফিগ এখানে দিন ---
+    // --- YOUR UPDATED FIREBASE CONFIG ---
     const firebaseConfig = {
-        apiKey: "AIzaSy...", 
-        authDomain: "meetwoyou-436a2.firebaseapp.com",
-        projectId: "meetwoyou-436a2",
-        storageBucket: "meetwoyou-436a2.firebasestorage.app",
-        messagingSenderId: "...",
-        appId: "..."
+      apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
+      authDomain: "meetwoyou-436a2.firebaseapp.com",
+      databaseURL: "https://meetwoyou-436a2-default-rtdb.firebaseio.com",
+      projectId: "meetwoyou-436a2",
+      storageBucket: "meetwoyou-436a2.firebasestorage.app",
+      messagingSenderId: "612788132077",
+      appId: "1:612788132077:web:0a8b92edf26778efd4d4e4",
+      measurementId: "G-LF9FLW7Y7E"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // --- CLOUDINARY CONFIG ---
     const CLOUD_NAME = "dpgawb5sl";
     const UPLOAD_PRESET = "Meetwoyou"; 
 
-    // ১. লগইন চেক এবং ডেটা লোড (রিডাইরেক্ট ফিক্সড)
+    // ১. চেক অথেনটিকেশন (Redirect Fix)
     onAuthStateChanged(auth, async (user) => {
         const loader = document.getElementById('loader');
         if (user) {
-            console.log("Logged in as:", user.email);
             document.getElementById('user-name').value = user.displayName || "";
             document.getElementById('profile-img').src = user.photoURL || "https://via.placeholder.com/150";
 
@@ -70,31 +80,34 @@
                 if (docSnap.exists()) {
                     document.getElementById('user-bio').value = docSnap.data().bio || "";
                 }
-            } catch (e) { console.error("Firestore error:", e); }
+            } catch (e) { console.error("Data fetch error:", e); }
             
-            loader.style.display = 'none'; // ডেটা লোড হলে লোডার চলে যাবে
+            loader.style.display = 'none'; 
         } else {
-            // রিডাইরেক্ট করার আগে ১ সেকেন্ড সময় দেওয়া হচ্ছে যাতে অথেনটিকেশন চেক শেষ হতে পারে
+            // ১.৫ সেকেন্ড অপেক্ষা করে রিডাইরেক্ট
             setTimeout(() => {
                 if (!auth.currentUser) window.location.href = "index.html";
             }, 1500);
         }
     });
 
-    // ২. প্রোফাইল সেভ করার ফাংশন (আপনার এডিট করা অংশ)
+    // ২. প্রোফাইল সেভ ফাংশন
     document.getElementById('save-btn').onclick = async () => {
         const user = auth.currentUser;
-        if (!user) return alert("Error: Please Login First!");
+        if (!user) return alert("Session expired. Please login again.");
 
         const name = document.getElementById('user-name').value;
         const bio = document.getElementById('user-bio').value;
         const photoFile = document.getElementById('photo-upload').files[0];
-        const saveBtn = document.getElementById('save-btn');
+        const btn = document.getElementById('save-btn');
 
         try {
-            saveBtn.innerText = "Saving...";
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            
             let finalPhotoURL = user.photoURL || "";
 
+            // Cloudinary Upload Logic
             if (photoFile) {
                 const formData = new FormData();
                 formData.append('file', photoFile);
@@ -108,6 +121,7 @@
                 if (data.secure_url) finalPhotoURL = data.secure_url;
             }
 
+            // Firestore সেভ (Bio ও অন্যান্য ডাটা)
             await setDoc(doc(db, "users", user.uid), {
                 displayName: name,
                 bio: bio,
@@ -115,19 +129,30 @@
                 lastUpdated: new Date()
             }, { merge: true });
 
+            // প্রোফাইল আপডেট
             await updateProfile(user, { displayName: name, photoURL: finalPhotoURL });
 
-            alert("Success! Profile updated.");
+            alert("System Updated: Profile is now live!");
             location.reload();
 
         } catch (error) {
-            alert("Error: " + error.message);
-            saveBtn.innerText = "Save Changes";
+            alert("Security Error: " + error.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-shield-alt"></i> Save Profile';
         }
     };
 
+    // ৩. লগআউট
     document.getElementById('logout-btn').onclick = () => {
         signOut(auth).then(() => { window.location.href = "index.html"; });
+    };
+
+    // ৪. ইমেজ প্রিভিউ (সিলেক্ট করার সাথে সাথে দেখাবে)
+    document.getElementById('photo-upload').onchange = function(evt) {
+        const [file] = this.files;
+        if (file) {
+            document.getElementById('profile-img').src = URL.createObjectURL(file);
+        }
     };
 </script>
 </body>
