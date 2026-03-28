@@ -3,44 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Cyber Dashboard</title>
+    <title>Meetwoyou - Cyber Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1a; --text: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { background: var(--card); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .profile-pic-container { position: relative; width: 120px; height: 120px; margin: 20px auto; }
-        #profile-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); background: #222; }
-        .upload-icon { position: absolute; bottom: 5px; right: 5px; background: var(--primary); padding: 8px; border-radius: 50%; cursor: pointer; }
-        input, textarea { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
-        button:disabled { background: #555; cursor: not-allowed; }
-        #logout-btn { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; margin-top: 15px; }
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999; }
+        :root { --primary: #8e44ad; --bg: #050505; --card: #18191a; --text: #e4e6eb; --input: #3a3b3c; }
+        body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px; }
+        
+        /* Header */
+        .header { background: var(--card); padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
+        .header h2 { color: var(--primary); margin: 0; font-style: italic; }
+
+        /* Story Section (Facebook Style) */
+        .story-container { display: flex; padding: 15px; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+        .story-card { min-width: 100px; height: 160px; background: #242526; border-radius: 12px; position: relative; overflow: hidden; border: 1px solid #333; }
+        .story-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        .story-add { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: var(--primary); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+
+        /* Profile Content */
+        .main-content { padding: 15px; max-width: 500px; margin: auto; }
+        .profile-header { text-align: center; background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #333; }
+        .img-box { position: relative; width: 110px; height: 110px; margin: 0 auto 15px; }
+        #profile-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); }
+        .cam-btn { position: absolute; bottom: 5px; right: 5px; background: var(--primary); padding: 8px; border-radius: 50%; cursor: pointer; font-size: 12px; }
+
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: var(--input); border: none; color: white; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
+        .save-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+
+        /* Bottom Navigation Bar */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-item { color: #b0b3b8; text-align: center; flex: 1; font-size: 22px; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item span { display: block; font-size: 10px; margin-top: 4px; }
+
+        .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; z-index: 9999; }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loading-overlay">
-    <i class="fas fa-user-secret fa-3x" style="color:var(--primary); margin-bottom:15px;"></i>
-    <p>Initializing Secure Session...</p>
+<div id="loader" class="loader">🚀 Connecting to Meetwoyou...</div>
+
+<div class="header">
+    <h2>Meetwoyou</h2>
+    <i class="fas fa-bell" style="font-size: 20px;"></i>
 </div>
 
-<div class="container">
-    <h1 style="color:var(--primary); margin-bottom:5px;">Meetwoyou</h1>
-    <p style="font-size:12px; color:#888; margin-bottom:20px;">Cyber Professional Dashboard</p>
-
-    <div class="profile-pic-container">
-        <img id="profile-img" src="https://via.placeholder.com/150" alt="Profile">
-        <label for="photo-upload" class="upload-icon"><i class="fas fa-camera"></i></label>
-        <input type="file" id="photo-upload" style="display:none" accept="image/*">
+<div class="story-container">
+    <div class="story-card">
+        <img id="story-preview" src="https://via.placeholder.com/100x160" alt="">
+        <div class="story-add"><i class="fas fa-plus"></i></div>
     </div>
+    <div class="story-card"><img src="https://picsum.photos/100/160?random=1"></div>
+    <div class="story-card"><img src="https://picsum.photos/100/160?random=2"></div>
+</div>
 
-    <input type="text" id="user-name" placeholder="Display Name">
-    <textarea id="user-bio" rows="3" placeholder="Status (e.g., Ethical Hacking Student)"></textarea>
+<div class="main-content">
+    <div class="profile-header">
+        <div class="img-box">
+            <img id="profile-img" src="https://via.placeholder.com/150" alt="Profile">
+            <label for="photo-upload" class="cam-btn"><i class="fas fa-camera"></i></label>
+            <input type="file" id="photo-upload" style="display:none" accept="image/*">
+        </div>
+        <input type="text" id="user-name" placeholder="Profile Name">
+        <textarea id="user-bio" rows="2" placeholder="Bio / Status (Cyber Security Student)"></textarea>
+        <button class="save-btn" id="save-btn"><i class="fas fa-check-circle"></i> Update Identity</button>
+        <button id="logout-btn" style="background:transparent; color:#ff4d4d; border:none; margin-top:15px; cursor:pointer;">Logout Session</button>
+    </div>
+</div>
 
-    <button id="save-btn"><i class="fas fa-shield-alt"></i> Save Profile</button>
-    <button id="logout-btn">Logout</button>
+<div class="nav-bar">
+    <div class="nav-item active"><i class="fas fa-home"></i><span>Home</span></div>
+    <div class="nav-item"><i class="fas fa-circle-notch"></i><span>Story</span></div>
+    <div class="nav-item"><i class="fas fa-search"></i><span>Search</span></div>
+    <div class="nav-item"><i class="fas fa-user-shield"></i><span>Profile</span></div>
 </div>
 
 <script type="module">
@@ -48,112 +82,67 @@
     import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- YOUR UPDATED FIREBASE CONFIG ---
     const firebaseConfig = {
       apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
       authDomain: "meetwoyou-436a2.firebaseapp.com",
-      databaseURL: "https://meetwoyou-436a2-default-rtdb.firebaseio.com",
       projectId: "meetwoyou-436a2",
       storageBucket: "meetwoyou-436a2.firebasestorage.app",
       messagingSenderId: "612788132077",
-      appId: "1:612788132077:web:0a8b92edf26778efd4d4e4",
-      measurementId: "G-LF9FLW7Y7E"
+      appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // --- CLOUDINARY CONFIG ---
     const CLOUD_NAME = "dpgawb5sl";
-    const UPLOAD_PRESET = "Meetwoyou"; 
+    const UPLOAD_PRESET = "Meetwoyou";
 
-    // ১. চেক অথেনটিকেশন (Redirect Fix)
     onAuthStateChanged(auth, async (user) => {
-        const loader = document.getElementById('loader');
         if (user) {
             document.getElementById('user-name').value = user.displayName || "";
             document.getElementById('profile-img').src = user.photoURL || "https://via.placeholder.com/150";
-
-            try {
-                const docSnap = await getDoc(doc(db, "users", user.uid));
-                if (docSnap.exists()) {
-                    document.getElementById('user-bio').value = docSnap.data().bio || "";
-                }
-            } catch (e) { console.error("Data fetch error:", e); }
             
-            loader.style.display = 'none'; 
+            const docSnap = await getDoc(doc(db, "users", user.uid));
+            if (docSnap.exists()) {
+                document.getElementById('user-bio').value = docSnap.data().bio || "";
+            }
+            document.getElementById('loader').style.display = 'none';
         } else {
-            // ১.৫ সেকেন্ড অপেক্ষা করে রিডাইরেক্ট
-            setTimeout(() => {
-                if (!auth.currentUser) window.location.href = "index.html";
-            }, 1500);
+            setTimeout(() => { if(!auth.currentUser) window.location.href="index.html"; }, 1500);
         }
     });
 
-    // ২. প্রোফাইল সেভ ফাংশন
     document.getElementById('save-btn').onclick = async () => {
         const user = auth.currentUser;
-        if (!user) return alert("Session expired. Please login again.");
-
+        if (!user) return;
+        
+        const btn = document.getElementById('save-btn');
+        btn.innerHTML = "Processing...";
+        
         const name = document.getElementById('user-name').value;
         const bio = document.getElementById('user-bio').value;
         const photoFile = document.getElementById('photo-upload').files[0];
-        const btn = document.getElementById('save-btn');
 
         try {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            
-            let finalPhotoURL = user.photoURL || "";
-
-            // Cloudinary Upload Logic
+            let photoUrl = user.photoURL;
             if (photoFile) {
                 const formData = new FormData();
                 formData.append('file', photoFile);
                 formData.append('upload_preset', UPLOAD_PRESET);
-
-                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
                 const data = await res.json();
-                if (data.secure_url) finalPhotoURL = data.secure_url;
+                photoUrl = data.secure_url;
             }
 
-            // Firestore সেভ (Bio ও অন্যান্য ডাটা)
-            await setDoc(doc(db, "users", user.uid), {
-                displayName: name,
-                bio: bio,
-                photoURL: finalPhotoURL,
-                lastUpdated: new Date()
-            }, { merge: true });
-
-            // প্রোফাইল আপডেট
-            await updateProfile(user, { displayName: name, photoURL: finalPhotoURL });
-
-            alert("System Updated: Profile is now live!");
+            await setDoc(doc(db, "users", user.uid), { displayName: name, bio: bio, photoURL: photoUrl }, { merge: true });
+            await updateProfile(user, { displayName: name, photoURL: photoUrl });
+            alert("Identity Secured Successfully!");
             location.reload();
-
-        } catch (error) {
-            alert("Security Error: " + error.message);
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-shield-alt"></i> Save Profile';
-        }
+        } catch (e) { alert(e.message); btn.innerHTML = "Update Identity"; }
     };
 
-    // ৩. লগআউট
-    document.getElementById('logout-btn').onclick = () => {
-        signOut(auth).then(() => { window.location.href = "index.html"; });
-    };
-
-    // ৪. ইমেজ প্রিভিউ (সিলেক্ট করার সাথে সাথে দেখাবে)
-    document.getElementById('photo-upload').onchange = function(evt) {
-        const [file] = this.files;
-        if (file) {
-            document.getElementById('profile-img').src = URL.createObjectURL(file);
-        }
-    };
+    document.getElementById('logout-btn').onclick = () => signOut(auth);
 </script>
 </body>
 </html>
