@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - Meetwoyou</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1b; --text: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+
+        /* Header with Call Options */
+        .chat-header { background: var(--card); padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #333; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .call-btns i { margin-left: 15px; cursor: pointer; color: var(--primary); font-size: 20px; }
+
+        /* Message Area */
+        .chat-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; }
+        .msg { position: relative; max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 14px; word-wrap: break-word; }
+        .msg.sent { align-self: flex-end; background: var(--primary); border-bottom-right-radius: 2px; }
+        .msg.received { align-self: flex-start; background: #242526; border-bottom-left-radius: 2px; }
+        .msg small { display: block; font-size: 9px; margin-top: 5px; opacity: 0.7; text-align: right; }
+        .edit-icon { font-size: 10px; margin-left: 5px; cursor: pointer; }
+
+        /* Input Area */
+        .input-area { background: var(--card); padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #333; }
+        .input-area input { flex: 1; background: #222; border: none; padding: 12px; border-radius: 25px; color: white; outline: none; }
+        .input-area i { font-size: 20px; color: var(--primary); cursor: pointer; }
+
+        /* Voice Recording Pulse */
+        .recording { color: red !important; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="chat-header">
+    <div class="user-info">
+        <a href="home.html" style="color:white;"><i class="fas fa-arrow-left"></i></a>
+        <img id="chat-user-img" src="https://via.placeholder.com/40">
+        <b id="chat-user-name">Loading...</b>
+    </div>
+    <div class="call-btns">
+        <i class="fas fa-phone-alt" onclick="startCall('audio')"></i>
+        <i class="fas fa-video" onclick="startCall('video')"></i>
+    </div>
+</div>
+
+<div class="chat-container" id="msg-box">
+    </div>
+
+<div class="input-area">
+    <i class="fas fa-microphone" id="voice-btn"></i>
+    <input type="text" id="m-input" placeholder="Type a message...">
+    <i class="fas fa-paper-plane" id="send-btn"></i>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
+      authDomain: "meetwoyou-436a2.firebaseapp.com",
+      projectId: "meetwoyou-436a2",
+      storageBucket: "meetwoyou-436a2.firebasestorage.app",
+      messagingSenderId: "612788132077",
+      appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentReceiver = new URLSearchParams(window.location.search).get('uid') || "global";
+    let mediaRecorder;
+    let audioChunks = [];
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) loadMessages(user.uid);
+        else window.location.href = "index.html";
+    });
+
+    // ১. মেসেজ লোড করা
+    function loadMessages(myUid) {
+        const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
+        onSnapshot(q, (snap) => {
+            const box = document.getElementById('msg-box');
+            box.innerHTML = "";
+            snap.forEach(mDoc => {
+                const m = mDoc.data();
+                const mid = mDoc.id;
+                // Filter for private chat
+                if ((m.sender === myUid && m.receiver === currentReceiver) || (m.sender === currentReceiver && m.receiver === myUid)) {
+                    const isMe = m.sender === myUid;
+                    box.innerHTML += `
+                        <div class="msg ${isMe ? 'sent' : 'received'}">
+                            ${m.type === 'voice' ? `<audio src="${m.content}" controls style="width:200px;"></audio>` : m.content}
+                            <small>
+                                ${new Date(m.timestamp?.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                ${isMe && m.type !== 'voice' ? `<i class="fas fa-edit edit-icon" onclick="editMsg('${mid}', '${m.content}')"></i>` : ''}
+                            </small>
+                        </div>`;
+                }
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    // ২. টেক্সট মেসেজ পাঠানো
+    document.getElementById('send-btn').onclick = async () => {
+        const input = document.getElementById('m-input');
+        if (!input.value || !auth.currentUser) return;
+
+        await addDoc(collection(db, "messages"), {
+            sender: auth.currentUser.uid,
+            receiver: currentReceiver,
+            content: input.value,
+            type: 'text',
+            timestamp: serverTimestamp()
+        });
+        input.value = "";
+    };
+
+    // ৩. মেসেজ এডিট করা
+    window.editMsg = async (id, oldText) => {
+        const { value: newText } = await Swal.fire({
+            title: 'Edit Message',
+            input: 'text',
+            inputValue: oldText,
+            showCancelButton: true
+        });
+        if (newText) {
+            await updateDoc(doc(db, "messages", id), { content: newText + " (edited)" });
+        }
+    };
+
+    // ৪. ভয়েস মেসেজ (Cloudinary তে আপলোড হবে)
+    const vBtn = document.getElementById('voice-btn');
+    vBtn.onclick = async () => {
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            vBtn.classList.add('recording');
+            
+            mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                const formData = new FormData();
+                formData.append('file', audioBlob);
+                formData.append('upload_preset', 'Meetwoyou');
+                
+                const res = await fetch(`https://api.cloudinary.com/v1_1/dpgawb5sl/video/upload`, {method:'POST', body:formData});
+                const data = await res.json();
+                
+                await addDoc(collection(db, "messages"), {
+                    sender: auth.currentUser.uid,
+                    receiver: currentReceiver,
+                    content: data.secure_url,
+                    type: 'voice',
+                    timestamp: serverTimestamp()
+                });
+                audioChunks = [];
+            };
+        } else {
+            mediaRecorder.stop();
+            vBtn.classList.remove('recording');
+        }
+    };
+
+    // ৫. কল লজিক (ইন্টারফেস)
+    window.startCall = (type) => {
+        Swal.fire({
+            title: `Starting ${type} call...`,
+            text: 'Connecting to server...',
+            icon: 'info',
+            timer: 2000
+        });
+    };
+</script>
+</body>
+</html>
