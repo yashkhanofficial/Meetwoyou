@@ -3,115 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Personalize Your Cyber Profile</title>
+    <title>Meetwoyou - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #8e44ad;
-            --bg: #0d0d0d;
-            --card: #1a1a1a;
-            --text: #ffffff;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            background: var(--card);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        h1 { color: var(--primary); margin-bottom: 5px; }
-        p { color: #888; font-size: 14px; }
-
-        .profile-pic-container {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            margin: 20px auto;
-        }
-
-        #profile-img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--primary);
-        }
-
-        .upload-icon {
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            background: var(--primary);
-            padding: 8px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            background: #222;
-            border: 1px solid #333;
-            color: white;
-            border-radius: 8px;
-            box-sizing: border-box;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        button:hover { opacity: 0.9; }
-        
-        #logout-btn {
-            background: transparent;
-            color: #ff4d4d;
-            border: 1px solid #ff4d4d;
-            margin-top: 15px;
-        }
+        :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1a; --text: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: var(--card); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+        .profile-pic-container { position: relative; width: 120px; height: 120px; margin: 20px auto; }
+        #profile-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); }
+        .upload-icon { position: absolute; bottom: 5px; right: 5px; background: var(--primary); padding: 8px; border-radius: 50%; cursor: pointer; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        #logout-btn { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; margin-top: 15px; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 999; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Meetwoyou</h1>
-    <p>Personalize your cyber professional profile</p>
+<div id="loader" class="loading-overlay">🚀 Loading Profile...</div>
 
+<div class="container">
+    <h1 style="color:var(--primary)">Meetwoyou</h1>
     <div class="profile-pic-container">
         <img id="profile-img" src="https://via.placeholder.com/150" alt="Profile">
-        <label for="photo-upload" class="upload-icon">
-            <i class="fas fa-camera"></i>
-        </label>
+        <label for="photo-upload" class="upload-icon"><i class="fas fa-camera"></i></label>
         <input type="file" id="photo-upload" style="display:none" accept="image/*">
     </div>
-
     <input type="text" id="user-name" placeholder="Full Name">
-    <textarea id="user-bio" rows="3" placeholder="Bio / Status (e.g., Ethical Hacking Student)"></textarea>
-
+    <textarea id="user-bio" rows="3" placeholder="Bio / Status"></textarea>
     <button id="save-btn"><i class="fas fa-save"></i> Save Changes</button>
     <button id="logout-btn">Logout</button>
 </div>
@@ -121,9 +40,9 @@
     import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- YOUR FIREBASE CONFIG ---
+    // --- আপনার সঠিক ফায়ারবেস কনফিগ এখানে দিন ---
     const firebaseConfig = {
-        apiKey: "AIzaSy...", // আপনার সঠিক API Key দিন
+        apiKey: "AIzaSy...", 
         authDomain: "meetwoyou-436a2.firebaseapp.com",
         projectId: "meetwoyou-436a2",
         storageBucket: "meetwoyou-436a2.firebasestorage.app",
@@ -135,39 +54,47 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // --- CLOUDINARY CONFIG ---
     const CLOUD_NAME = "dpgawb5sl";
-    const UPLOAD_PRESET = "ml_default"; // এটি অবশ্যই "Unsigned" হতে হবে
+    const UPLOAD_PRESET = "Meetwoyou"; 
 
-    // ১. ইউজার লগইন আছে কি না চেক করা এবং ডেটা লোড করা
+    // ১. লগইন চেক এবং ডেটা লোড (রিডাইরেক্ট ফিক্সড)
     onAuthStateChanged(auth, async (user) => {
+        const loader = document.getElementById('loader');
         if (user) {
+            console.log("Logged in as:", user.email);
             document.getElementById('user-name').value = user.displayName || "";
             document.getElementById('profile-img').src = user.photoURL || "https://via.placeholder.com/150";
 
-            // Firestore থেকে বায়ো নিয়ে আসা
-            const docSnap = await getDoc(doc(db, "users", user.uid));
-            if (docSnap.exists()) {
-                document.getElementById('user-bio').value = docSnap.data().bio || "";
-            }
+            try {
+                const docSnap = await getDoc(doc(db, "users", user.uid));
+                if (docSnap.exists()) {
+                    document.getElementById('user-bio').value = docSnap.data().bio || "";
+                }
+            } catch (e) { console.error("Firestore error:", e); }
+            
+            loader.style.display = 'none'; // ডেটা লোড হলে লোডার চলে যাবে
         } else {
-            window.location.href = "index.html"; // লগইন না থাকলে ইনডেক্সে পাঠিয়ে দিবে
+            // রিডাইরেক্ট করার আগে ১ সেকেন্ড সময় দেওয়া হচ্ছে যাতে অথেনটিকেশন চেক শেষ হতে পারে
+            setTimeout(() => {
+                if (!auth.currentUser) window.location.href = "index.html";
+            }, 1500);
         }
     });
 
-    // ২. প্রোফাইল সেভ করার ফাংশন
+    // ২. প্রোফাইল সেভ করার ফাংশন (আপনার এডিট করা অংশ)
     document.getElementById('save-btn').onclick = async () => {
         const user = auth.currentUser;
+        if (!user) return alert("Error: Please Login First!");
+
         const name = document.getElementById('user-name').value;
         const bio = document.getElementById('user-bio').value;
         const photoFile = document.getElementById('photo-upload').files[0];
-
-        if (!user) return;
+        const saveBtn = document.getElementById('save-btn');
 
         try {
-            let finalPhotoURL = user.photoURL;
+            saveBtn.innerText = "Saving...";
+            let finalPhotoURL = user.photoURL || "";
 
-            // যদি নতুন ফটো সিলেক্ট করা হয়
             if (photoFile) {
                 const formData = new FormData();
                 formData.append('file', photoFile);
@@ -178,33 +105,30 @@
                     body: formData
                 });
                 const data = await res.json();
-                finalPhotoURL = data.secure_url;
+                if (data.secure_url) finalPhotoURL = data.secure_url;
             }
 
-            // Firestore এ বায়ো ও নাম সেভ
             await setDoc(doc(db, "users", user.uid), {
                 displayName: name,
                 bio: bio,
-                photoURL: finalPhotoURL
+                photoURL: finalPhotoURL,
+                lastUpdated: new Date()
             }, { merge: true });
 
-            // Auth প্রোফাইল আপডেট
             await updateProfile(user, { displayName: name, photoURL: finalPhotoURL });
 
-            alert("Profile Updated Successfully!");
+            alert("Success! Profile updated.");
             location.reload();
+
         } catch (error) {
             alert("Error: " + error.message);
+            saveBtn.innerText = "Save Changes";
         }
     };
 
-    // ৩. লগআউট
     document.getElementById('logout-btn').onclick = () => {
-        signOut(auth).then(() => {
-            window.location.href = "index.html";
-        });
+        signOut(auth).then(() => { window.location.href = "index.html"; });
     };
 </script>
-
 </body>
 </html>
