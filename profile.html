@@ -1,82 +1,193 @@
-<div class="max-w-5xl mx-auto space-y-6 animate-fade-in pb-20">
-    <div class="relative bg-slate-900/50 rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
-        <div class="h-40 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 relative group">
-            <img id="p-cover" src="https://via.placeholder.com/800x200" class="w-full h-full object-cover hidden">
-            <label for="cover-upload" class="absolute bottom-2 right-2 bg-black/40 p-2.5 rounded-xl cursor-pointer opacity-0 group-hover:opacity-100 transition"><i class="fas fa-camera text-white"></i></label>
-            <input type="file" id="cover-upload" class="hidden">
+<div class="max-w-5xl mx-auto space-y-6 pb-28 animate-fade-in">
+    
+    <div class="relative bg-slate-900/40 rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
+        <div class="h-48 md:h-64 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 relative group">
+            <img id="view-cover" class="w-full h-full object-cover opacity-60 hidden">
+            <label for="cover-upload" class="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-xl cursor-pointer opacity-0 group-hover:opacity-100 transition border border-white/10">
+                <i class="fas fa-camera text-white"></i>
+            </label>
+            <input type="file" id="cover-upload" class="hidden" accept="image/*">
         </div>
         
-        <div class="px-8 pb-8">
-            <div class="relative -mt-16 mb-4 flex flex-col md:flex-row items-center md:items-end justify-between">
+        <div class="px-6 md:px-10 pb-8">
+            <div class="relative -mt-16 mb-4 flex flex-col md:flex-row items-center md:items-end justify-between gap-4">
                 <div class="relative group">
-                    <img id="p-image" src="https://via.placeholder.com/150" class="w-32 h-32 md:w-40 md:h-40 rounded-3xl border-4 border-[#0b0f1a] object-cover shadow-2xl">
-                    <label for="img-upload" class="absolute bottom-2 right-2 bg-purple-600 p-2.5 rounded-xl cursor-pointer shadow-lg hover:bg-purple-500 transition"><i class="fas fa-camera text-white"></i></label>
-                    <input type="file" id="img-upload" class="hidden">
+                    <img id="view-avatar" src="https://via.placeholder.com/150" class="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-4 border-[#0b0f1a] object-cover shadow-2xl transition group-hover:scale-105">
+                    <label for="avatar-upload" class="absolute bottom-2 right-2 bg-purple-600 p-2.5 rounded-2xl cursor-pointer shadow-lg hover:bg-purple-500 transition border-2 border-[#0b0f1a]">
+                        <i class="fas fa-pen text-white text-xs"></i>
+                    </label>
+                    <input type="file" id="avatar-upload" class="hidden" accept="image/*">
                 </div>
-                <div class="flex gap-3 mb-2 w-full md:w-auto mt-4 md:mt-0">
-                    <button id="add-story" class="flex-1 md:flex-none bg-purple-600 text-white px-8 py-3 rounded-2xl font-bold transition shadow-lg shadow-purple-500/20 active:scale-95">Add Story</button>
-                    <button onclick="openEditModal()" class="flex-1 md:flex-none bg-slate-800 text-white px-8 py-3 rounded-2xl font-bold transition border border-white/10">Edit Profile</button>
+                
+                <div class="flex gap-3 mb-2 w-full md:w-auto">
+                    <button onclick="document.getElementById('edit-modal').classList.remove('hidden')" class="flex-1 md:flex-none bg-white/5 hover:bg-white/10 text-white px-8 py-3 rounded-2xl font-bold border border-white/10 transition active:scale-95">Edit Profile</button>
+                    <button class="flex-1 md:flex-none bg-purple-600 hover:bg-purple-500 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-purple-600/20 transition active:scale-95">Add Story</button>
                 </div>
             </div>
 
-            <div class="mt-4 text-center md:text-left">
-                <h1 class="text-3xl font-extrabold text-white flex items-center justify-center md:justify-start gap-2">
-                    <span id="p-name">Loading...</span> <i id="v-badge" class="fas fa-check-circle text-blue-500 text-xl hidden"></i>
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl font-black text-white flex items-center justify-center md:justify-start gap-2">
+                    <span id="view-name">Loading...</span>
+                    <i id="verified-badge" class="fas fa-check-circle text-blue-500 text-xl hidden"></i>
                 </h1>
-                <p class="text-purple-400 font-bold">@<span id="p-username">username</span></p> <p id="p-bio" class="mt-2 text-gray-400 max-w-lg">No bio added yet.</p>
-                <div id="p-socials" class="flex justify-center md:justify-start gap-4 mt-3 text-xl text-gray-500">
+                <p class="text-purple-400 font-bold">@<span id="view-username">username</span></p>
+                <p id="view-bio" class="mt-3 text-gray-300 max-w-lg text-sm leading-relaxed italic">No bio added yet.</p>
+                
+                <div id="view-socials" class="flex justify-center md:justify-start gap-5 mt-5 text-xl">
                     </div>
             </div>
         </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="md:col-span-1 bg-slate-900/50 p-6 rounded-2xl border border-white/5 space-y-4">
-            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest">About Me</h3>
-            <div class="space-y-3 text-sm text-gray-300">
-                <p><i class="fas fa-graduation-cap w-6"></i> <span id="p-edu">Not Set</span></p>
-                <p><i class="fas fa-birthday-cake w-6"></i> <span id="p-dob">Not Set</span></p>
-                <p><i class="fas fa-venus-mars w-6"></i> <span id="p-gender">Other</span></p>
-                <p><i class="fas fa-link w-6"></i> <span id="p-site">Not Set</span></p>
-            </div>
+        <div class="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 flex justify-around items-center text-center">
+            <div><p id="stat-followers" class="text-2xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase font-bold">Followers</p></div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <div><p id="stat-posts" class="text-2xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase font-bold">Posts</p></div>
         </div>
-        <div class="md:col-span-2 bg-slate-900/50 p-6 rounded-2xl border border-white/5 flex items-center justify-around text-center">
-            <div><p id="stat-posts" class="text-3xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase">Posts</p></div>
-            <div class="w-px h-10 bg-white/10"></div>
-            <div><p id="stat-followers" class="text-3xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase">Followers</p></div>
-            <div class="w-px h-10 bg-white/10"></div>
-            <div><p id="stat-friends" class="text-3xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase">Friends</p></div>
+        
+        <div class="md:col-span-2 bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-4">
+            <h3 class="text-xs font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2"><i class="fas fa-info-circle"></i> Personal Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
+                <p><i class="fas fa-graduation-cap w-6 text-gray-500"></i> Education: <span id="view-edu" class="text-white font-medium">Not set</span></p>
+                <p><i class="fas fa-birthday-cake w-6 text-gray-500"></i> Birthday: <span id="view-dob" class="text-white font-medium">Not set</span></p>
+                <p><i class="fas fa-venus-mars w-6 text-gray-500"></i> Gender: <span id="view-gender" class="text-white font-medium">Other</span></p>
+                <p><i class="fas fa-globe w-6 text-gray-500"></i> Website: <span id="view-site" class="text-white font-medium">Not set</span></p>
+            </div>
         </div>
     </div>
 
-    <div id="edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] hidden flex items-center justify-center p-4">
-        <div class="bg-[#0f172a] w-full max-w-xl rounded-3xl p-8 border border-white/10 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-white">Update Identity</h2>
-                <i class="fas fa-times text-gray-500 cursor-pointer" onclick="closeEditModal()"></i>
+    <div id="edit-modal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-[#0f172a] w-full max-w-lg rounded-[2.5rem] p-8 border border-white/10 my-10 shadow-2xl">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-black text-white">Update Profile</h2>
+                <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="text-gray-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
             </div>
-            <div class="space-y-4">
-                <input type="text" id="in-name" placeholder="Full Name" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:border-purple-500 outline-none text-white">
-                <input type="text" id="in-username" placeholder="Custom Username (no @)" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:border-purple-500 outline-none text-white">
-                <textarea id="in-bio" placeholder="Bio" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:border-purple-500 outline-none text-white"></textarea>
-                <input type="text" id="in-edu" placeholder="Education (College/School)" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:border-purple-500 outline-none text-white">
-                <input type="date" id="in-dob" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:border-purple-500 outline-none text-gray-400">
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-2">Full Name</label>
+                    <input type="text" id="in-name" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-white transition">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-2">Username (Unique ID)</label>
+                    <input type="text" id="in-username" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-white transition">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-2">Bio</label>
+                    <textarea id="in-bio" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-white transition h-24"></textarea>
+                </div>
                 
-                <select id="in-gender" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-gray-400 outline-none">
-                    <option>Other</option><option>Male</option><option>Female</option>
-                </select>
-                
-                <div class="space-y-2 pt-4">
-                    <p class="text-xs font-bold text-gray-500 uppercase">Social Media Links</p>
-                    <input type="text" id="in-fb" placeholder="Facebook Profile Link" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white">
-                    <input type="text" id="in-ig" placeholder="Instagram Profile Link" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase ml-2">Education</label>
+                        <input type="text" id="in-edu" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-white">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase ml-2">Gender</label>
+                        <select id="in-gender" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-gray-300">
+                            <option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="flex gap-3 pt-6">
-                    <button class="flex-1 bg-white/5 py-4 rounded-xl font-bold" onclick="closeEditModal()">Cancel</button>
-                    <button class="flex-1 bg-purple-600 py-4 rounded-xl font-bold text-white" onclick="saveData()">Save Changes</button>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-2">Date of Birth</label>
+                    <input type="date" id="in-dob" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-1 focus:border-purple-500 outline-none text-gray-300">
+                </div>
+
+                <div class="space-y-3">
+                    <p class="text-xs font-bold text-purple-500 uppercase ml-2">Social Media Links</p>
+                    <div class="relative">
+                        <i class="fab fa-facebook absolute left-4 top-4 text-blue-500"></i>
+                        <input type="text" id="in-fb" placeholder="Facebook Profile Link" class="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl outline-none text-sm">
+                    </div>
+                    <div class="relative">
+                        <i class="fab fa-instagram absolute left-4 top-4 text-pink-500"></i>
+                        <input type="text" id="in-ig" placeholder="Instagram Profile Link" class="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl outline-none text-sm">
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-4">
+                    <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="flex-1 bg-white/5 p-4 rounded-2xl font-bold">Cancel</button>
+                    <button onclick="saveData()" class="flex-1 bg-purple-600 p-4 rounded-2xl font-bold shadow-lg shadow-purple-600/30">Save Changes</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script type="module">
+    // এই স্ক্রিপ্টটি ডাটাবেজ থেকে ডাটা লোড ও সেভ করার কাজ করবে।
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const db = getFirestore();
+    const auth = getAuth();
+
+    // ডাটা লোড করার ফাংশন
+    async function loadProfileData() {
+        const user = auth.currentUser;
+        if(!user) return;
+
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            
+            // ভিউ আপডেট
+            document.getElementById('view-name').innerText = data.fullName || user.displayName || "New User";
+            document.getElementById('view-username').innerText = data.username || "user_" + user.uid.slice(0,5);
+            document.getElementById('view-bio').innerText = data.bio || "No bio added yet.";
+            document.getElementById('view-edu').innerText = data.education || "Not set";
+            document.getElementById('view-dob').innerText = data.dob || "Not set";
+            document.getElementById('view-gender').innerText = data.gender || "Other";
+            document.getElementById('view-avatar').src = data.profilePicUrl || user.photoURL || "https://via.placeholder.com/150";
+
+            // ইনপুট ফিল্ড আপডেট (এডিট মোডালের জন্য)
+            document.getElementById('in-name').value = data.fullName || "";
+            document.getElementById('in-username').value = data.username || "";
+            document.getElementById('in-bio').value = data.bio || "";
+            document.getElementById('in-edu').value = data.education || "";
+            document.getElementById('in-dob').value = data.dob || "";
+            document.getElementById('in-gender').value = data.gender || "Other";
+            document.getElementById('in-fb').value = data.socials?.facebook || "";
+            document.getElementById('in-ig').value = data.socials?.instagram || "";
+
+            // সোশ্যাল আইকন দেখানো
+            let socialHtml = "";
+            if(data.socials?.facebook) socialHtml += `<a href="${data.socials.facebook}" target="_blank" class="text-blue-500 hover:scale-110 transition"><i class="fab fa-facebook"></i></a>`;
+            if(data.socials?.instagram) socialHtml += `<a href="${data.socials.instagram}" target="_blank" class="text-pink-500 hover:scale-110 transition"><i class="fab fa-instagram"></i></a>`;
+            document.getElementById('view-socials').innerHTML = socialHtml;
+        }
+    }
+
+    // ডাটা সেভ করার ফাংশন
+    window.saveData = async () => {
+        const user = auth.currentUser;
+        const profileData = {
+            fullName: document.getElementById('in-name').value,
+            username: document.getElementById('in-username').value,
+            bio: document.getElementById('in-bio').value,
+            education: document.getElementById('in-edu').value,
+            dob: document.getElementById('in-dob').value,
+            gender: document.getElementById('in-gender').value,
+            socials: {
+                facebook: document.getElementById('in-fb').value,
+                instagram: document.getElementById('in-ig').value
+            }
+        };
+
+        try {
+            await setDoc(doc(db, "users", user.uid), profileData, { merge: true });
+            document.getElementById('edit-modal').classList.add('hidden');
+            loadProfileData(); // সাথে সাথে রিফ্রেশ
+        } catch (e) {
+            alert("Error saving: " + e.message);
+        }
+    };
+
+    // পেজ লোড হলে ডাটা কল করা
+    loadProfileData();
+        </script>
