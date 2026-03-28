@@ -158,57 +158,63 @@
         };
 
         // --- FORGOT PASSWORD LOGIC ---
-        document.getElementById('reset-btn').onclick = async () => {
-            const email = document.getElementById('forgot-email').value;
-            if(!email) return alert("Please enter your email!");
-            try {
-                await sendPasswordResetEmail(auth, email);
-                alert("Password reset email sent! Check your inbox.");
-                showSection('login-section');
-            } catch (error) {
-                alert(error.message);
-            }
-        };
+document.getElementById('reset-btn').onclick = async () => {
+    const email = document.getElementById('forgot-email').value;
+    if(!email) return alert("Please enter your email!");
+    try {
+        await sendPasswordResetEmail(auth, email);
+        alert("Password reset email sent! Check your inbox.");
+        showSection('login-section');
+    } catch (error) {
+        alert(error.message);
+    }
+};
 
-        // --- SIGNUP LOGIC (First/Last Name) ---
-        document.getElementById('signup-btn').onclick = async () => {
-            const fName = document.getElementById('signup-first-name').value;
-            const lName = document.getElementById('signup-last-name').value;
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
+// --- SIGNUP LOGIC (First/Last Name) ---
+document.getElementById('signup-btn').onclick = async () => {
+    const fName = document.getElementById('signup-first-name').value;
+    const lName = document.getElementById('signup-last-name').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
 
-            if(!fName || !lName || !email || !password) return alert("All fields are required!");
-            
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                await updateProfile(userCredential.user, { displayName: `${fName} ${lName}` });
-                alert(`Account created! Welcome, ${fName}`);
-            } catch (error) {
-                alert(error.message);
-            }
-        };
+    if(!fName || !lName || !email || !password) return alert("All fields are required!");
+    
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: `${fName} ${lName}` });
+        alert(`Account created! Welcome, ${fName}`);
+        // সফলভাবে সাইন-আপ হলে ড্যাশবোর্ডে পাঠাবে
+        window.location.href = "dashboard.html"; 
+    } catch (error) {
+        alert(error.message);
+    }
+};
 
-        // --- LOGIN LOGIC ---
-        document.getElementById('login-btn').onclick = async () => {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            try {
-                const res = await signInWithEmailAndPassword(auth, email, password);
-                alert("Login Successful!");
-            } catch (error) {
-                alert("Invalid Credentials!");
-            }
-        };
+// --- LOGIN LOGIC ---
+document.getElementById('login-btn').onclick = async () => {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    try {
+        const res = await signInWithEmailAndPassword(auth, email, password);
+        alert("Login Successful!");
+        // ওকে ক্লিক করলে ড্যাশবোর্ডে নিয়ে যাবে
+        window.location.href = "dashboard.html"; 
+    } catch (error) {
+        alert("Invalid Credentials!");
+    }
+};
 
-        // --- GOOGLE LOGIN ---
-        document.getElementById('google-login').onclick = async () => {
-            try {
-                const res = await signInWithPopup(auth, provider);
-                alert("Welcome " + res.user.displayName);
-            } catch (error) {
-                alert(error.message);
-            }
-        };
+// --- GOOGLE LOGIN ---
+document.getElementById('google-login').onclick = async () => {
+    try {
+        const res = await signInWithPopup(auth, provider);
+        alert("Welcome " + res.user.displayName);
+        // গুগল লগইন সফল হলে ড্যাশবোর্ডে পাঠাবে
+        window.location.href = "dashboard.html"; 
+    } catch (error) {
+        alert(error.message);
+    }
+};
     </script>
 </body>
 </html>
