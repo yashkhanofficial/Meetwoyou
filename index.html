@@ -1,57 +1,135 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Advanced Signup</title>
+    <title>Meetwoyou - Premium Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: #0f172a; /* Deep dark background */
+            overflow: hidden;
+        }
+
+        /* Animated Background Particles */
+        .bg-animate {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
+            z-index: -1;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeInScale 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #8b5cf6;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+            outline: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #7c3aed, #4f46e5);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.4);
+        }
+
         .hidden { display: none !important; }
-        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; margin-right: 8px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
-    <div class="glass-effect p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/20">
-        <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-2 tracking-tight italic">Meetwoyou</h1>
+<body class="min-h-screen flex items-center justify-center p-6">
+    <div class="bg-animate"></div>
+
+    <div class="glass-card p-10 rounded-[2.5rem] w-full max-w-md relative overflow-hidden">
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl"></div>
         
-        <div id="login-section">
-            <p class="text-center text-gray-500 mb-8 font-medium">আপনার বন্ধুদের সাথে যুক্ত হন</p>
-            <div class="space-y-4">
-                <input type="email" id="login-email" placeholder="ইমেইল অ্যাড্রেস" class="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all">
-                <input type="password" id="login-password" placeholder="পাসওয়ার্ড" class="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all">
-            </div>
-            <div class="text-right mt-3">
-                <button onclick="showSection('forgot-section')" class="text-sm text-purple-600 font-semibold hover:text-purple-800 transition">পাসওয়ার্ড ভুলে গেছেন?</button>
-            </div>
-            <button id="login-btn" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-lg mt-8 hover:bg-purple-700 active:scale-95 transition-all">লগইন করুন</button>
+        <header class="text-center mb-10">
+            <h1 class="text-5xl font-extrabold text-white tracking-tighter italic mb-2">Meetwoyou</h1>
+            <p id="subtitle" class="text-gray-400 text-sm font-light">Connect with the world instantly.</p>
+        </header>
+
+        <div id="login-section" class="space-y-5">
+            <input type="email" id="login-email" placeholder="Email Address" class="input-field w-full px-5 py-4 rounded-2xl">
+            <input type="password" id="login-password" placeholder="Password" class="input-field w-full px-5 py-4 rounded-2xl">
             
-            <div class="mt-8 flex items-center justify-between opacity-40"><hr class="w-full"> <span class="px-3 text-xs font-bold uppercase">অথবা</span> <hr class="w-full"></div>
+            <div class="flex justify-end">
+                <button onclick="showSection('forgot-section')" class="text-xs text-purple-400 hover:text-purple-300 transition font-medium">Forgot Password?</button>
+            </div>
+
+            <button id="login-btn" class="btn-primary w-full text-white font-bold py-4 rounded-2xl">Sign In</button>
             
-            <button id="google-login" class="w-full mt-6 bg-white border border-gray-300 py-4 rounded-xl flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all shadow-sm">
-                <svg class="w-6 h-6 mr-3" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.94l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
-                Google দিয়ে লগইন
+            <div class="flex items-center my-6 opacity-30">
+                <hr class="w-full border-gray-500">
+                <span class="px-3 text-[10px] text-white font-black uppercase tracking-widest">OR</span>
+                <hr class="w-full border-gray-500">
+            </div>
+
+            <button id="google-login" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-4 rounded-2xl flex items-center justify-center transition-all">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-5 h-5 mr-3">
+                Continue with Google
             </button>
-            <p class="mt-10 text-center text-gray-600">অ্যাকাউন্ট নেই? <button onclick="showSection('signup-section')" class="text-purple-600 font-bold hover:underline">নতুন অ্যাকাউন্ট খুলুন</button></p>
+
+            <p class="text-center text-gray-400 text-sm mt-8">
+                Don't have an account? 
+                <button onclick="showSection('signup-section')" class="text-purple-400 font-bold hover:underline ml-1">Create Account</button>
+            </p>
         </div>
 
-        <div id="signup-section" class="hidden">
-            <p class="text-center text-gray-500 mb-8 font-medium">ফ্রি অ্যাকাউন্ট তৈরি করুন</p>
-            <div class="space-y-4">
-                <input type="text" id="signup-name" placeholder="আপনার পুরো নাম" class="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all">
-                <input type="email" id="signup-email" placeholder="ইমেইল অ্যাড্রেস" class="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all">
-                <input type="password" id="signup-password" placeholder="নতুন পাসওয়ার্ড" class="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all">
+        <div id="signup-section" class="hidden space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="signup-first-name" placeholder="First Name" class="input-field px-5 py-4 rounded-2xl">
+                <input type="text" id="signup-last-name" placeholder="Last Name" class="input-field px-5 py-4 rounded-2xl">
             </div>
-            <button id="signup-btn" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg mt-8 hover:bg-green-700 active:scale-95 transition-all">অ্যাকাউন্ট তৈরি করুন</button>
-            <p class="mt-8 text-center text-gray-600">আগে থেকেই অ্যাকাউন্ট আছে? <button onclick="showSection('login-section')" class="text-gray-600 font-bold hover:underline">লগইন করুন</button></p>
+            <input type="email" id="signup-email" placeholder="Email Address" class="input-field w-full px-5 py-4 rounded-2xl">
+            <input type="password" id="signup-password" placeholder="Create Password" class="input-field w-full px-5 py-4 rounded-2xl">
+            
+            <button id="signup-btn" class="btn-primary w-full text-white font-bold py-4 rounded-2xl mt-4">Join Now</button>
+            
+            <button onclick="showSection('login-section')" class="w-full text-gray-400 text-sm hover:text-white transition mt-4 font-medium">Back to Login</button>
+        </div>
+
+        <div id="forgot-section" class="hidden space-y-6">
+            <div class="text-center">
+                <h2 class="text-white font-bold text-xl mb-2">Reset Password</h2>
+                <p class="text-gray-400 text-xs">Enter your email to receive a reset link.</p>
+            </div>
+            <input type="email" id="forgot-email" placeholder="Recovery Email" class="input-field w-full px-5 py-4 rounded-2xl">
+            <button id="reset-btn" class="btn-primary w-full text-white font-bold py-4 rounded-2xl">Send Link</button>
+            <button onclick="showSection('login-section')" class="w-full text-gray-400 text-sm hover:text-white transition font-medium text-center">Back to Login</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -69,24 +147,39 @@
         window.showSection = (id) => {
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('signup-section').classList.add('hidden');
-            document.getElementById(id).classList.remove('hidden');
+            document.getElementById('forgot-section').classList.add('hidden');
+            const el = document.getElementById(id);
+            el.classList.remove('hidden');
         };
 
-        // --- SIGNUP LOGIC (Working) ---
+        // --- FORGOT PASSWORD LOGIC ---
+        document.getElementById('reset-btn').onclick = async () => {
+            const email = document.getElementById('forgot-email').value;
+            if(!email) return alert("Please enter your email!");
+            try {
+                await sendPasswordResetEmail(auth, email);
+                alert("Password reset email sent! Check your inbox.");
+                showSection('login-section');
+            } catch (error) {
+                alert(error.message);
+            }
+        };
+
+        // --- SIGNUP LOGIC (First/Last Name) ---
         document.getElementById('signup-btn').onclick = async () => {
-            const name = document.getElementById('signup-name').value;
+            const fName = document.getElementById('signup-first-name').value;
+            const lName = document.getElementById('signup-last-name').value;
             const email = document.getElementById('signup-email').value;
             const password = document.getElementById('signup-password').value;
 
-            if(!name || !email || !password) return alert("সবগুলো ঘর পূরণ করুন!");
+            if(!fName || !lName || !email || !password) return alert("All fields are required!");
             
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                await updateProfile(userCredential.user, { displayName: name });
-                alert("সাফল্যের সাথে অ্যাকাউন্ট তৈরি হয়েছে! স্বাগতম " + name);
-                // এখানে আপনি ড্যাশবোর্ড লোড করতে পারেন
+                await updateProfile(userCredential.user, { displayName: `${fName} ${lName}` });
+                alert(`Account created! Welcome, ${fName}`);
             } catch (error) {
-                alert("ভুল হয়েছে: " + error.message);
+                alert(error.message);
             }
         };
 
@@ -96,9 +189,9 @@
             const password = document.getElementById('login-password').value;
             try {
                 const res = await signInWithEmailAndPassword(auth, email, password);
-                alert("লগইন সফল! স্বাগতম " + res.user.displayName);
+                alert("Login Successful!");
             } catch (error) {
-                alert("লগইন হয়নি: " + error.message);
+                alert("Invalid Credentials!");
             }
         };
 
@@ -106,9 +199,9 @@
         document.getElementById('google-login').onclick = async () => {
             try {
                 const res = await signInWithPopup(auth, provider);
-                alert("গুগল লগইন সফল: " + res.user.displayName);
+                alert("Welcome " + res.user.displayName);
             } catch (error) {
-                alert("এরর: " + error.message);
+                alert(error.message);
             }
         };
     </script>
