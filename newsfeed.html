@@ -1,6 +1,6 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -16,93 +16,74 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Post to Firestore
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            console.log("User Logged In:", user.uid);
+            
+            // --- প্রোফাইল ডাটা সিঙ্ক ---
+            const profileRef = doc(db, "users", user.uid);
+            onSnapshot(profileRef, (snap) => {
+                if (snap.exists()) {
+                    const d = snap.data();
+                    if(document.getElementById('view-name')) document.getElementById('view-name').innerText = d.fullName || "User";
+                    if(document.getElementById('view-username')) document.getElementById('view-username').innerText = d.username || "agent";
+                    if(document.getElementById('view-avatar')) document.getElementById('view-avatar').src = d.profilePicUrl || "https://via.placeholder.com/150";
+                } else {
+                    // প্রোফাইল না থাকলে ডিফল্ট তৈরি
+                    setDoc(profileRef, { fullName: user.displayName || "Agent", username: "user_"+user.uid.slice(0,4) }, {merge: true});
+                }
+            });
+
+            // --- নিউজফিড লোড (ইনডেক্স এরর চেকসহ) ---
+            const feedContainer = document.getElementById('feed-container');
+            if (feedContainer) {
+                const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+                onSnapshot(q, (snapshot) => {
+                    feedContainer.innerHTML = "";
+                    snapshot.forEach(postDoc => {
+                        const post = postDoc.data();
+                        feedContainer.innerHTML += `
+                            <div class="bg-slate-900/40 p-5 rounded-[2rem] border border-white/5 mb-4">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <img src="${post.userPic}" class="w-10 h-10 rounded-xl">
+                                    <h4 class="text-white font-bold">${post.userName}</h4>
+                                </div>
+                                <p class="text-gray-300 mb-3">${post.caption}</p>
+                                ${post.postImg ? `<img src="${post.postImg}" class="w-full rounded-2xl">` : ''}
+                            </div>`;
+                    });
+                }, (error) => {
+                    console.error("Feed Error:", error);
+                    feedContainer.innerHTML = `<div class="p-4 bg-red-500/10 text-red-400 rounded-xl text-xs">
+                        Error: ${error.message} <br>
+                        <b>পরামর্শ:</b> আপনার ব্রাউজারের 'Inspect > Console' এ যান এবং Firebase থেকে আসা লিঙ্কে ক্লিক করে Index তৈরি করুন।
+                    </div>`;
+                });
+            }
+        }
+    });
+
+    // --- পোস্ট করার ফাংশন ---
     window.createNewPost = async () => {
         const caption = document.getElementById('post-caption').value;
-        const imgInput = document.getElementById('post-img-upload');
         const user = auth.currentUser;
-        
-        if(!user) { alert("Please login first!"); return; }
-        if(!caption && !imgInput.files[0]) return;
-
-        const btn = document.getElementById('post-btn');
-        btn.innerText = "Posting...";
-        btn.disabled = true;
+        if(!user || !caption) return alert("Caption is required!");
 
         try {
-            let imageUrl = "";
-            if(imgInput.files[0]) {
-                const formData = new FormData();
-                formData.append('file', imgInput.files[0]);
-                formData.append('upload_preset', 'Meetwoyou');
-                const res = await fetch('https://api.cloudinary.com/v1_1/dpgawb5sl/image/upload', { method: 'POST', body: formData });
-                const data = await res.json();
-                imageUrl = data.secure_url;
-            }
-
-            // User info fetch safely
             const userSnap = await getDoc(doc(db, "users", user.uid));
-            const userData = userSnap.exists() ? userSnap.data() : {};
+            const uData = userSnap.data();
 
             await addDoc(collection(db, "posts"), {
                 userId: user.uid,
-                userName: userData.fullName || user.displayName || "User",
-                userPic: userData.profilePicUrl || user.photoURL || "https://via.placeholder.com/50",
+                userName: uData?.fullName || user.displayName || "User",
+                userPic: uData?.profilePicUrl || "https://via.placeholder.com/50",
                 caption: caption,
-                postImg: imageUrl,
-                likes: [],
-                loveCount: 0,
                 createdAt: serverTimestamp()
             });
-
             document.getElementById('post-caption').value = "";
-            imgInput.value = "";
-            alert("Post Published!");
+            alert("Post Success!");
         } catch (e) {
-            console.error("Post Error:", e);
-            alert("Error: " + e.message);
-        } finally {
-            btn.innerText = "Post";
-            btn.disabled = false;
+            alert("Post failed: " + e.message);
         }
     };
-
-    // Load Feed
-    onAuthStateChanged(auth, (user) => {
-        if(!user) return;
-
-        // Fetch posts with error handling for missing Index
-        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-        onSnapshot(q, (snapshot) => {
-            const container = document.getElementById('feed-container');
-            container.innerHTML = "";
-            
-            if(snapshot.empty) {
-                container.innerHTML = `<div class="text-center py-10 text-gray-500">No posts found. Start posting!</div>`;
-                return;
-            }
-
-            snapshot.forEach(postDoc => {
-                const post = postDoc.data();
-                const postId = postDoc.id;
-                
-                container.innerHTML += `
-                <div class="bg-slate-900/40 rounded-[2.5rem] border border-white/5 overflow-hidden mb-6">
-                    <div class="p-5 flex items-center gap-3">
-                        <img src="${post.userPic}" class="w-10 h-10 rounded-xl object-cover">
-                        <div>
-                            <h4 class="text-white text-sm font-bold">${post.userName}</h4>
-                        </div>
-                    </div>
-                    <div class="px-5 pb-3 text-gray-300 text-sm">${post.caption}</div>
-                    ${post.postImg ? `<img src="${post.postImg}" class="w-full object-cover">` : ''}
-                </div>`;
-            });
-        }, (error) => {
-            console.error("Snapshot error:", error);
-            if(error.message.includes("index")) {
-                document.getElementById('feed-container').innerHTML = `<div class="p-5 bg-red-500/10 text-red-400 rounded-2xl text-xs">Error: Please create Firestore Index. Click the link in your console to fix.</div>`;
-            }
-        });
-    });
 </script>
