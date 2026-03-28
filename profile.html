@@ -1,72 +1,80 @@
-<div class="max-w-5xl mx-auto space-y-6 pb-24 page-fade">
-    
-    <div class="relative bg-slate-900/40 rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
-        <div class="h-48 md:h-64 bg-gradient-to-r from-indigo-900 to-purple-900 relative group">
-            <img id="view-cover" class="w-full h-full object-cover opacity-60">
-            <label for="cover-input" class="absolute bottom-4 right-4 bg-black/50 p-2 rounded-xl cursor-pointer opacity-0 group-hover:opacity-100 transition"><i class="fas fa-camera"></i></label>
-            <input type="file" id="cover-input" class="hidden">
+<div class="max-w-5xl mx-auto space-y-6 animate-fade-in pb-20">
+    <div class="relative bg-slate-900/50 rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
+        <div class="h-40 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 relative group">
+            <img id="p-cover" src="https://via.placeholder.com/800x200" class="w-full h-full object-cover hidden">
+            <label for="cover-upload" class="absolute bottom-2 right-2 bg-black/40 p-2.5 rounded-xl cursor-pointer opacity-0 group-hover:opacity-100 transition"><i class="fas fa-camera text-white"></i></label>
+            <input type="file" id="cover-upload" class="hidden">
         </div>
         
-        <div class="px-6 md:px-10 pb-8">
-            <div class="relative -mt-20 flex flex-col md:flex-row items-center md:items-end justify-between">
-                <div class="relative">
-                    <img id="view-avatar" src="https://via.placeholder.com/150" class="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-4 border-[#0b0f1a] shadow-2xl object-cover">
-                    <label for="avatar-input" class="absolute bottom-2 right-2 bg-purple-600 p-2.5 rounded-2xl cursor-pointer border-2 border-[#0b0f1a]"><i class="fas fa-pen text-xs"></i></label>
-                    <input type="file" id="avatar-input" class="hidden">
+        <div class="px-8 pb-8">
+            <div class="relative -mt-16 mb-4 flex flex-col md:flex-row items-center md:items-end justify-between">
+                <div class="relative group">
+                    <img id="p-image" src="https://via.placeholder.com/150" class="w-32 h-32 md:w-40 md:h-40 rounded-3xl border-4 border-[#0b0f1a] object-cover shadow-2xl">
+                    <label for="img-upload" class="absolute bottom-2 right-2 bg-purple-600 p-2.5 rounded-xl cursor-pointer shadow-lg hover:bg-purple-500 transition"><i class="fas fa-camera text-white"></i></label>
+                    <input type="file" id="img-upload" class="hidden">
                 </div>
-                <div class="flex gap-3 mt-4 md:mb-2">
-                    <button onclick="openEditModal()" class="bg-white/5 hover:bg-white/10 px-6 py-2.5 rounded-xl font-bold border border-white/10 transition">Edit Profile</button>
-                    <button class="bg-purple-600 hover:bg-purple-500 px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-purple-600/20 transition">Add Story</button>
+                <div class="flex gap-3 mb-2 w-full md:w-auto mt-4 md:mt-0">
+                    <button id="add-story" class="flex-1 md:flex-none bg-purple-600 text-white px-8 py-3 rounded-2xl font-bold transition shadow-lg shadow-purple-500/20 active:scale-95">Add Story</button>
+                    <button onclick="openEditModal()" class="flex-1 md:flex-none bg-slate-800 text-white px-8 py-3 rounded-2xl font-bold transition border border-white/10">Edit Profile</button>
                 </div>
             </div>
 
             <div class="mt-4 text-center md:text-left">
-                <h1 class="text-3xl font-black text-white flex items-center justify-center md:justify-start gap-2">
-                    <span id="view-name">Loading...</span>
-                    <i id="verified-icon" class="fas fa-check-circle text-blue-500 hidden"></i>
+                <h1 class="text-3xl font-extrabold text-white flex items-center justify-center md:justify-start gap-2">
+                    <span id="p-name">Loading...</span> <i id="v-badge" class="fas fa-check-circle text-blue-500 text-xl hidden"></i>
                 </h1>
-                <p class="text-purple-400 font-bold">@<span id="view-username">username</span></p>
-                <p id="view-bio" class="text-gray-400 mt-2 text-sm italic">No bio added yet.</p>
-                
-                <div id="social-container" class="flex justify-center md:justify-start gap-4 mt-4 text-xl">
+                <p class="text-purple-400 font-bold">@<span id="p-username">username</span></p> <p id="p-bio" class="mt-2 text-gray-400 max-w-lg">No bio added yet.</p>
+                <div id="p-socials" class="flex justify-center md:justify-start gap-4 mt-3 text-xl text-gray-500">
                     </div>
             </div>
         </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 flex justify-around text-center">
-            <div><p id="stat-followers" class="text-xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase">Followers</p></div>
-            <div class="w-px h-8 bg-white/5"></div>
-            <div><p id="stat-posts" class="text-xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase">Posts</p></div>
-        </div>
-        
-        <div class="md:col-span-2 bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-3">
-            <p class="text-xs font-bold text-purple-400 uppercase tracking-widest">About Me</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-300">
-                <p><i class="fas fa-graduation-cap w-6"></i> <span id="view-edu">Not set</span></p>
-                <p><i class="fas fa-birthday-cake w-6"></i> <span id="view-dob">Not set</span></p>
+        <div class="md:col-span-1 bg-slate-900/50 p-6 rounded-2xl border border-white/5 space-y-4">
+            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest">About Me</h3>
+            <div class="space-y-3 text-sm text-gray-300">
+                <p><i class="fas fa-graduation-cap w-6"></i> <span id="p-edu">Not Set</span></p>
+                <p><i class="fas fa-birthday-cake w-6"></i> <span id="p-dob">Not Set</span></p>
+                <p><i class="fas fa-venus-mars w-6"></i> <span id="p-gender">Other</span></p>
+                <p><i class="fas fa-link w-6"></i> <span id="p-site">Not Set</span></p>
             </div>
+        </div>
+        <div class="md:col-span-2 bg-slate-900/50 p-6 rounded-2xl border border-white/5 flex items-center justify-around text-center">
+            <div><p id="stat-posts" class="text-3xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase">Posts</p></div>
+            <div class="w-px h-10 bg-white/10"></div>
+            <div><p id="stat-followers" class="text-3xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase">Followers</p></div>
+            <div class="w-px h-10 bg-white/10"></div>
+            <div><p id="stat-friends" class="text-3xl font-black text-white">0</p><p class="text-[10px] text-gray-500 uppercase">Friends</p></div>
         </div>
     </div>
 
-    <div id="edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-[#0f172a] w-full max-w-lg rounded-[2.5rem] p-8 border border-white/10 max-h-[90vh] overflow-y-auto">
-            <h2 class="text-2xl font-bold mb-6">Update Identity</h2>
+    <div id="edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] hidden flex items-center justify-center p-4">
+        <div class="bg-[#0f172a] w-full max-w-xl rounded-3xl p-8 border border-white/10 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-white">Update Identity</h2>
+                <i class="fas fa-times text-gray-500 cursor-pointer" onclick="closeEditModal()"></i>
+            </div>
             <div class="space-y-4">
-                <input type="text" id="in-name" placeholder="Full Name" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:border-purple-500 outline-none">
-                <input type="text" id="in-username" placeholder="Username (without @)" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:border-purple-500 outline-none">
-                <textarea id="in-bio" placeholder="Bio" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:border-purple-500 outline-none"></textarea>
-                <input type="text" id="in-edu" placeholder="Education (School/College)" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:border-purple-500 outline-none">
-                <input type="date" id="in-dob" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:border-purple-500 outline-none">
+                <input type="text" id="in-name" placeholder="Full Name" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:border-purple-500 outline-none text-white">
+                <input type="text" id="in-username" placeholder="Custom Username (no @)" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:border-purple-500 outline-none text-white">
+                <textarea id="in-bio" placeholder="Bio" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:border-purple-500 outline-none text-white"></textarea>
+                <input type="text" id="in-edu" placeholder="Education (College/School)" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:border-purple-500 outline-none text-white">
+                <input type="date" id="in-dob" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:border-purple-500 outline-none text-gray-400">
                 
-                <p class="text-xs font-bold text-gray-500 mt-4 uppercase">Social Media Links</p>
-                <input type="text" id="in-fb" placeholder="Facebook Profile Link" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl">
-                <input type="text" id="in-ig" placeholder="Instagram Profile Link" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl">
+                <select id="in-gender" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-gray-400 outline-none">
+                    <option>Other</option><option>Male</option><option>Female</option>
+                </select>
+                
+                <div class="space-y-2 pt-4">
+                    <p class="text-xs font-bold text-gray-500 uppercase">Social Media Links</p>
+                    <input type="text" id="in-fb" placeholder="Facebook Profile Link" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white">
+                    <input type="text" id="in-ig" placeholder="Instagram Profile Link" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white">
+                </div>
 
-                <div class="flex gap-3 pt-4">
-                    <button onclick="closeEditModal()" class="flex-1 bg-white/5 p-4 rounded-2xl font-bold">Cancel</button>
-                    <button onclick="saveProfileData()" class="flex-1 bg-purple-600 p-4 rounded-2xl font-bold">Save Changes</button>
+                <div class="flex gap-3 pt-6">
+                    <button class="flex-1 bg-white/5 py-4 rounded-xl font-bold" onclick="closeEditModal()">Cancel</button>
+                    <button class="flex-1 bg-purple-600 py-4 rounded-xl font-bold text-white" onclick="saveData()">Save Changes</button>
                 </div>
             </div>
         </div>
