@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Meetwoyou</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1b; --text: #ffffff; --gray: #b0b3b8; --danger: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
+
+        .header { background: var(--card); padding: 15px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #333; }
+        
+        .settings-container { padding: 15px; max-width: 500px; margin: auto; }
+        .setting-item { background: var(--card); padding: 18px; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border: 1px solid #222; cursor: pointer; transition: 0.2s; }
+        .setting-item:active { transform: scale(0.98); background: #222; }
+        
+        .item-info { display: flex; align-items: center; gap: 15px; }
+        .item-info i { width: 35px; height: 35px; background: #222; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary); }
+        .item-info b { font-size: 15px; }
+
+        .danger-text { color: var(--danger); }
+        .danger-text i { color: var(--danger); }
+
+        /* Bottom Nav */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; }
+        .nav-item { color: var(--gray); font-size: 20px; text-align: center; flex: 1; text-decoration: none; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item span { display: block; font-size: 10px; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="home.html" style="color:white; text-decoration:none;"><i class="fas fa-arrow-left"></i></a>
+    <h3 style="margin:0;">Settings</h3>
+</div>
+
+<div class="settings-container">
+    <p style="color:var(--gray); font-size:12px; margin-left:10px; margin-bottom:10px;">Account Management</p>
+    
+    <div class="setting-item" onclick="addAccount()">
+        <div class="item-info">
+            <i class="fas fa-user-plus"></i>
+            <b>Add Another Account</b>
+        </div>
+        <i class="fas fa-chevron-right" style="font-size:12px; color:gray;"></i>
+    </div>
+
+    <div class="setting-item" onclick="window.location.href='profile.html'">
+        <div class="item-info">
+            <i class="fas fa-user-edit"></i>
+            <b>Edit Profile Details</b>
+        </div>
+        <i class="fas fa-chevron-right" style="font-size:12px; color:gray;"></i>
+    </div>
+
+    <p style="color:var(--gray); font-size:12px; margin:20px 0 10px 10px;">Security & Privacy</p>
+
+    <div class="setting-item" onclick="logout()">
+        <div class="item-info">
+            <i class="fas fa-sign-out-alt"></i>
+            <b>Logout</b>
+        </div>
+    </div>
+
+    <div class="setting-item danger-text" onclick="deleteAccount()">
+        <div class="item-info">
+            <i class="fas fa-trash-alt"></i>
+            <b>Delete Account Permanently</b>
+        </div>
+    </div>
+
+    <div style="text-align:center; margin-top:50px; opacity:0.3;">
+        <p style="font-size:12px;">Meetwoyou v2.0.1<br>Created by Writarion</p>
+    </div>
+</div>
+
+<div class="nav-bar">
+    <a href="home.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+    <a href="friends.html" class="nav-item"><i class="fas fa-users"></i><span>Friends</span></a>
+    <a href="settings.html" class="nav-item active"><i class="fas fa-cog"></i><span>Settings</span></a>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signOut, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
+      authDomain: "meetwoyou-436a2.firebaseapp.com",
+      projectId: "meetwoyou-436a2",
+      storageBucket: "meetwoyou-436a2.firebasestorage.app",
+      messagingSenderId: "612788132077",
+      appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+        if (!user) window.location.href = "index.html";
+    });
+
+    // ১. লগআউট ফাংশন
+    window.logout = async () => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You will be logged out of your session.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#8e44ad',
+            confirmButtonText: 'Yes, Logout'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await signOut(auth);
+                window.location.href = "index.html";
+            }
+        });
+    };
+
+    // ২. অ্যাকাউন্ট অ্যাড করা (রিমুভ না করে নতুন সাইন-ইন পেজে নিয়ে যাবে)
+    window.addAccount = () => {
+        Swal.fire({
+            title: 'Add Account?',
+            text: "You will be redirected to the login page to add another profile.",
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Continue'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "index.html";
+            }
+        });
+    };
+
+    // ৩. অ্যাকাউন্ট ডিলিট করা
+    window.deleteAccount = async () => {
+        const user = auth.currentUser;
+        Swal.fire({
+            title: 'CRITICAL ACTION!',
+            text: "Your account and data will be permanently deleted. This cannot be undone!",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            confirmButtonText: 'DELETE EVERYTHING'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await deleteUser(user);
+                    Swal.fire('Deleted!', 'Account removed successfully.', 'success');
+                    window.location.href = "index.html";
+                } catch (err) {
+                    Swal.fire('Error', 'Please log in again before deleting your account for security.', 'error');
+                }
+            }
+        });
+    };
+</script>
+</body>
+</html>
