@@ -462,6 +462,38 @@
         }
         viewUser(uid);
     }
+
+    onAuthStateChanged(auth, async (user) => {
+    if (user) { 
+        me = user;
+
+        // --- নতুন ইউজার চেক এবং প্রোফাইল তৈরি (এই অংশটুকু যোগ করুন) ---
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+        
+        if (!snap.exists()) {
+            // যদি ডাটাবেসে প্রোফাইল না থাকে, তবে নতুন তৈরি হবে
+            await setDoc(userRef, {
+                displayName: user.displayName || "New User",
+                photoURL: user.photoURL || "https://via.placeholder.com/90",
+                bio: "Welcome to my profile!",
+                followers: [],
+                following: [],
+                uid: user.uid,
+                timestamp: serverTimestamp()
+            });
+            // পেজটি একবার রিলোড হতে পারে যাতে নতুন ডাটা ঠিকমতো লোড হয়
+            location.reload(); 
+            return; 
+        }
+        // -------------------------------------------------------
+
+        init(); 
+    } else { 
+        window.location.href = "index.html"; 
+    }
+});
+    
 </script>
 </body>
 </html>
