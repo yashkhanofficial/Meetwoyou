@@ -5,40 +5,50 @@
     <title>Meetwoyou - Admin Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-900 text-white p-5">
 
-    <div class="max-w-6xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8 text-blue-500"><i class="fas fa-user-shield"></i> Admin Dashboard</h1>
+    <div id="admin-content" style="display:none;" class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-500"><i class="fas fa-user-shield"></i> Admin Dashboard</h1>
+            <button onclick="location.href='index.html'" class="bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600">Exit Panel</button>
+        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
                 <h3 class="text-gray-400">Total Users</h3>
-                <p id="total-users" class="text-4xl font-bold">0</p>
+                <p id="total-users" class="text-4xl font-bold text-blue-400">0</p>
             </div>
             <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
                 <h3 class="text-gray-400">Total Posts</h3>
-                <p id="total-posts" class="text-4xl font-bold">0</p>
+                <p id="total-posts" class="text-4xl font-bold text-green-400">0</p>
             </div>
             <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
                 <h3 class="text-gray-400">Total Reels</h3>
-                <p id="total-reels" class="text-4xl font-bold">0</p>
+                <p id="total-reels" class="text-4xl font-bold text-purple-400">0</p>
             </div>
         </div>
 
-        <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700">
-            <div class="p-4 border-b border-gray-700 font-bold">Manage Users</div>
-            <table class="w-full text-left">
-                <thead class="bg-gray-700 text-gray-300">
-                    <tr>
-                        <th class="p-4">Name</th>
-                        <th class="p-4">UID</th>
-                        <th class="p-4">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="admin-user-list">
-                    </tbody>
-            </table>
+        <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 shadow-xl">
+            <div class="p-4 border-b border-gray-700 font-bold flex justify-between items-center">
+                <span>Manage Users</span>
+                <span id="admin-badge" class="bg-blue-600 text-[10px] px-2 py-1 rounded-full">MASTER ACCESS</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-700 text-gray-300">
+                        <tr>
+                            <th class="p-4">User Details</th>
+                            <th class="p-4">UID</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4 text-center">Action Control</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-user-list">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -47,7 +57,6 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Your Config
         const firebaseConfig = {
             apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
             authDomain: "meetwoyou-436a2.firebaseapp.com",
@@ -61,15 +70,32 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const ADMIN_EMAIL = "info.yashkhanofficial@gmail.com"; // আপনার নিজের ইমেইল এখানে দিন
+        const ADMIN_EMAIL = "info.yashkhanofficial@gmail.com";
+        const ADMIN_PASS = "yashkhan@123";
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (!user || user.email !== ADMIN_EMAIL) {
-                alert("Access Denied! Only Admin can see this page.");
-                window.location.href = "index.html";
+                Swal.fire("Access Denied", "আপনি এই প্যানেলের অ্যাডমিন নন!", "error");
+                setTimeout(() => window.location.href = "index.html", 2000);
             } else {
-                loadStats();
-                loadUsers();
+                const { value: password } = await Swal.fire({
+                    title: 'অ্যাডমিন ভেরিফিকেশন',
+                    input: 'password',
+                    inputLabel: 'পাসওয়ার্ড প্রদান করুন',
+                    inputPlaceholder: 'Enter Admin Password',
+                    allowOutsideClick: false,
+                    inputAttributes: { autocapitalize: 'off', autocorrect: 'off' }
+                });
+
+                if (password === ADMIN_PASS) {
+                    document.getElementById('admin-content').style.display = 'block';
+                    loadStats();
+                    loadUsers();
+                    Swal.fire("Welcome Master!", "অ্যাডমিন ড্যাশবোর্ডে আপনাকে স্বাগতম।", "success");
+                } else {
+                    Swal.fire("ভুল পাসওয়ার্ড!", "অ্যাক্সেস রিজেক্ট করা হয়েছে।", "error");
+                    setTimeout(() => window.location.href = "index.html", 1500);
+                }
             }
         });
 
@@ -85,17 +111,28 @@
                 list.innerHTML = "";
                 snap.forEach(d => {
                     const u = d.data();
+                    const isVerified = u.verified || false;
                     const row = `
-                        <tr class="border-b border-gray-700">
-                            <td class="p-4 flex items-center gap-2">
-                                <img src="${u.photoURL}" class="w-8 h-8 rounded-full">
-                                ${u.displayName}
+                        <tr class="border-b border-gray-700 hover:bg-gray-750 transition">
+                            <td class="p-4 flex items-center gap-3">
+                                <img src="${u.photoURL}" class="w-10 h-10 rounded-full border border-gray-600">
+                                <div>
+                                    <p class="font-bold">${u.displayName} ${isVerified ? '<i class="fas fa-check-circle text-blue-500 text-xs"></i>' : ''}</p>
+                                    <p class="text-xs text-gray-400">${u.bio || 'No bio'}</p>
+                                </div>
                             </td>
-                            <td class="p-4 text-gray-500 text-xs">${d.id}</td>
+                            <td class="p-4 text-gray-500 text-[10px] font-mono">${d.id}</td>
                             <td class="p-4">
-                                <button onclick="deleteUser('${d.id}')" class="text-red-500 mr-4"><i class="fas fa-trash"></i></button>
-                                <button onclick="verifyUser('${d.id}', ${u.verified || false})" class="text-blue-500">
-                                    <i class="fas fa-check-circle"></i>
+                                <span class="${isVerified ? 'text-blue-400 bg-blue-900/30' : 'text-gray-400 bg-gray-700'} px-2 py-1 rounded text-xs">
+                                    ${isVerified ? 'Verified' : 'Standard'}
+                                </span>
+                            </td>
+                            <td class="p-4 text-center">
+                                <button onclick="verifyUser('${d.id}', ${isVerified})" class="bg-blue-600 hover:bg-blue-500 p-2 rounded mr-2" title="Toggle Verification">
+                                    <i class="fas fa-certificate"></i>
+                                </button>
+                                <button onclick="deleteUser('${d.id}')" class="bg-red-600 hover:bg-red-500 p-2 rounded" title="Delete User">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
@@ -106,12 +143,23 @@
         }
 
         window.deleteUser = async (id) => {
-            if(confirm("Are you sure to delete this user?")) await deleteDoc(doc(db, "users", id));
+            const confirmDel = await Swal.fire({
+                title: 'Are you sure?',
+                text: "এই ইউজারকে ডিলিট করলে তার সব ডেটা মুছে যাবে!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'হ্যাঁ, ডিলিট করুন'
+            });
+            if(confirmDel.isConfirmed) {
+                await deleteDoc(doc(db, "users", id));
+                Swal.fire("Deleted!", "ইউজার সফলভাবে মুছে ফেলা হয়েছে।", "success");
+            }
         };
 
         window.verifyUser = async (id, status) => {
             await updateDoc(doc(db, "users", id), { verified: !status });
-            alert("Verification Status Updated!");
+            Swal.fire("Updated!", "ইউজার ভেরিফিকেশন স্ট্যাটাস পরিবর্তন করা হয়েছে।", "success");
         };
 
     </script>
