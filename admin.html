@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>Meetwoyou - Admin Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-white p-5">
+
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-blue-500"><i class="fas fa-user-shield"></i> Admin Dashboard</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h3 class="text-gray-400">Total Users</h3>
+                <p id="total-users" class="text-4xl font-bold">0</p>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h3 class="text-gray-400">Total Posts</h3>
+                <p id="total-posts" class="text-4xl font-bold">0</p>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h3 class="text-gray-400">Total Reels</h3>
+                <p id="total-reels" class="text-4xl font-bold">0</p>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700">
+            <div class="p-4 border-b border-gray-700 font-bold">Manage Users</div>
+            <table class="w-full text-left">
+                <thead class="bg-gray-700 text-gray-300">
+                    <tr>
+                        <th class="p-4">Name</th>
+                        <th class="p-4">UID</th>
+                        <th class="p-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-user-list">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Your Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
+            authDomain: "meetwoyou-436a2.firebaseapp.com",
+            projectId: "meetwoyou-436a2",
+            storageBucket: "meetwoyou-436a2.firebasestorage.app",
+            messagingSenderId: "612788132077",
+            appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const ADMIN_EMAIL = "info.yashkhanofficial@gmail.com"; // আপনার নিজের ইমেইল এখানে দিন
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== ADMIN_EMAIL) {
+                alert("Access Denied! Only Admin can see this page.");
+                window.location.href = "index.html";
+            } else {
+                loadStats();
+                loadUsers();
+            }
+        });
+
+        function loadStats() {
+            onSnapshot(collection(db, "users"), snap => document.getElementById('total-users').innerText = snap.size);
+            onSnapshot(collection(db, "posts"), snap => document.getElementById('total-posts').innerText = snap.size);
+            onSnapshot(collection(db, "reels"), snap => document.getElementById('total-reels').innerText = snap.size);
+        }
+
+        function loadUsers() {
+            onSnapshot(collection(db, "users"), (snap) => {
+                const list = document.getElementById('admin-user-list');
+                list.innerHTML = "";
+                snap.forEach(d => {
+                    const u = d.data();
+                    const row = `
+                        <tr class="border-b border-gray-700">
+                            <td class="p-4 flex items-center gap-2">
+                                <img src="${u.photoURL}" class="w-8 h-8 rounded-full">
+                                ${u.displayName}
+                            </td>
+                            <td class="p-4 text-gray-500 text-xs">${d.id}</td>
+                            <td class="p-4">
+                                <button onclick="deleteUser('${d.id}')" class="text-red-500 mr-4"><i class="fas fa-trash"></i></button>
+                                <button onclick="verifyUser('${d.id}', ${u.verified || false})" class="text-blue-500">
+                                    <i class="fas fa-check-circle"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    list.innerHTML += row;
+                });
+            });
+        }
+
+        window.deleteUser = async (id) => {
+            if(confirm("Are you sure to delete this user?")) await deleteDoc(doc(db, "users", id));
+        };
+
+        window.verifyUser = async (id, status) => {
+            await updateDoc(doc(db, "users", id), { verified: !status });
+            alert("Verification Status Updated!");
+        };
+
+    </script>
+</body>
+</html>
