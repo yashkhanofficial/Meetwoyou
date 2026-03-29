@@ -200,19 +200,41 @@
     window.postMenu = async (id, oldText) => {
         const { value: action } = await Swal.fire({
             title: 'Manage Post',
-            showDenyButton: true, confirmButtonText: 'Edit', denyButtonText: 'Delete',
-            background: '#121212', color: '#fff'
+            showDenyButton: true, 
+            confirmButtonText: 'Edit', 
+            denyButtonText: 'Delete',
+            confirmButtonColor: '#0095f6',
+            denyButtonColor: '#ed4956',
+            background: '#121212', 
+            color: '#fff'
         });
-        if(action) {
-            const { value: newText } = await Swal.fire({ input: 'textarea', inputValue: oldText, title: 'Edit Post' });
-            if(newText) await updateDoc(doc(db, "posts", id), { text: newText });
-        } else if (action === false) { // Denial Button
-            Swal.fire({ title: 'Delete?', icon: 'warning', showCancelButton: true }).then(async (r) => {
-                if(r.isConfirmed) {
-                    await deleteDoc(doc(db, "posts", id));
-                    document.getElementById('post-detail-view').style.display='none';
-                }
+
+        if (action === true) { // Edit selected
+            const { value: newText } = await Swal.fire({ 
+                input: 'textarea', 
+                inputValue: oldText, 
+                title: 'Edit Post',
+                background: '#121212',
+                color: '#fff',
+                confirmButtonText: 'Update'
             });
+            if (newText !== undefined) {
+                await updateDoc(doc(db, "posts", id), { text: newText });
+            }
+        } else if (action === false) { // Delete selected (denyButton returns false)
+            const result = await Swal.fire({ 
+                title: 'Are you sure?', 
+                text: "This will delete the post permanently!",
+                icon: 'warning', 
+                showCancelButton: true,
+                confirmButtonColor: '#ed4956',
+                cancelButtonColor: '#262626',
+                confirmButtonText: 'Yes, delete it!'
+            });
+            if (result.isConfirmed) {
+                await deleteDoc(doc(db, "posts", id));
+                document.getElementById('post-detail-view').style.display = 'none';
+            }
         }
     };
 
@@ -268,14 +290,21 @@
     };
 
     window.loadMyPosts = () => {
+        // Query must match the Firestore data
         const q = query(collection(db, "posts"), where("uid", "==", me.uid), orderBy("timestamp", "desc"));
         onSnapshot(q, (snap) => {
             document.getElementById('count-posts').innerText = snap.size;
             const grid = document.getElementById('my-posts-grid'); grid.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
-                grid.innerHTML += `<div class="grid-item" onclick="viewSinglePost('${d.id}')">${p.img ? `<img src="${p.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${p.text}</div>`}</div>`;
+                const postDiv = document.createElement('div');
+                postDiv.className = "grid-item";
+                postDiv.onclick = () => viewSinglePost(d.id);
+                postDiv.innerHTML = p.img ? `<img src="${p.img}">` : `<div style="padding:10px; font-size:10px; color:gray; display:flex; align-items:center; height:100%;">${p.text.substring(0,30)}...</div>`;
+                grid.appendChild(postDiv);
             });
+        }, (error) => {
+            console.error("Error loading my posts: ", error);
         });
     };
 
@@ -305,7 +334,12 @@
         onSnapshot(query(collection(db, "posts"), where("uid", "==", uid), orderBy("timestamp", "desc")), (snap) => {
             const grid = document.getElementById('user-posts-grid'); grid.innerHTML = "";
             snap.forEach(d => {
-                grid.innerHTML += `<div class="grid-item" onclick="viewSinglePost('${d.id}')">${d.data().img ? `<img src="${d.data().img}">` : `<div style="padding:10px;">${d.data().text}</div>`}</div>`;
+                const p = d.data();
+                const postDiv = document.createElement('div');
+                postDiv.className = "grid-item";
+                postDiv.onclick = () => viewSinglePost(d.id);
+                postDiv.innerHTML = p.img ? `<img src="${p.img}">` : `<div style="padding:10px;">${p.text.substring(0,20)}</div>`;
+                grid.appendChild(postDiv);
             });
         });
     };
@@ -320,7 +354,7 @@
             await updateDoc(myRef, { following: arrayUnion(uid) });
             await updateDoc(userRef, { followers: arrayUnion(me.uid) });
         }
-        viewUser(uid); // UI Refresh
+        viewUser(uid); 
     };
 
     async function uploadToCloudinary(file) {
