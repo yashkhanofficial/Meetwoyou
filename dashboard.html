@@ -3,92 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Official</title>
+    <title>Meetwoyou - Ultimate OS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root { --primary: #0095f6; --bg: #000; --card: #121212; --text: #fff; --gray: #8e8e8e; --verified: #0095f6; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px; overflow-x: hidden; }
         
         .header { background: var(--bg); padding: 15px; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .v-badge { color: var(--verified); font-size: 14px; margin-left: 5px; }
+        .v-badge { color: var(--verified); font-size: 13px; margin-left: 4px; }
         
-        .section { display: none; max-width: 500px; margin: auto; }
+        .section { display: none; max-width: 500px; margin: auto; animation: slideUp 0.3s ease; }
         .section.active { display: block; }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .post-card { border-bottom: 1px solid #262626; padding-bottom: 10px; margin-bottom: 5px; }
-        .post-user { display: flex; align-items: center; gap: 10px; padding: 12px; cursor: pointer; }
-        .post-user img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #333; }
-        .post-img { width: 100%; max-height: 500px; object-fit: cover; }
+        .post-card { border-bottom: 1px solid #262626; padding-bottom: 15px; margin-bottom: 10px; }
+        .post-user { display: flex; align-items: center; gap: 10px; padding: 10px; cursor: pointer; }
+        .post-img { width: 100%; max-height: 500px; object-fit: contain; background: #050505; }
         
-        .action-bar { padding: 10px 15px; display: flex; gap: 20px; font-size: 22px; }
-        .liked { color: #ed4956; animation: scale 0.3s ease; }
-        @keyframes scale { 0% {transform: scale(1);} 50% {transform: scale(1.3);} 100% {transform: scale(1);} }
+        #chat-screen, #user-profile-view { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; overflow-y: auto; }
+        .chat-bubble { padding: 10px 15px; border-radius: 18px; margin: 5px 0; max-width: 75%; font-size: 14px; }
+        .sent { background: var(--primary); align-self: flex-end; }
+        .recv { background: #262626; align-self: flex-start; }
 
-        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding-top: 10px; }
-        .grid-item { aspect-ratio: 1/1; background: #121212; position: relative; }
+        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 15px; }
+        .grid-item { aspect-ratio: 1/1; background: #121212; overflow: hidden; cursor: pointer; }
         .grid-item img { width: 100%; height: 100%; object-fit: cover; }
 
-        .nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 1px solid #262626; display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; }
-        .nav i { font-size: 24px; color: #fff; cursor: pointer; opacity: 0.7; }
-        .nav i.active { opacity: 1; color: var(--primary); }
+        .nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 1px solid #262626; display: flex; justify-content: space-around; padding: 15px 0; z-index: 1000; }
+        .nav i { font-size: 24px; cursor: pointer; color: #fff; }
 
-        .btn-post { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        input, textarea { width: 100%; padding: 12px; background: #121212; border: 1px solid #262626; color: white; border-radius: 8px; margin-bottom: 10px; outline: none; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
+        input, textarea { width: 100%; padding: 12px; background: #121212; border: 1px solid #262626; color: white; border-radius: 8px; margin-bottom: 8px; box-sizing: border-box; }
         
-        #user-profile-view { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; overflow-y: auto; }
+        .notification-dot { position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: red; border-radius: 50%; display: none; }
+        .profile-info-list { text-align: left; padding: 15px; font-size: 14px; color: #ccc; }
+        .profile-info-list div { margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h2 style="font-family: 'Grand Hotel', cursive; font-size: 24px;">Meetwoyou</h2>
-    <i class="far fa-heart" style="font-size: 22px;"></i>
+    <h2 style="margin:0; font-family: 'Grand Hotel', cursive;">Meetwoyou</h2>
+    <div style="position: relative;">
+        <i class="far fa-bell" onclick="showNotifications()" style="font-size:22px; cursor:pointer;"></i>
+        <div id="noti-dot" class="notification-dot"></div>
+    </div>
 </div>
 
 <div id="home-sec" class="section active">
-    <div style="background: var(--card); padding: 15px; border-bottom: 1px solid #262626;">
+    <div style="background: var(--card); padding: 15px; border-radius: 10px; margin: 10px; border: 1px solid #262626;">
         <textarea id="post-text" placeholder="What's on your mind?"></textarea>
-        <div id="img-preview"></div>
-        <div style="display:flex; justify-content: space-between; align-items: center;">
-            <i class="far fa-image" style="font-size: 24px; cursor: pointer;" onclick="document.getElementById('post-file').click()"></i>
-            <input type="file" id="post-file" accept="image/*" style="display:none" onchange="handlePreview(this)">
-            <button class="btn-post" onclick="uploadPost()">Post</button>
-        </div>
+        <input type="file" id="post-file" accept="image/*" style="display:none" onchange="previewImg(this)">
+        <button onclick="document.getElementById('post-file').click()" style="background:#262626; color:white; border:none; padding:8px; border-radius:5px; margin-bottom:10px; cursor:pointer;">Add Photo</button>
+        <div id="img-preview-box"></div>
+        <button class="btn-main" onclick="uploadPost()">Share Post</button>
     </div>
     <div id="feed-area"></div>
 </div>
 
 <div id="discover-sec" class="section">
-    <div style="padding:15px;"><input type="text" placeholder="Search friends..."></div>
+    <div style="padding:15px;"><input type="text" id="user-search" placeholder="Search friends..."></div>
     <div id="user-list"></div>
 </div>
 
+<div id="msg-sec" class="section">
+    <h3 style="padding:10px 15px;">Messages</h3>
+    <div id="chat-list"></div>
+</div>
+
 <div id="profile-sec" class="section">
-    <div id="my-info-header" style="text-align: center; padding: 20px;">
+    <div style="text-align: center; padding: 20px 15px;">
+        <img id="p-img" src="" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:2px solid #262626;">
+        <h3 id="p-name"></h3>
+        <p id="p-bio" style="color:var(--gray); margin-bottom:10px;"></p>
+        
+        <div style="display: flex; justify-content: center; gap: 30px; margin: 15px 0;">
+            <div><b id="count-posts">0</b><br><small>Posts</small></div>
+            <div><b id="count-followers">0</b><br><small>Followers</small></div>
+            <div><b id="count-following">0</b><br><small>Following</small></div>
         </div>
-    <div class="profile-grid" id="my-posts-grid"></div>
+
+        <div id="my-profile-info" class="profile-info-list"></div>
+
+        <div style="display:flex; gap:10px;">
+            <button class="btn-main" style="background:#262626;" onclick="toggleEdit()">Edit Profile</button>
+            <button class="btn-main" style="background:#262626; width:50px;" onclick="shareMyProfile()"><i class="fas fa-share-alt"></i></button>
+        </div>
+
+        <div id="edit-form" style="display:none; margin-top:15px; text-align:left;">
+            <input type="text" id="edit-bio" placeholder="Bio">
+            <input type="text" id="edit-edu" placeholder="Education">
+            <input type="text" id="edit-work" placeholder="Work">
+            <input type="date" id="edit-dob" placeholder="Date of Birth">
+            <input type="text" id="edit-web" placeholder="Website URL">
+            <input type="text" id="edit-fb" placeholder="Social Link (Facebook/IG)">
+            <button class="btn-main" onclick="saveProfile()">Save Changes</button>
+        </div>
+    </div>
+    <div id="my-posts-grid" class="profile-grid"></div>
 </div>
 
 <div id="user-profile-view">
-    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:20px;">
-        <i class="fas fa-arrow-left" onclick="closeProfile()"></i>
-        <b id="v-header-name">Profile</b>
+    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; justify-content:space-between; align-items:center;">
+        <i class="fas fa-arrow-left" onclick="closeProfileView()"></i>
+        <i class="fas fa-share-alt" id="user-share-btn"></i>
     </div>
-    <div id="v-info" style="text-align:center; padding:20px;"></div>
-    <div class="profile-grid" id="v-posts"></div>
+    <div id="user-profile-content"></div>
+    <div id="user-posts-grid" class="profile-grid"></div>
+</div>
+
+<div id="chat-screen">
+    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:12px;">
+        <i class="fas fa-arrow-left" onclick="closeChat()"></i>
+        <img id="chat-h-img" src="" style="width:35px; height:35px; border-radius:50%;">
+        <b id="chat-h-name"></b>
+    </div>
+    <div id="chat-box" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column;"></div>
+    <div style="padding:10px; display:flex; gap:10px; background:#121212;">
+        <input type="text" id="chat-input" placeholder="Message..." style="margin:0;">
+        <button onclick="sendMsg()" style="background:none; color:var(--primary); border:none; font-weight:bold;">Send</button>
+    </div>
 </div>
 
 <div class="nav">
-    <i class="fas fa-home active" onclick="showSec('home', this)"></i>
-    <i class="fas fa-search" onclick="showSec('discover', this)"></i>
-    <i class="fas fa-user-circle" onclick="showSec('profile', this)"></i>
+    <i class="fas fa-home" onclick="showSec('home')"></i>
+    <i class="fas fa-search" onclick="showSec('discover')"></i>
+    <i class="fas fa-comment-dots" onclick="showSec('msg')"></i>
+    <i class="fas fa-user-circle" onclick="showSec('profile')"></i>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -104,179 +152,328 @@
     const db = getFirestore(app);
 
     let me = null;
-    let selectedImg = null;
-    const vIcon = `<i class="fas fa-check-circle v-badge"></i>`;
+    let selectedImgBase64 = null;
+    let activeChatID = null;
 
     onAuthStateChanged(auth, async (user) => {
-        if (user) { me = user; init(); } else { window.location.href = "login.html"; }
+        if (user) { me = user; init(); } else { window.location.href = "index.html"; }
     });
 
-    async function init() {
-        const uRef = doc(db, "users", me.uid);
-        const uSnap = await getDoc(uRef);
-        if(!uSnap.exists()) {
-            await setDoc(uRef, { uid: me.uid, displayName: me.displayName || "New User", photoURL: me.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png", verified: false, bio: "Digital Creator" });
-        }
+    function init() {
+        loadMyProfile();
         loadFeed();
         loadAllUsers();
+        loadMyPosts();
+        listenNotifications();
     }
 
-    // --- Upload Post ---
-    window.uploadPost = async () => {
-        const text = document.getElementById('post-text').value;
-        if(!text && !selectedImg) return;
-        
-        Swal.fire({ title: 'Posting...', didOpen: () => Swal.showLoading() });
-        const userSnap = await getDoc(doc(db, "users", me.uid));
-        const userData = userSnap.data();
+    // --- Verified Badge Helper ---
+    const vB = ` <i class="fas fa-check-circle v-badge"></i>`;
 
-        await addDoc(collection(db, "posts"), {
-            uid: me.uid,
-            text: text,
-            img: selectedImg,
-            authorName: userData.displayName,
-            authorImg: userData.photoURL,
-            verified: userData.verified || false,
-            timestamp: serverTimestamp(),
-            likes: []
+    // --- Profile System ---
+    function loadMyProfile() {
+        onSnapshot(doc(db, "users", me.uid), (snap) => {
+            const d = snap.data();
+            if(!d) return;
+            document.getElementById('p-name').innerHTML = d.displayName + vB;
+            document.getElementById('p-img').src = d.photoURL;
+            document.getElementById('p-bio').innerText = d.bio || "Student and Tech Enthusiast";
+            document.getElementById('count-followers').innerText = d.followers?.length || 0;
+            document.getElementById('count-following').innerText = d.following?.length || 0;
+            
+            document.getElementById('my-profile-info').innerHTML = `
+                ${d.work ? `<div><i class="fas fa-briefcase"></i> Works at ${d.work}</div>` : ''}
+                ${d.edu ? `<div><i class="fas fa-graduation-cap"></i> Studied at ${d.edu}</div>` : ''}
+                ${d.dob ? `<div><i class="fas fa-birthday-cake"></i> Born on ${d.dob}</div>` : ''}
+                ${d.web ? `<div><i class="fas fa-link"></i> <a href="${d.web}" style="color:var(--primary);">${d.web}</a></div>` : ''}
+                ${d.social ? `<div><i class="fas fa-share-alt"></i> ${d.social}</div>` : ''}
+            `;
         });
+    }
 
-        document.getElementById('post-text').value = "";
-        document.getElementById('img-preview').innerHTML = "";
-        selectedImg = null;
-        Swal.close();
+    window.saveProfile = async () => {
+        await updateDoc(doc(db, "users", me.uid), {
+            bio: document.getElementById('edit-bio').value,
+            edu: document.getElementById('edit-edu').value,
+            work: document.getElementById('edit-work').value,
+            dob: document.getElementById('edit-dob').value,
+            web: document.getElementById('edit-web').value,
+            social: document.getElementById('edit-fb').value
+        });
+        Swal.fire("Profile Updated!"); toggleEdit();
     };
 
-    // --- Load Feed ---
+    // --- Feed & Posts ---
     function loadFeed() {
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
             const area = document.getElementById('feed-area');
             area.innerHTML = "";
-            snap.forEach(d => {
-                const p = d.data();
-                const isLiked = p.likes?.includes(me.uid);
-                area.innerHTML += `
-                    <div class="post-card">
-                        <div class="post-user" onclick="viewProfile('${p.uid}')">
-                            <img src="${p.authorImg}">
-                            <b>${p.authorName}${p.verified ? vIcon : ''}</b>
-                        </div>
-                        ${p.img ? `<img src="${p.img}" class="post-img" ondblclick="toggleLike('${d.id}')">` : ''}
-                        <div style="padding:10px 15px;">
-                            <div class="action-bar" style="padding:0 0 10px 0;">
-                                <i class="${isLiked ? 'fas fa-heart liked' : 'far fa-heart'}" onclick="toggleLike('${d.id}')"></i>
-                                <i class="far fa-comment"></i>
-                            </div>
-                            <div style="font-size:14px; font-weight:bold; margin-bottom:5px;">${p.likes?.length || 0} likes</div>
-                            <div style="font-size:15px;">${p.text}</div>
-                        </div>
-                    </div>
-                `;
+            snap.forEach(docSnap => {
+                renderPost(docSnap.data(), docSnap.id, area);
             });
         });
     }
 
-    // --- Like System ---
-    window.toggleLike = async (id) => {
-        const ref = doc(db, "posts", id);
-        const d = await getDoc(ref);
-        if(d.data().likes?.includes(me.uid)) {
-            await updateDoc(ref, { likes: arrayRemove(me.uid) });
-        } else {
-            await updateDoc(ref, { likes: arrayUnion(me.uid) });
-        }
+    function renderPost(p, id, target) {
+        const isLiked = p.likes?.includes(me.uid);
+        const div = document.createElement('div');
+        div.className = "post-card";
+        div.innerHTML = `
+            <div class="post-user" onclick="viewUser('${p.uid}')">
+                <img src="${p.authorImg}" style="width:35px; height:35px; border-radius:50%;">
+                <b>${p.authorName}${vB}</b>
+                ${p.uid === me.uid ? `<i class="fas fa-ellipsis-v" style="margin-left:auto;" onclick="postMenu('${id}', '${p.text}')"></i>` : ''}
+            </div>
+            ${p.img ? `<img src="${p.img}" class="post-img" ondblclick="toggleLike('${id}', ${isLiked})">` : ''}
+            <div style="padding:10px 15px; font-size:20px; display:flex; gap:15px; align-items:center;">
+                <i class="${isLiked?'fas fa-heart':'far fa-heart'}" style="color:${isLiked?'red':''}" onclick="toggleLike('${id}', ${isLiked})"></i>
+                <i class="far fa-comment" onclick="addComment('${id}', '${p.uid}')"></i>
+                <i class="far fa-paper-plane" onclick="sharePost('${id}')"></i>
+            </div>
+            <div style="padding:0 15px; font-size:14px;">
+                <b>${p.likes?.length || 0} likes</b><br>
+                <b>${p.authorName}</b> ${p.text}
+                <div style="color:gray; margin-top:5px; font-size:12px;">
+                    ${(p.comments || []).slice(-3).map(c => `<div><b>${c.user}:</b> ${c.text}</div>`).join('')}
+                </div>
+            </div>
+        `;
+        target.appendChild(div);
+    }
+
+    window.sharePost = (id) => {
+        const url = window.location.origin + "?post=" + id;
+        navigator.clipboard.writeText(url);
+        Swal.fire("Link Copied!", "You can share this post link now.", "success");
     };
 
-    // --- Profile View ---
-    window.viewProfile = async (uid) => {
-        const u = (await getDoc(doc(db, "users", uid))).data();
-        document.getElementById('v-header-name').innerText = u.displayName;
-        document.getElementById('v-info').innerHTML = `
-            <img src="${u.photoURL}" style="width:90px; height:90px; border-radius:50%; border:2px solid #222; object-fit:cover;">
-            <h3 style="margin:10px 0 5px;">${u.displayName}${u.verified?vIcon:''}</h3>
-            <p style="color:gray; font-size:14px;">${u.bio || ''}</p>
+    window.shareMyProfile = () => {
+        const url = window.location.origin + "?user=" + me.uid;
+        navigator.clipboard.writeText(url);
+        Swal.fire("Profile Link Copied!", "", "success");
+    };
+
+    // --- User Profile Viewing ---
+    window.viewUser = async (uid) => {
+        if(uid === me.uid) return showSec('profile');
+        const uSnap = await getDoc(doc(db, "users", uid));
+        const u = uSnap.data();
+        const meSnap = await getDoc(doc(db, "users", me.uid));
+        const isFollowing = meSnap.data().following?.includes(uid);
+
+        document.getElementById('user-profile-view').style.display = 'flex';
+        document.getElementById('user-share-btn').onclick = () => {
+             navigator.clipboard.writeText(window.location.origin + "?user=" + uid);
+             Swal.fire("User Link Copied!");
+        };
+
+        document.getElementById('user-profile-content').innerHTML = `
+            <div style="text-align:center; padding:20px;">
+                <img src="${u.photoURL}" style="width:80px; height:80px; border-radius:50%; object-fit:cover;">
+                <h3>${u.displayName}${vB}</h3>
+                <p style="color:gray;">${u.bio || ''}</p>
+                <div style="display:flex; justify-content:center; gap:20px; margin:10px;">
+                    <b>${u.followers?.length || 0} <br><small>Followers</small></b>
+                    <b>${u.following?.length || 0} <br><small>Following</small></b>
+                </div>
+                <div class="profile-info-list">
+                    ${u.work ? `<div><i class="fas fa-briefcase"></i> Works at ${u.work}</div>` : ''}
+                    ${u.edu ? `<div><i class="fas fa-graduation-cap"></i> Studied at ${u.edu}</div>` : ''}
+                    ${u.web ? `<div><i class="fas fa-link"></i> ${u.web}</div>` : ''}
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-main" onclick="toggleFollow('${uid}', ${isFollowing})">${isFollowing?'Unfollow':'Follow'}</button>
+                    <button class="btn-main" style="background:#262626;" onclick="openChat('${uid}', '${u.displayName}', '${u.photoURL}')">Message</button>
+                </div>
+            </div>
         `;
-        document.getElementById('user-profile-view').style.display = 'block';
-        
-        onSnapshot(query(collection(db, "posts"), where("uid", "==", uid)), (snap) => {
-            const grid = document.getElementById('v-posts');
+
+        const q = query(collection(db, "posts"), where("uid", "==", uid));
+        onSnapshot(q, (snap) => {
+            const grid = document.getElementById('user-posts-grid');
             grid.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
-                grid.innerHTML += `<div class="grid-item">${p.img ? `<img src="${p.img}">` : `<div style="padding:10px; font-size:10px;">${p.text}</div>`}</div>`;
+                grid.innerHTML += `<div class="grid-item" onclick="viewSinglePost('${d.id}')">${p.img ? `<img src="${p.img}">`: `<div style="padding:5px;">${p.text}</div>`}</div>`;
             });
         });
     };
 
-    window.closeProfile = () => document.getElementById('user-profile-view').style.display = 'none';
+    window.viewSinglePost = async (id) => {
+        const snap = await getDoc(doc(db, "posts", id));
+        const p = snap.data();
+        Swal.fire({
+            background: '#000', color: '#fff',
+            html: `
+                <div style="text-align:left;">
+                    <b>${p.authorName}</b><br>
+                    ${p.img ? `<img src="${p.img}" style="width:100%; margin-top:10px;">` : ''}
+                    <p>${p.text}</p>
+                </div>
+            `,
+            showConfirmButton: false
+        });
+    };
 
-    // --- My Profile ---
-    async function loadMyProfile() {
-        const u = (await getDoc(doc(db, "users", me.uid))).data();
-        document.getElementById('my-info-header').innerHTML = `
-            <img src="${u.photoURL}" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:2px solid #222;">
-            <h3 style="margin:10px 0 5px;">${u.displayName}${u.verified?vIcon:''}</h3>
-            <p style="color:gray; font-size:14px; margin-bottom:15px;">${u.bio || ''}</p>
-            <button onclick="editProfile()" style="background:#262626; color:white; border:none; padding:8px 20px; border-radius:5px; font-weight:bold;">Edit Profile</button>
-        `;
-        
-        onSnapshot(query(collection(db, "posts"), where("uid", "==", me.uid)), (snap) => {
+    // --- Core Social Functions ---
+    window.toggleLike = async (postId, alreadyLiked) => {
+        const ref = doc(db, "posts", postId);
+        await updateDoc(ref, { likes: alreadyLiked ? arrayRemove(me.uid) : arrayUnion(me.uid) });
+        if(!alreadyLiked) {
+            const pSnap = await getDoc(ref);
+            sendNotification(pSnap.data().uid, 'liked your post');
+        }
+    };
+
+    window.addComment = async (postId, targetUid) => {
+        const { value: text } = await Swal.fire({ title: 'Add Comment', input: 'text', background: '#121212', color: '#fff' });
+        if(text) {
+            await updateDoc(doc(db, "posts", postId), {
+                comments: arrayUnion({ user: auth.currentUser.displayName, text: text })
+            });
+            sendNotification(targetUid, 'commented on your post');
+        }
+    };
+
+    window.toggleFollow = async (uid, isFollowing) => {
+        await updateDoc(doc(db, "users", me.uid), { following: isFollowing ? arrayRemove(uid) : arrayUnion(uid) });
+        await updateDoc(doc(db, "users", uid), { followers: isFollowing ? arrayRemove(me.uid) : arrayUnion(me.uid) });
+        if(!isFollowing) sendNotification(uid, 'started following you');
+        closeProfileView(); viewUser(uid);
+    };
+
+    async function sendNotification(to, type) {
+        if(to === me.uid) return;
+        await addDoc(collection(db, "notifications"), {
+            to, fromName: auth.currentUser.displayName, type, timestamp: serverTimestamp(), read: false
+        });
+    }
+
+    function listenNotifications() {
+        const q = query(collection(db, "notifications"), where("to", "==", me.uid), where("read", "==", false));
+        onSnapshot(q, (snap) => {
+            document.getElementById('noti-dot').style.display = snap.size > 0 ? 'block' : 'none';
+        });
+    }
+
+    window.showNotifications = () => {
+        const q = query(collection(db, "notifications"), where("to", "==", me.uid), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snap) => {
+            let list = "";
+            snap.forEach(d => {
+                list += `<div style="padding:10px; border-bottom:1px solid #333; text-align:left;"><b>${d.data().fromName}</b> ${d.data().type}</div>`;
+                updateDoc(doc(db, "notifications", d.id), { read: true });
+            });
+            Swal.fire({ title: 'Notifications', html: list || "No new alerts", background: '#121212', color: '#fff' });
+        });
+    };
+
+    // --- Navigation & UI ---
+    window.previewImg = (i) => {
+        const r = new FileReader();
+        r.onload = (e) => {
+            selectedImgBase64 = e.target.result;
+            document.getElementById('img-preview-box').innerHTML = `<img src="${selectedImgBase64}" style="width:100%; border-radius:10px; margin-top:10px;">`;
+        };
+        r.readAsDataURL(i.files[0]);
+    };
+
+    window.uploadPost = async () => {
+        const txt = document.getElementById('post-text').value;
+        if(!txt && !selectedImgBase64) return;
+        Swal.fire({title: 'Posting...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+        const uSnap = await getDoc(doc(db, "users", me.uid));
+        await addDoc(collection(db, "posts"), {
+            uid: me.uid, text: txt, img: selectedImgBase64,
+            authorName: uSnap.data().displayName, authorImg: uSnap.data().photoURL,
+            timestamp: serverTimestamp(), likes: [], comments: []
+        });
+        document.getElementById('post-text').value = "";
+        selectedImgBase64 = null;
+        document.getElementById('img-preview-box').innerHTML = "";
+        Swal.fire("Success!", "", "success");
+    };
+
+    window.showSec = (id) => {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id + '-sec').classList.add('active');
+        closeProfileView();
+    };
+
+    window.loadMyPosts = () => {
+        const q = query(collection(db, "posts"), where("uid", "==", me.uid));
+        onSnapshot(q, (snap) => {
+            document.getElementById('count-posts').innerText = snap.size;
             const grid = document.getElementById('my-posts-grid');
             grid.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
-                grid.innerHTML += `<div class="grid-item">${p.img ? `<img src="${p.img}">` : `<div style="padding:10px; font-size:10px;">${p.text}</div>`}</div>`;
+                grid.innerHTML += `<div class="grid-item" onclick="viewSinglePost('${d.id}')">${p.img ? `<img src="${p.img}">`: `<div style="padding:10px;">${p.text}</div>`}</div>`;
             });
         });
-    }
-
-    window.editProfile = async () => {
-        const { value: bio } = await Swal.fire({
-            title: 'Edit Bio',
-            input: 'text',
-            inputPlaceholder: 'Tell something about yourself...',
-            showCancelButton: true
-        });
-        if(bio) {
-            await updateDoc(doc(db, "users", me.uid), { bio: bio });
-            loadMyProfile();
-        }
-    };
-
-    // --- Helpers ---
-    window.handlePreview = (input) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            selectedImg = e.target.result;
-            document.getElementById('img-preview').innerHTML = `<img src="${selectedImg}" style="width:100%; border-radius:10px; margin:10px 0;">`;
-        };
-        reader.readAsDataURL(input.files[0]);
-    };
-
-    window.showSec = (id, el) => {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav i').forEach(i => i.classList.remove('active'));
-        document.getElementById(id + '-sec').classList.add('active');
-        el.classList.add('active');
-        if(id === 'profile') loadMyProfile();
     };
 
     window.loadAllUsers = () => {
         onSnapshot(collection(db, "users"), (snap) => {
             const list = document.getElementById('user-list');
-            list.innerHTML = "";
+            const chatList = document.getElementById('chat-list');
+            list.innerHTML = ""; chatList.innerHTML = "";
             snap.forEach(d => {
                 const u = d.data();
                 if(d.id !== me.uid) {
-                    list.innerHTML += `
-                        <div class="post-user" onclick="viewProfile('${d.id}')">
-                            <img src="${u.photoURL}">
-                            <b>${u.displayName}${u.verified ? vIcon : ''}</b>
-                        </div>
-                    `;
+                    const h = `<div class="post-user" onclick="viewUser('${d.id}')">
+                        <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%;">
+                        <b>${u.displayName}${vB}</b>
+                    </div>`;
+                    list.innerHTML += h;
+                    chatList.innerHTML += h.replace("viewUser", "openChatDirect");
                 }
             });
         });
+    };
+
+    window.openChatDirect = (uid) => {
+        getDoc(doc(db, "users", uid)).then(s => openChat(uid, s.data().displayName, s.data().photoURL));
+    };
+
+    window.openChat = (uid, name, img) => {
+        activeChatID = uid;
+        document.getElementById('chat-h-name').innerHTML = name + vB;
+        document.getElementById('chat-h-img').src = img;
+        document.getElementById('chat-screen').style.display = 'flex';
+        onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "asc")), (snap) => {
+            const box = document.getElementById('chat-box'); box.innerHTML = "";
+            snap.forEach(d => {
+                const m = d.data();
+                if((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
+                    box.innerHTML += `<div class="chat-bubble ${m.sender === me.uid?'sent':'recv'}">${m.text}</div>`;
+                }
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    };
+
+    window.sendMsg = async () => {
+        const i = document.getElementById('chat-input');
+        if(!i.value) return;
+        await addDoc(collection(db, "messages"), { sender: me.uid, receiver: activeChatID, text: i.value, timestamp: serverTimestamp() });
+        i.value = "";
+    };
+
+    window.toggleEdit = () => { const e = document.getElementById('edit-form'); e.style.display = e.style.display==='none'?'block':'none'; };
+    window.closeProfileView = () => document.getElementById('user-profile-view').style.display = 'none';
+    window.closeChat = () => document.getElementById('chat-screen').style.display = 'none';
+    window.postMenu = async (id, oldText) => {
+        const { value: action } = await Swal.fire({
+            title: 'Post Options',
+            showDenyButton: true, confirmButtonText: 'Edit', denyButtonText: 'Delete', background: '#121212', color: '#fff'
+        });
+        if(action) {
+            const { value: newText } = await Swal.fire({ input: 'textarea', inputValue: oldText });
+            if(newText) await updateDoc(doc(db, "posts", id), { text: newText });
+        } else if (Swal.DismissReason.deny) {
+            if(confirm("Delete post?")) await deleteDoc(doc(db, "posts", id));
+        }
     };
 
 </script>
