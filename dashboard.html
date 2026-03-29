@@ -3,114 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Ultimate Edition</title>
+    <title>Meetwoyou - Professional Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root { --primary: #0095f6; --bg: #000; --card: #121212; --text: #fff; --gray: #8e8e8e; --verified: #0095f6; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px; overflow-x: hidden; }
         
-        .header { background: var(--bg); padding: 15px; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-        .v-badge { color: var(--verified); font-size: 14px; margin-left: 5px; }
+        /* Header & Badges */
+        .header { background: var(--bg); padding: 15px; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .v-badge { color: var(--verified); font-size: 13px; margin-left: 4px; }
         
-        .section { display: none; max-width: 500px; margin: auto; padding: 10px; }
+        .section { display: none; max-width: 500px; margin: auto; animation: fadeIn 0.3s ease; }
         .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Post UI */
-        .post-card { border-bottom: 1px solid #262626; padding: 15px 0; }
-        .post-user { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 0 10px; }
-        .post-img { width: 100%; max-height: 450px; object-fit: cover; border-radius: 4px; margin: 10px 0; }
-        .post-btns { display: flex; gap: 15px; padding: 5px 10px; font-size: 20px; }
-        .post-desc { padding: 0 10px; font-size: 14px; }
+        /* Advanced Post UI */
+        .post-card { border-bottom: 1px solid #262626; padding-bottom: 15px; margin-top: 10px; }
+        .post-user { display: flex; align-items: center; gap: 10px; padding: 10px; cursor: pointer; }
+        .post-img-container { position: relative; width: 100%; min-height: 300px; background: #050505; display: flex; align-items: center; }
+        .post-img { width: 100%; object-fit: contain; }
+        .heart-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: white; font-size: 80px; transition: 0.3s; pointer-events: none; opacity: 0.8; }
+        .heart-overlay.pop { transform: translate(-50%, -50%) scale(1.2); animation: heartAnim 0.7s forwards; }
+        @keyframes heartAnim { 0% { transform: translate(-50%, -50%) scale(0); } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
 
-        /* Profile */
+        .post-btns { display: flex; gap: 18px; padding: 12px 10px; font-size: 22px; }
+        .liked { color: #ed4956; animation: scaleUp 0.3s; }
+        @keyframes scaleUp { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+        /* Chat/Message UI */
+        #chat-screen { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; }
+        .msg-box { padding: 10px 15px; border-radius: 20px; max-width: 75%; margin: 4px 0; font-size: 15px; word-wrap: break-word; }
+        .msg-sent { align-self: flex-end; background: var(--primary); border-bottom-right-radius: 4px; }
+        .msg-recv { align-self: flex-start; background: #262626; border-bottom-left-radius: 4px; }
+
+        /* Profile & Extra Info */
+        .info-chip { font-size: 12px; color: var(--gray); margin-top: 5px; display: block; }
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 20px; }
-        .grid-item { aspect-ratio: 1/1; background: #262626; overflow: hidden; cursor: pointer; }
+        .grid-item { aspect-ratio: 1/1; background: #121212; overflow: hidden; }
         .grid-item img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* Form & Buttons */
-        .btn-main { background: var(--primary); color: white; border: none; padding: 8px; border-radius: 5px; font-weight: 600; cursor: pointer; width: 100%; }
-        input, textarea { width: 100%; padding: 10px; background: #121212; border: 1px solid #262626; color: white; border-radius: 5px; margin-bottom: 10px; }
 
         /* Nav */
-        .nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 1px solid #262626; display: flex; justify-content: space-around; padding: 15px 0; }
-        .nav i { font-size: 24px; cursor: pointer; color: #fff; }
-        
-        /* Floating Chat */
-        #chat-screen { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 1px solid #262626; display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; }
+        .nav i { font-size: 24px; cursor: pointer; color: #fff; opacity: 0.7; }
+        .nav i.active { opacity: 1; color: var(--primary); }
+
+        /* Utils */
+        .btn-main { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        input, textarea { width: 100%; padding: 12px; background: #121212; border: 1px solid #262626; color: white; border-radius: 8px; margin-bottom: 10px; outline: none; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h2 style="margin:0; font-family: 'Grand Hotel', cursive;">Meetwoyou</h2>
-    <div>
-        <i class="far fa-heart" onclick="showNotifications()" style="font-size: 22px; margin-right: 15px;"></i>
-        <i class="fas fa-sign-out-alt" onclick="logout()" style="font-size: 20px;"></i>
+    <h2 style="margin:0; font-style: italic;">Meetwoyou</h2>
+    <div style="display:flex; align-items:center; gap:20px;">
+        <i class="far fa-plus-square" onclick="showSec('home')" style="font-size:22px; cursor:pointer;"></i>
+        <i class="fas fa-sign-out-alt" onclick="logout()" style="font-size: 20px; cursor:pointer;"></i>
     </div>
 </div>
 
 <div id="home-sec" class="section active">
-    <div style="background: var(--card); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-        <textarea id="post-text" placeholder="What's on your mind?"></textarea>
-        <input type="text" id="post-img-url" placeholder="Paste Image URL (Coming Soon: Direct Upload)">
-        <button class="btn-main" onclick="uploadPost()">Share Post</button>
+    <div style="background: var(--card); padding: 15px; border-radius: 12px; margin: 10px; border: 1px solid #262626;">
+        <textarea id="post-text" placeholder="Write a caption..."></textarea>
+        <input type="text" id="post-img-url" placeholder="Paste image link here...">
+        <button class="btn-main" style="width:100%" onclick="uploadPost()">Post Now</button>
     </div>
     <div id="feed-area"></div>
 </div>
 
 <div id="discover-sec" class="section">
+    <div style="padding:15px;"><input type="text" placeholder="Search friends..."></div>
     <div id="user-list"></div>
 </div>
 
 <div id="msg-sec" class="section">
-    <h3>Messages</h3>
+    <div style="padding:15px;"><h3>Direct Messages</h3></div>
     <div id="chat-list"></div>
 </div>
 
 <div id="profile-sec" class="section">
-    <div style="text-align: center; padding: 20px 0;">
-        <img id="p-img" src="" style="width:90px; height:90px; border-radius:50%; border:2px solid #262626;">
-        <h3 id="p-name" style="margin:10px 0 5px 0;"></h3>
-        <p id="p-bio" style="color:var(--gray); font-size:14px; margin:0;"></p>
+    <div style="text-align: center; padding: 30px 15px;">
+        <img id="p-img" src="" style="width:85px; height:85px; border-radius:50%; object-fit:cover; border:2px solid #262626;">
+        <h3 id="p-name" style="margin:10px 0 2px 0;"></h3>
+        <span id="p-extra" class="info-chip"></span>
+        <p id="p-bio" style="font-size:14px; margin:10px 0;"></p>
         
-        <div style="display: flex; justify-content: center; gap: 30px; margin: 20px 0;">
-            <div><b id="count-posts">0</b><br><small>Posts</small></div>
-            <div><b id="count-followers">0</b><br><small>Followers</small></div>
-            <div><b id="count-following">0</b><br><small>Following</small></div>
+        <div style="display: flex; justify-content: center; gap: 35px; margin: 20px 0;">
+            <div><b id="count-posts">0</b><br><small style="color:var(--gray)">Posts</small></div>
+            <div><b id="count-followers">0</b><br><small style="color:var(--gray)">Followers</small></div>
+            <div><b id="count-following">0</b><br><small style="color:var(--gray)">Following</small></div>
         </div>
-        
-        <button class="btn-main" style="background:#262626; width:80%;" onclick="toggleEdit()">Edit Profile</button>
+        <button class="btn-main" style="background:#262626; width:100%;" onclick="toggleEdit()">Edit Profile</button>
     </div>
-
-    <div id="edit-form" style="display:none; padding:15px; background:#121212; border-radius:10px;">
+    <div id="edit-form" style="display:none; padding:15px; background:#121212; border-top:1px solid #262626;">
+        <input type="text" id="edit-bio" placeholder="Bio">
         <input type="text" id="edit-work" placeholder="Profession">
-        <input type="text" id="edit-edu" placeholder="Education">
-        <input type="text" id="edit-country" placeholder="Country">
-        <button class="btn-main" onclick="saveExtraInfo()">Update Info</button>
+        <input type="text" id="edit-country" placeholder="Location">
+        <button class="btn-main" style="width:100%" onclick="saveProfileData()">Save Changes</button>
     </div>
-
-    <hr style="border:0; border-top:1px solid #262626;">
     <div id="my-posts-grid" class="profile-grid"></div>
 </div>
 
 <div id="chat-screen">
-    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px;">
+    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px; background:#000;">
         <i class="fas fa-arrow-left" onclick="closeChat()"></i>
-        <b id="chat-target-name">Chat</b>
+        <img id="chat-target-img" src="" style="width:30px; height:30px; border-radius:50%;">
+        <b id="chat-target-name">User</b>
     </div>
-    <div id="chat-box" style="flex:1; overflow-y:auto; padding:15px;"></div>
-    <div style="padding:10px; display:flex; gap:10px;">
-        <input type="text" id="chat-input" placeholder="Message..." style="margin:0;">
-        <button onclick="sendMsg()" style="background:none; color:var(--primary); border:none; font-weight:bold;">Send</button>
+    <div id="chat-box" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column;"></div>
+    <div style="padding:10px; display:flex; gap:10px; background:#121212;">
+        <input type="text" id="chat-input" placeholder="Message..." style="margin:0; border:none; background:transparent;">
+        <button onclick="sendMsg()" style="background:none; color:var(--primary); border:none; font-weight:bold; cursor:pointer;">Send</button>
     </div>
 </div>
 
 <div class="nav">
-    <i class="fas fa-home" onclick="showSec('home')"></i>
-    <i class="fas fa-search" onclick="showSec('discover')"></i>
-    <i class="fas fa-paper-plane" onclick="showSec('msg')"></i>
-    <i class="fas fa-user-circle" onclick="showSec('profile')"></i>
+    <i class="fas fa-home active" onclick="showSec('home', this)"></i>
+    <i class="fas fa-search" onclick="showSec('discover', this)"></i>
+    <i class="fas fa-paper-plane" onclick="showSec('msg', this)"></i>
+    <i class="fas fa-user-circle" onclick="showSec('profile', this)"></i>
 </div>
 
 <script type="module">
@@ -132,12 +144,13 @@
     const db = getFirestore(app);
 
     let me = null;
+    let myData = {};
     let activeChatID = null;
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             me = user;
-            initProfile();
+            syncUserData();
             loadFeed();
             loadUsers();
             loadMyPosts();
@@ -146,20 +159,19 @@
         }
     });
 
-    // Profile Setup & Badge Logic
-    async function initProfile() {
+    async function syncUserData() {
         onSnapshot(doc(db, "users", me.uid), (snap) => {
-            const d = snap.data();
+            myData = snap.data();
             const badge = `<i class="fas fa-check-circle v-badge"></i>`;
-            document.getElementById('p-name').innerHTML = d.displayName + badge;
-            document.getElementById('p-img').src = d.photoURL;
-            document.getElementById('p-bio').innerText = d.bio || "No bio set";
-            document.getElementById('count-followers').innerText = d.followers?.length || 0;
-            document.getElementById('count-following').innerText = d.following?.length || 0;
+            document.getElementById('p-name').innerHTML = myData.displayName + badge;
+            document.getElementById('p-img').src = myData.photoURL;
+            document.getElementById('p-bio').innerText = myData.bio || "";
+            document.getElementById('p-extra').innerText = `${myData.work || 'Explorer'} • ${myData.country || 'Global'}`;
+            document.getElementById('count-followers').innerText = myData.followers?.length || 0;
+            document.getElementById('count-following').innerText = myData.following?.length || 0;
         });
     }
 
-    // Load Feed with Photo support
     function loadFeed() {
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
             const area = document.getElementById('feed-area');
@@ -167,21 +179,28 @@
             snap.forEach(docSnap => {
                 const p = docSnap.data();
                 const id = docSnap.id;
+                const isLiked = p.likes?.includes(me.uid);
                 const div = document.createElement('div');
                 div.className = "post-card";
                 div.innerHTML = `
-                    <div class="post-user">
+                    <div class="post-user" onclick="viewUserProfile('${p.uid}')">
                         <img src="${p.authorImg}" style="width:32px; height:32px; border-radius:50%;">
                         <b>${p.authorName} <i class="fas fa-check-circle v-badge"></i></b>
                     </div>
-                    ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
+                    ${p.img ? `
+                    <div class="post-img-container" ondblclick="handleDoubleTap('${id}', this)">
+                        <img src="${p.img}" class="post-img">
+                        <i class="fas fa-heart heart-overlay"></i>
+                    </div>` : ''}
                     <div class="post-btns">
-                        <i class="far fa-heart" onclick="likePost('${id}')"></i>
-                        <i class="far fa-comment" onclick="Swal.fire('Comments disabled')"></i>
-                        ${p.uid === me.uid ? `<i class="far fa-trash-alt" onclick="deletePost('${id}')" style="margin-left:auto"></i>` : ''}
+                        <i class="${isLiked?'fas fa-heart liked':'far fa-heart'}" onclick="toggleLike('${id}', ${isLiked})"></i>
+                        <i class="far fa-comment" onclick="showComments('${id}')"></i>
+                        <i class="far fa-paper-plane" onclick="sharePost('${id}')"></i>
+                        ${p.uid === me.uid ? `<i class="far fa-trash-alt" onclick="deletePost('${id}')" style="margin-left:auto; font-size:18px; opacity:0.6;"></i>` : ''}
                     </div>
-                    <div class="post-desc">
-                        <b>${p.authorName}</b> ${p.text}
+                    <div style="padding:0 12px; font-size:14px;">
+                        <b>${p.likes?.length || 0} likes</b><br>
+                        <span style="margin-top:5px; display:block;"><b>${p.authorName}</b> ${p.text}</span>
                     </div>
                 `;
                 area.appendChild(div);
@@ -189,94 +208,115 @@
         });
     }
 
-    // Load My Posts in Grid
-    function loadMyPosts() {
-        const q = query(collection(db, "posts"), where("uid", "==", me.uid));
-        onSnapshot(q, (snap) => {
-            const grid = document.getElementById('my-posts-grid');
-            grid.innerHTML = "";
-            document.getElementById('count-posts').innerText = snap.size;
-            snap.forEach(docSnap => {
-                const p = docSnap.data();
-                if(p.img) {
-                    grid.innerHTML += `<div class="grid-item"><img src="${p.img}"></div>`;
-                } else {
-                    grid.innerHTML += `<div class="grid-item" style="display:flex; align-items:center; justify:center; font-size:10px; padding:5px;">${p.text}</div>`;
-                }
-            });
-        });
-    }
-
-    window.uploadPost = async () => {
-        const txt = document.getElementById('post-text').value;
-        const imgUrl = document.getElementById('post-img-url').value;
-        if(!txt && !imgUrl) return;
-
-        const uSnap = await getDoc(doc(db, "users", me.uid));
-        const u = uSnap.data();
-
-        await addDoc(collection(db, "posts"), {
-            uid: me.uid, text: txt, img: imgUrl || null,
-            authorName: u.displayName, authorImg: u.photoURL,
-            timestamp: serverTimestamp(), likes: []
-        });
-        
-        document.getElementById('post-text').value = "";
-        document.getElementById('post-img-url').value = "";
-        Swal.fire('Success', 'Post shared!', 'success');
+    // Double Tap Like
+    window.handleDoubleTap = async (postId, el) => {
+        const heart = el.querySelector('.heart-overlay');
+        heart.classList.add('pop');
+        setTimeout(() => heart.classList.remove('pop'), 700);
+        await toggleLike(postId, false, true);
     };
 
-    window.deletePost = async (id) => {
-        if(confirm("Delete this post?")) {
-            await deleteDoc(doc(db, "posts", id));
+    window.toggleLike = async (postId, alreadyLiked, isForceLike = false) => {
+        const ref = doc(db, "posts", postId);
+        if (alreadyLiked && !isForceLike) {
+            await updateDoc(ref, { likes: arrayRemove(me.uid) });
+        } else {
+            await updateDoc(ref, { likes: arrayUnion(me.uid) });
         }
     };
 
-    // Chat History Logic
-    window.openChat = async (uid, name) => {
+    window.viewUserProfile = async (uid) => {
+        if(uid === me.uid) { showSec('profile'); return; }
+        const snap = await getDoc(doc(db, "users", uid));
+        const u = snap.data();
+        const isFollowing = myData.following?.includes(uid);
+
+        Swal.fire({
+            background: '#121212',
+            color: '#fff',
+            html: `
+                <img src="${u.photoURL}" style="width:80px; height:80px; border-radius:50%; border:2px solid #262626;">
+                <h3 style="margin:10px 0;">${u.displayName} <i class="fas fa-check-circle v-badge"></i></h3>
+                <p style="color:#8e8e8e; font-size:13px;">${u.work || ''} | ${u.country || ''}</p>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button id="f-btn" class="btn-main" style="flex:1; background:${isFollowing?'#262626':'#0095f6'}">${isFollowing?'Following':'Follow'}</button>
+                    <button id="m-btn" class="btn-main" style="flex:1; background:#262626;">Message</button>
+                </div>
+            `,
+            showConfirmButton: false,
+            didOpen: () => {
+                document.getElementById('f-btn').onclick = () => handleFollow(uid, isFollowing);
+                document.getElementById('m-btn').onclick = () => { Swal.close(); openChat(uid, u.displayName, u.photoURL); };
+            }
+        });
+    };
+
+    async function handleFollow(uid, isFollowing) {
+        const myRef = doc(db, "users", me.uid);
+        const targetRef = doc(db, "users", uid);
+        if(isFollowing) {
+            await updateDoc(myRef, { following: arrayRemove(uid) });
+            await updateDoc(targetRef, { followers: arrayRemove(me.uid) });
+        } else {
+            await updateDoc(myRef, { following: arrayUnion(uid) });
+            await updateDoc(targetRef, { followers: arrayUnion(me.uid) });
+            // Notification logic can be added here
+        }
+        Swal.close();
+    }
+
+    window.openChat = (uid, name, img) => {
         activeChatID = uid;
         document.getElementById('chat-target-name').innerText = name;
+        document.getElementById('chat-target-img').src = img || 'https://via.placeholder.com/30';
         document.getElementById('chat-screen').style.display = 'flex';
         
-        const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
-        onSnapshot(q, (snap) => {
+        onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "asc")), (snap) => {
             const box = document.getElementById('chat-box');
             box.innerHTML = "";
             snap.forEach(docSnap => {
                 const m = docSnap.data();
                 if((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
                     const isMe = m.sender === me.uid;
-                    box.innerHTML += `<div style="text-align: ${isMe?'right':'left'}; margin-bottom:10px;">
-                        <span style="background:${isMe?'#0095f6':'#262626'}; padding:8px 12px; border-radius:15px; display:inline-block;">${m.text}</span>
-                    </div>`;
+                    const div = document.createElement('div');
+                    div.className = `msg-box ${isMe?'msg-sent':'msg-recv'}`;
+                    div.innerText = m.text;
+                    box.appendChild(div);
                 }
             });
             box.scrollTop = box.scrollHeight;
         });
     };
 
-    window.sendMsg = async () => {
-        const inp = document.getElementById('chat-input');
-        if(!inp.value) return;
-        await addDoc(collection(db, "messages"), {
-            sender: me.uid, receiver: activeChatID, text: inp.value, timestamp: serverTimestamp()
+    window.uploadPost = async () => {
+        const txt = document.getElementById('post-text').value;
+        const img = document.getElementById('post-img-url').value;
+        if(!txt && !img) return;
+        await addDoc(collection(db, "posts"), {
+            uid: me.uid, text: txt, img: img || null,
+            authorName: myData.displayName, authorImg: myData.photoURL,
+            timestamp: serverTimestamp(), likes: []
         });
-        inp.value = "";
+        document.getElementById('post-text').value = "";
+        document.getElementById('post-img-url').value = "";
+        Swal.fire({ icon:'success', title:'Shared!', timer:1000, showConfirmButton:false });
     };
 
-    window.saveExtraInfo = async () => {
+    window.saveProfileData = async () => {
         await updateDoc(doc(db, "users", me.uid), {
+            bio: document.getElementById('edit-bio').value,
             work: document.getElementById('edit-work').value,
-            edu: document.getElementById('edit-edu').value,
             country: document.getElementById('edit-country').value
         });
-        Swal.fire('Success', 'Profile Updated', 'success');
         toggleEdit();
+        Swal.fire('Updated!');
     };
 
-    window.showSec = (id) => {
+    window.showSec = (id, el) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id + '-sec').classList.add('active');
+        document.querySelectorAll('.nav i').forEach(i => i.classList.remove('active'));
+        if(el) el.classList.add('active');
     };
 
     window.loadUsers = () => {
@@ -286,19 +326,41 @@
             list.innerHTML = ""; chatList.innerHTML = "";
             snap.forEach(docSnap => {
                 const u = docSnap.data();
-                const uid = docSnap.id;
-                if(uid !== me.uid) {
-                    list.innerHTML += `<div class="post-user" onclick="openChat('${uid}', '${u.displayName}')">
-                        <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%;">
-                        <b>${u.displayName}</b>
-                    </div>`;
-                    chatList.innerHTML += `<div class="post-user" onclick="openChat('${uid}', '${u.displayName}')">
-                        <img src="${u.photoURL}" style="width:45px; height:45px; border-radius:50%;">
-                        <div><b>${u.displayName}</b><br><small style="color:gray">Tap to chat</small></div>
+                if(docSnap.id !== me.uid) {
+                    const userHTML = `
+                        <div class="post-user" onclick="viewUserProfile('${docSnap.id}')">
+                            <img src="${u.photoURL}" style="width:45px; height:45px; border-radius:50%;">
+                            <div><b>${u.displayName} <i class="fas fa-check-circle v-badge"></i></b><br><small style="color:gray">${u.work || 'New Member'}</small></div>
+                        </div>`;
+                    list.innerHTML += userHTML;
+                    chatList.innerHTML += `<div class="post-user" onclick="openChat('${docSnap.id}', '${u.displayName}', '${u.photoURL}')">
+                        <img src="${u.photoURL}" style="width:50px; height:50px; border-radius:50%;">
+                        <div><b>${u.displayName}</b><br><small style="color:gray">Tap to message</small></div>
                     </div>`;
                 }
             });
         });
+    };
+
+    window.loadMyPosts = () => {
+        onSnapshot(query(collection(db, "posts"), where("uid", "==", me.uid)), (snap) => {
+            const grid = document.getElementById('my-posts-grid');
+            grid.innerHTML = "";
+            document.getElementById('count-posts').innerText = snap.size;
+            snap.forEach(docSnap => {
+                const p = docSnap.data();
+                grid.innerHTML += `<div class="grid-item">${p.img ? `<img src="${p.img}">` : `<div style="padding:5px; font-size:10px;">${p.text}</div>`}</div>`;
+            });
+        });
+    };
+
+    window.sendMsg = async () => {
+        const inp = document.getElementById('chat-input');
+        if(!inp.value.trim()) return;
+        await addDoc(collection(db, "messages"), {
+            sender: me.uid, receiver: activeChatID, text: inp.value, timestamp: serverTimestamp()
+        });
+        inp.value = "";
     };
 
     window.closeChat = () => document.getElementById('chat-screen').style.display = 'none';
