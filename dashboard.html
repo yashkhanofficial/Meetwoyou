@@ -111,6 +111,9 @@
             <input type="text" id="edit-bio" placeholder="Bio">
             <input type="date" id="edit-dob" title="Birthday">
             <input type="text" id="edit-work" placeholder="Profession">
+            <input type="text" id="edit-org" placeholder="Organization">
+            <input type="text" id="edit-web" placeholder="Website">
+            <input type="text" id="edit-social" placeholder="Social Link">
             <button class="btn-main" onclick="saveProfile()">Save Changes</button>
         </div>
     </div>
@@ -118,20 +121,20 @@
 </div>
 
 <div id="user-profile-view">
-    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px; position: sticky; top: 0; background: #000; z-index: 10;">
+    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px;">
         <i class="fas fa-arrow-left" onclick="closeProfileView()" style="cursor:pointer;"></i>
-        <span>Profile</span>
+        <span id="view-user-name-title">Profile</span>
     </div>
     <div id="user-profile-content"></div>
     <div id="user-posts-grid" class="profile-grid"></div>
 </div>
 
 <div id="post-detail-view">
-    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px; position: sticky; top: 0; background: #000; z-index: 10;">
+    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px;">
         <i class="fas fa-arrow-left" onclick="document.getElementById('post-detail-view').style.display='none'" style="cursor:pointer;"></i>
         <span>Post</span>
     </div>
-    <div id="post-detail-content" style="padding-top: 10px;"></div>
+    <div id="post-detail-content"></div>
 </div>
 
 <div id="chat-screen">
@@ -218,12 +221,15 @@
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
             const area = document.getElementById('feed-area');
             snap.docChanges().forEach(async (change) => {
+                const p = change.doc.data();
                 const id = change.doc.id;
                 const existingPost = document.querySelector(`.post-card[data-id="${id}"]`);
                 if (change.type === "added" && !existingPost) {
-                    area.appendChild(await createPostElement(change.doc.data(), id));
+                    const postDiv = await createPostElement(p, id);
+                    area.appendChild(postDiv);
                 } else if (change.type === "modified" && existingPost) {
-                    existingPost.replaceWith(await createPostElement(change.doc.data(), id));
+                    const newPostDiv = await createPostElement(p, id);
+                    existingPost.replaceWith(newPostDiv);
                 } else if (change.type === "removed" && existingPost) {
                     existingPost.remove();
                 }
@@ -238,7 +244,6 @@
         const isLiked = p.likes?.includes(me.uid);
         const snap = await getDoc(doc(db, "users", p.uid));
         const badge = snap.data()?.isVerified ? vB : "";
-        
         const div = document.createElement('div');
         div.className = "post-card";
         div.setAttribute('data-id', id);
@@ -250,7 +255,7 @@
                 ${p.uid === me.uid ? `<i class="fas fa-ellipsis-v post-menu-trigger" style="margin-left:auto; padding:10px;"></i>` : ''}
             </div>
             <div class="post-img-container">
-                ${p.img ? `<img src="${p.img}" class="post-img">` : '<div style="padding:20px; width:100%; border-top:1px solid #121212;">' + p.text + '</div>'}
+                ${p.img ? `<img src="${p.img}" class="post-img main-img">` : '<div style="padding:20px; width:100%; border-top:1px solid #121212;">' + p.text + '</div>'}
                 <i class="fas fa-heart like-animation"></i>
             </div>
             <div style="padding:10px 15px; font-size:20px; display:flex; gap:15px; align-items:center;">
@@ -264,11 +269,9 @@
                 ${p.img ? `<b>${p.authorName}</b> ${p.text}` : ''}
             </div>
         `;
-
         const imgContainer = div.querySelector('.post-img-container');
         const heart = div.querySelector('.like-animation');
         const likeBtn = div.querySelector('.like-btn');
-
         imgContainer.addEventListener('dblclick', () => {
             heart.classList.add('active');
             setTimeout(() => heart.classList.remove('active'), 800);
@@ -279,107 +282,200 @@
         div.querySelector('.share-btn').onclick = () => sharePost(id);
         const menuBtn = div.querySelector('.post-menu-trigger');
         if(menuBtn) menuBtn.onclick = (e) => { e.stopPropagation(); postMenu(id, p.text); };
-
         return div;
     }
 
-    async function toggleLike(id, liked) { 
-        await updateDoc(doc(db, "posts", id), { likes: liked ? arrayRemove(me.uid) : arrayUnion(me.uid) }); 
-    }
-
-    // --- Profile View & Post View Update ---
+    // --- Profile View Logic (FIXED) ---
     window.viewUser = async (uid) => {
-        const snap = await getDoc(doc(db, "users", uid));
-        if(!snap.exists()) return;
-        const u = snap.data();
-        const myData = (await getDoc(doc(db, "users", me.uid))).data();
-        const isFollowing = myData.following?.includes(uid);
+        if(uid === me.uid) { showSec('profile'); return; }
+        const userRef = doc(db, "users", uid);
+        const snap = await getDoc(userRef);
+        const d = snap.data();
+        if(!d) return;
+
+        const mySnap = await getDoc(doc(db, "users", me.uid));
+        const isFollowing = mySnap.data()?.following?.includes(uid);
         
+        document.getElementById('view-user-name-title').innerText = d.displayName;
         document.getElementById('user-profile-view').style.display = 'flex';
-        const content = document.getElementById('user-profile-content');
-        content.innerHTML = `
+        
+        let profileHTML = `
             <div style="text-align: center; padding: 20px 15px;">
-                <img src="${u.photoURL}" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:2px solid #262626;">
-                <h3>${u.displayName}${u.isVerified?vB:''}</h3>
-                <p style="color:var(--gray);">${u.bio || ''}</p>
+                <img src="${d.photoURL}" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:2px solid #262626;">
+                <h3>${d.displayName}${d.isVerified?vB:''}</h3>
+                <p style="color:var(--gray)">${d.bio || ""}</p>
                 <div class="profile-details">
-                    ${u.work ? `<div><i class="fas fa-briefcase"></i> ${u.work}</div>`:''}
-                    ${u.dob ? `<div><i class="fas fa-birthday-cake"></i> ${u.dob}</div>`:''}
+                    ${d.work ? `<div><i class="fas fa-briefcase"></i> ${d.work}</div>` : ''}
+                    ${d.org ? `<div><i class="fas fa-university"></i> ${d.org}</div>` : ''}
                 </div>
                 <div style="display: flex; justify-content: center; gap: 30px; margin: 15px 0;">
-                    <div><b>${formatCount(u.followers?.length)}</b><br><small>Followers</small></div>
-                    <div><b>${formatCount(u.following?.length)}</b><br><small>Following</small></div>
+                    <div><b>${formatCount(d.followers?.length)}</b><br><small>Followers</small></div>
+                    <div><b>${formatCount(d.following?.length)}</b><br><small>Following</small></div>
                 </div>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-main" onclick="toggleFollow('${uid}', ${isFollowing})" style="background:${isFollowing?'#262626':''};">${isFollowing?'Unfollow':'Follow'}</button>
-                    <button class="btn-main" style="background:#262626;" onclick="openChat('${uid}', '${u.displayName}', '${u.photoURL}')">Message</button>
+                    <button class="btn-main" onclick="toggleFollow('${uid}', ${isFollowing})" style="background:${isFollowing?'#262626':'#0095f6'}">${isFollowing?'Unfollow':'Follow'}</button>
+                    <button class="btn-main" style="background:#262626;" onclick="openChat('${uid}', '${d.displayName}', '${d.photoURL}')">Message</button>
                 </div>
             </div>
         `;
+        document.getElementById('user-profile-content').innerHTML = profileHTML;
 
-        const grid = document.getElementById('user-posts-grid');
-        grid.innerHTML = "";
-        const pSnap = await getDoc(query(collection(db, "posts"), where("uid", "==", uid))); // Note: Need a proper query here
-        onSnapshot(query(collection(db, "posts"), where("uid", "==", uid)), (posts) => {
+        // Load that user's posts
+        const qPosts = query(collection(db, "posts"), where("uid", "==", uid));
+        onSnapshot(qPosts, (pSnap) => {
+            const grid = document.getElementById('user-posts-grid');
             grid.innerHTML = "";
-            posts.forEach(d => {
-                const item = document.createElement('div'); item.className = "grid-item";
-                item.onclick = () => viewSinglePost(d.id);
-                item.innerHTML = d.data().img ? `<img src="${d.data().img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${d.data().text}</div>`;
+            pSnap.forEach(postDoc => {
+                const pd = postDoc.data();
+                const item = document.createElement('div');
+                item.className = "grid-item";
+                item.onclick = () => viewSinglePost(postDoc.id);
+                item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
                 grid.appendChild(item);
             });
         });
     };
 
+    // --- Single Post View Logic (FIXED) ---
     window.viewSinglePost = async (postId) => {
         const snap = await getDoc(doc(db, "posts", postId));
         if(!snap.exists()) return;
-        const postView = document.getElementById('post-detail-view');
-        postView.style.display = 'flex';
-        const container = document.getElementById('post-detail-content');
-        container.innerHTML = "";
-        container.appendChild(await createPostElement(snap.data(), postId));
+        const p = snap.data();
+        const postDiv = await createPostElement(p, postId);
+        document.getElementById('post-detail-content').innerHTML = "";
+        document.getElementById('post-detail-content').appendChild(postDiv);
+        document.getElementById('post-detail-view').style.display = 'flex';
     };
 
+    // --- Save Profile Logic (FIXED) ---
     window.saveProfile = async () => {
         const name = document.getElementById('edit-name').value;
         const bio = document.getElementById('edit-bio').value;
         const dob = document.getElementById('edit-dob').value;
         const work = document.getElementById('edit-work').value;
+        const org = document.getElementById('edit-org').value;
+        const web = document.getElementById('edit-web').value;
+        const social = document.getElementById('edit-social').value;
 
-        if(!name) return Swal.fire("Name required!", "", "error");
-        
         Swal.fire({title: 'Updating...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
         
         await updateDoc(doc(db, "users", me.uid), {
-            displayName: name,
-            bio: bio,
-            dob: dob,
-            work: work
+            displayName: name || me.displayName,
+            bio: bio || "",
+            dob: dob || "",
+            work: work || "",
+            org: org || "",
+            website: web || "",
+            social: social || ""
         });
         
-        await updateProfile(auth.currentUser, { displayName: name });
-        Swal.fire("Success!", "Profile updated.", "success");
+        if(name) await updateProfile(auth.currentUser, { displayName: name });
+        
         toggleEdit();
+        Swal.fire({icon: 'success', title: 'Profile Updated', timer: 1500, showConfirmButton: false, background: '#121212', color: '#fff'});
     };
 
-    // --- Core Functions ---
+    // Helper to fill edit form with current data
+    window.toggleEdit = async () => {
+        const e = document.getElementById('edit-form');
+        if(e.style.display === 'none') {
+            const snap = await getDoc(doc(db, "users", me.uid));
+            const d = snap.data();
+            document.getElementById('edit-name').value = d.displayName || "";
+            document.getElementById('edit-bio').value = d.bio || "";
+            document.getElementById('edit-dob').value = d.dob || "";
+            document.getElementById('edit-work').value = d.work || "";
+            document.getElementById('edit-org').value = d.org || "";
+            document.getElementById('edit-web').value = d.website || "";
+            document.getElementById('edit-social').value = d.social || "";
+            e.style.display = 'block';
+        } else {
+            e.style.display = 'none';
+        }
+    };
+
+    // --- Existing Message & Post Utility ---
+    async function toggleLike(id, liked) { 
+        await updateDoc(doc(db, "posts", id), { 
+            likes: liked ? arrayRemove(me.uid) : arrayUnion(me.uid) 
+        }); 
+    }
+
     window.loadAllUsers = () => {
-        onSnapshot(collection(db, "users"), (snap) => {
+        onSnapshot(collection(db, "users"), async (snap) => {
             const list = document.getElementById('user-list');
+            const chatList = document.getElementById('chat-list');
             list.innerHTML = "";
-            snap.forEach(d => {
-                if(d.id === me.uid) return;
-                const u = d.data();
+            let usersData = [];
+            snap.forEach(d => { if(d.id !== me.uid) usersData.push({id: d.id, ...d.data()}); });
+
+            usersData.forEach(async u => {
+                const badge = u.isVerified ? vB : "";
+                const isFollowing = (await getDoc(doc(db, "users", me.uid))).data()?.following?.includes(u.id);
                 list.innerHTML += `
                     <div class="user-list-item">
-                        <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="viewUser('${d.id}')">
+                        <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="viewUser('${u.id}')">
                             <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-                            <div><b>${u.displayName}${u.isVerified?vB:''}</b><br><small style="color:gray;">${formatCount(u.followers?.length)} followers</small></div>
+                            <div><b>${u.displayName}${badge}</b><br><small style="color:gray;">${formatCount(u.followers?.length)} followers</small></div>
                         </div>
+                        <button onclick="toggleFollow('${u.id}', ${isFollowing})" style="background:${isFollowing?'#262626':'#0095f6'}; color:white; border:none; padding:5px 12px; border-radius:5px; font-weight:bold;">${isFollowing?'Unfollow':'Follow'}</button>
                     </div>`;
             });
+
+            onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "desc")), (mSnap) => {
+                chatList.innerHTML = "";
+                let interactedUids = new Set();
+                mSnap.forEach(mDoc => {
+                    const m = mDoc.data();
+                    const otherUid = m.sender === me.uid ? m.receiver : m.sender;
+                    if(!interactedUids.has(otherUid)) {
+                        interactedUids.add(otherUid);
+                        const u = usersData.find(usr => usr.id === otherUid);
+                        if(u) {
+                            chatList.innerHTML += `<div class="post-user" onclick="openChat('${u.id}', '${u.displayName}', '${u.photoURL}')">
+                                <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                <div><b>${u.displayName}${u.isVerified?vB:''}</b><br><small style="color:var(--primary)">${m.text.substring(0,20)}...</small></div>
+                            </div>`;
+                        }
+                    }
+                });
+                usersData.forEach(u => {
+                    if(!interactedUids.has(u.id)) {
+                        chatList.innerHTML += `<div class="post-user" onclick="openChat('${u.id}', '${u.displayName}', '${u.photoURL}')">
+                            <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                            <b>${u.displayName}${u.isVerified?vB:''}</b>
+                        </div>`;
+                    }
+                });
+            });
         });
+    };
+
+    window.openChat = async (uid, name, img) => {
+        activeChatID = uid;
+        const snap = await getDoc(doc(db, "users", uid));
+        const badge = snap.data()?.isVerified ? vB : "";
+        document.getElementById('chat-h-name').innerHTML = name + badge;
+        document.getElementById('chat-h-img').src = img;
+        document.getElementById('chat-screen').style.display = 'flex';
+        onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "asc")), (snap) => {
+            const box = document.getElementById('chat-box'); 
+            box.innerHTML = "";
+            snap.forEach(d => {
+                const m = d.data();
+                if((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
+                    box.innerHTML += `<div class="chat-bubble ${m.sender === me.uid?'sent':'recv'}">${m.text}</div>`;
+                }
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    };
+
+    window.sendMsg = async () => {
+        const i = document.getElementById('chat-input');
+        if(!i.value.trim()) return;
+        await addDoc(collection(db, "messages"), { sender: me.uid, receiver: activeChatID, text: i.value, timestamp: serverTimestamp() });
+        i.value = "";
     };
 
     window.uploadPost = async () => {
@@ -401,29 +497,44 @@
         const data = await res.json(); return data.secure_url;
     }
 
-    window.openChat = async (uid, name, img) => {
-        activeChatID = uid;
-        document.getElementById('chat-h-name').innerHTML = name;
-        document.getElementById('chat-h-img').src = img;
-        document.getElementById('chat-screen').style.display = 'flex';
-        onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "asc")), (snap) => {
-            const box = document.getElementById('chat-box'); box.innerHTML = "";
-            snap.forEach(d => {
-                const m = d.data();
-                if((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
-                    box.innerHTML += `<div class="chat-bubble ${m.sender === me.uid?'sent':'recv'}">${m.text}</div>`;
-                }
-            });
-            box.scrollTop = box.scrollHeight;
+    async function postMenu(postId, oldText) {
+        const { value: action } = await Swal.fire({
+            title: 'Manage Post', showDenyButton: true, confirmButtonText: 'Edit', denyButtonText: 'Delete',
+            background: '#121212', color: '#fff', confirmButtonColor: '#0095f6', denyButtonColor: '#ed4956'
         });
-    };
+        if(action === true) { 
+            const { value: newText } = await Swal.fire({ input: 'textarea', inputValue: oldText, title: 'Edit Post', background: '#121212', color: '#fff' });
+            if(newText) await updateDoc(doc(db, "posts", postId), { text: newText });
+        } else if (action === false) { 
+            const res = await Swal.fire({ title: 'Delete Post?', icon: 'warning', showCancelButton: true, background: '#121212', color: '#fff' });
+            if(res.isConfirmed) await deleteDoc(doc(db, "posts", postId));
+        }
+    }
 
-    window.sendMsg = async () => {
-        const i = document.getElementById('chat-input');
-        if(!i.value.trim()) return;
-        await addDoc(collection(db, "messages"), { sender: me.uid, receiver: activeChatID, text: i.value, timestamp: serverTimestamp() });
-        i.value = "";
-    };
+    async function showComments(postId) {
+        const snap = await getDoc(doc(db, "posts", postId));
+        const comments = snap.data().comments || [];
+        let html = '<div style="max-height:200px; overflow-y:auto; text-align:left;">';
+        comments.forEach(c => html += `<p style="font-size:13px; margin:5px 0;"><b>${c.user}:</b> ${c.text}</p>`);
+        html += '</div>';
+        const { value: newComment } = await Swal.fire({
+            title: 'Comments', html: html, input: 'text', inputPlaceholder: 'Write a comment...',
+            showCancelButton: true, confirmButtonText: 'Post', background: '#121212', color: '#fff'
+        });
+        if(newComment) await updateDoc(doc(db, "posts", postId), { comments: arrayUnion({ user: me.displayName, text: newComment }) });
+    }
+
+    async function toggleFollow(uid, following) {
+        const myRef = doc(db, "users", me.uid);
+        const userRef = doc(db, "users", uid);
+        if(following) {
+            await updateDoc(myRef, { following: arrayRemove(uid) });
+            await updateDoc(userRef, { followers: arrayRemove(me.uid) });
+        } else {
+            await updateDoc(myRef, { following: arrayUnion(uid) });
+            await updateDoc(userRef, { followers: arrayUnion(me.uid) });
+        }
+    }
 
     function loadMyProfile() {
         onSnapshot(doc(db, "users", me.uid), (snap) => {
@@ -437,12 +548,7 @@
             detBox.innerHTML = "";
             if(d.dob) detBox.innerHTML += `<div><i class="fas fa-birthday-cake"></i> ${d.dob}</div>`;
             if(d.work) detBox.innerHTML += `<div><i class="fas fa-briefcase"></i> ${d.work}</div>`;
-            
-            // Fill edit form
-            document.getElementById('edit-name').value = d.displayName;
-            document.getElementById('edit-bio').value = d.bio || "";
-            document.getElementById('edit-dob').value = d.dob || "";
-            document.getElementById('edit-work').value = d.work || "";
+            if(d.org) detBox.innerHTML += `<div><i class="fas fa-university"></i> ${d.org}</div>`;
         });
     }
 
@@ -462,11 +568,11 @@
     window.showSec = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id + '-sec').classList.add('active');
+        if(id === 'profile') loadMyProfile();
     };
     window.userLogout = () => signOut(auth);
     window.closeChat = () => document.getElementById('chat-screen').style.display = 'none';
     window.closeProfileView = () => document.getElementById('user-profile-view').style.display = 'none';
-    window.toggleEdit = () => { const e = document.getElementById('edit-form'); e.style.display = e.style.display==='none'?'block':'none'; };
     window.previewImg = (i) => {
         const r = new FileReader(); r.onload = (e) => {
             document.getElementById('img-preview-box').innerHTML = `<img src="${e.target.result}" style="width:100%; border-radius:10px; margin-top:10px;">`;
@@ -479,17 +585,6 @@
     window.shareMyProfile = () => {
         navigator.clipboard.writeText(window.location.origin + "?u=" + me.uid);
         Swal.fire({ title: "Profile Link Copied!", icon: "success", timer: 1000, showConfirmButton: false, background: '#121212', color: '#fff' });
-    };
-    window.toggleFollow = async (uid, following) => {
-        const myRef = doc(db, "users", me.uid);
-        const userRef = doc(db, "users", uid);
-        if(following) {
-            await updateDoc(myRef, { following: arrayRemove(uid) });
-            await updateDoc(userRef, { followers: arrayRemove(me.uid) });
-        } else {
-            await updateDoc(myRef, { following: arrayUnion(uid) });
-            await updateDoc(userRef, { followers: arrayUnion(me.uid) });
-        }
     };
     window.updateProfilePic = async (input) => {
         if(!input.files[0]) return;
