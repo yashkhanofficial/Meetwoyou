@@ -3,52 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou | Master Admin Fixed</title>
+    <title>Admin Panel | Meetwoyou</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #8b5cf6; --bg: #0b0f1a; --card: #161b2c; --text: #ffffff; --dim: #94a3b8; --danger: #ff4d4d; --input: #1f2937; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-        .container { max-width: 1100px; margin: auto; }
-        .navbar { background: var(--card); padding: 15px 25px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 18px; text-align: center; border: 1px solid rgba(255,255,255,0.03); }
-        .stat-card h3 { margin: 0; font-size: 28px; color: var(--primary); }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 14px; width: fit-content; }
-        .tab-btn { padding: 10px 20px; border: none; background: transparent; color: var(--dim); cursor: pointer; border-radius: 10px; font-weight: 600; transition: 0.3s; }
-        .tab-btn.active { background: var(--primary); color: white; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        .u-head { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
-        .u-head img { width: 50px; height: 50px; border-radius: 14px; object-fit: cover; border: 2px solid var(--primary); }
-        input { background: var(--input); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 12px; width: 100%; box-sizing: border-box; margin-bottom: 10px; outline: none; }
-        .btn-group { display: flex; gap: 8px; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-        .btn-up { background: var(--primary); color: white; }
-        .btn-del { background: rgba(255, 77, 77, 0.1); color: var(--danger); width: 50px; flex: none; border: 1px solid var(--danger); }
+        :root { --primary: #8b5cf6; --bg: #05070a; --card: #11141d; --text: #ffffff; --dim: #94a3b8; --danger: #ff4d4d; --input: #1b202b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .container { max-width: 1000px; margin: auto; }
+        .header { background: var(--card); padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .stats { display: flex; gap: 15px; margin-bottom: 20px; }
+        .stat-box { flex: 1; background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.03); }
+        .stat-box h2 { margin: 0; color: var(--primary); font-size: 24px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .u-info { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .u-info img { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; }
+        input { background: var(--input); border: 1px solid #2d3748; color: white; padding: 10px; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+        .btn { width: 100%; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-up { background: var(--primary); color: white; margin-bottom: 5px; }
+        .btn-del { background: rgba(255,77,77,0.1); color: var(--danger); font-size: 12px; }
+        /* Debug Console Style */
+        #debug-log { background: #000; color: #0f0; font-family: monospace; padding: 10px; font-size: 10px; border-radius: 5px; margin-bottom: 10px; max-height: 100px; overflow-y: auto; display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="navbar">
-        <div style="font-weight:700; font-size:20px; color:var(--primary)">Master Admin <small style="font-size:10px; color:gray">v2.0</small></div>
-        <button class="btn" style="width: auto; background: #2d3748; color: white;" onclick="location.href='dashboard.html'">Back Home</button>
+    <div id="debug-log">System Initializing...</div>
+
+    <div class="header">
+        <h3 style="margin:0">Meetwoyou Admin</h3>
+        <button onclick="location.href='dashboard.html'" style="background:#2d3748; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;">Dashboard</button>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card"><h3 id="u-count">0</h3><p style="color:var(--dim); font-size:12px;">Total Users</p></div>
-        <div class="stat-card"><h3 id="p-count">0</h3><p style="color:var(--dim); font-size:12px;">Total Posts</p></div>
+    <div class="stats">
+        <div class="stat-box"><h2 id="u-total">0</h2><small>Users</small></div>
+        <div class="stat-box"><h2 id="p-total">0</h2><small>Posts</small></div>
     </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" id="t-u" onclick="window.switchTab('users')">Users</button>
-        <button class="tab-btn" id="t-p" onclick="window.switchTab('posts')">Posts</button>
-    </div>
-
-    <div id="sec-u" class="grid"></div>
-    <div id="sec-p" class="grid" style="display:none;"></div>
+    <div id="user-list" class="grid"></div>
 </div>
 
 <script type="module">
@@ -64,95 +57,63 @@
         appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // --- Critical Logic: Handles both Boosted Strings and Normal Arrays ---
-    window.smartCount = (data) => {
-        if (!data) return "0";
-        if (typeof data === 'string' && data.startsWith("boost:")) return data.replace("boost:", "");
-        if (Array.isArray(data)) return data.length.toString();
-        return data.toString();
+    const log = (msg) => { 
+        const d = document.getElementById('debug-log');
+        d.style.display = 'block';
+        d.innerHTML += `<br>> ${msg}`;
     };
 
-    const formatNum = (num) => {
-        if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-        return num.toString();
-    };
+    try {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        log("Firebase Connected.");
 
-    window.switchTab = (t) => {
-        document.getElementById('sec-u').style.display = t === 'users' ? 'grid' : 'none';
-        document.getElementById('sec-p').style.display = t === 'posts' ? 'grid' : 'none';
-        document.getElementById('t-u').classList.toggle('active', t === 'users');
-        document.getElementById('t-p').classList.toggle('active', t === 'posts');
-    };
+        // Functions
+        window.boostU = async (id) => {
+            const val = document.getElementById(`in-${id}`).value;
+            if(!val) return;
+            await updateDoc(doc(db, "users", id), { followers: "boost:" + val + "K" });
+            Swal.fire({title: 'Success!', icon: 'success', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false});
+        };
 
-    window.boostU = async (id) => {
-        const val = document.getElementById(`f-${id}`).value;
-        if(!val) return;
-        const formatted = formatNum(parseInt(val));
-        await updateDoc(doc(db, "users", id), { followers: "boost:" + formatted });
-        Swal.fire({ icon: 'success', title: 'User Boosted!', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
-    };
+        window.delU = async (id) => {
+            if(confirm("Delete User?")) await deleteDoc(doc(db, "users", id));
+        };
 
-    window.boostP = async (id) => {
-        const val = document.getElementById(`l-${id}`).value;
-        if(!val) return;
-        const formatted = formatNum(parseInt(val));
-        await updateDoc(doc(db, "posts", id), { likes: "boost:" + formatted });
-        Swal.fire({ icon: 'success', title: 'Post Boosted!', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
-    };
+        // Real-time listener with Error Catching
+        onSnapshot(collection(db, "users"), (snap) => {
+            log(`Data Received: ${snap.size} users found.`);
+            document.getElementById('u-total').innerText = snap.size;
+            const area = document.getElementById('user-list');
+            area.innerHTML = "";
 
-    window.delU = async (id) => { if(confirm("Delete User?")) await deleteDoc(doc(db, "users", id)); };
-    window.delP = async (id) => { if(confirm("Delete Post?")) await deleteDoc(doc(db, "posts", id)); };
+            if(snap.empty) {
+                area.innerHTML = "<p style='text-align:center; width:100%'>No users found in Database.</p>";
+            }
 
-    // Real-time Listeners
-    onSnapshot(collection(db, "users"), (snap) => {
-        document.getElementById('u-count').innerText = snap.size;
-        const area = document.getElementById('sec-u');
-        area.innerHTML = "";
-        snap.forEach(d => {
-            const u = d.data();
-            const card = document.createElement('div');
-            card.className = "card";
-            card.innerHTML = `
-                <div class="u-head">
-                    <img src="${u.photoURL || 'https://via.placeholder.com/50'}">
-                    <div style="overflow:hidden">
-                        <b style="display:block; white-space:nowrap; text-overflow:ellipsis;">${u.displayName || 'Unnamed'}</b>
-                        <small style="color:var(--dim)">Followers: ${window.smartCount(u.followers)}</small>
+            snap.forEach(d => {
+                const u = d.data();
+                const card = document.createElement('div');
+                card.className = "card";
+                card.innerHTML = `
+                    <div class="u-info">
+                        <img src="${u.photoURL || 'https://via.placeholder.com/50'}">
+                        <b>${u.displayName || 'No Name'}</b>
                     </div>
-                </div>
-                <input type="number" id="f-${d.id}" placeholder="Enter Boost Value">
-                <div class="btn-group">
-                    <button class="btn btn-up" onclick="window.boostU('${d.id}')">Boost</button>
-                    <button class="btn btn-del" onclick="window.delU('${d.id}')"><i class="fas fa-trash"></i></button>
-                </div>`;
-            area.appendChild(card);
+                    <input type="number" id="in-${d.id}" placeholder="Followers (e.g. 10)">
+                    <button class="btn btn-up" onclick="window.boostU('${d.id}')">Boost Followers</button>
+                    <button class="btn btn-del" onclick="window.delU('${d.id}')">Delete User</button>
+                `;
+                area.appendChild(card);
+            });
+        }, (err) => {
+            log(`CRITICAL ERROR: ${err.message}`);
+            console.error(err);
         });
-    });
 
-    onSnapshot(collection(db, "posts"), (snap) => {
-        document.getElementById('p-count').innerText = snap.size;
-        const area = document.getElementById('sec-p');
-        area.innerHTML = "";
-        snap.forEach(d => {
-            const p = d.data();
-            const card = document.createElement('div');
-            card.className = "card";
-            card.innerHTML = `
-                <div style="margin-bottom:12px">
-                    <b style="color:var(--primary)">@${p.authorName}</b>
-                    <p style="font-size:11px; color:var(--dim); margin:5px 0;">Likes: ${window.smartCount(p.likes)}</p>
-                </div>
-                <input type="number" id="l-${d.id}" placeholder="Enter Likes Boost">
-                <div class="btn-group">
-                    <button class="btn btn-up" onclick="window.boostP('${d.id}')">Boost</button>
-                    <button class="btn btn-del" onclick="window.delP('${d.id}')"><i class="fas fa-trash"></i></button>
-                </div>`;
-            area.appendChild(card);
-        });
-    });
+    } catch (e) {
+        log(`Init Error: ${e.message}`);
+    }
 </script>
 </body>
 </html>
