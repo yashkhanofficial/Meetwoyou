@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Admin Authority</title>
+    <title>Meetwoyou - Admin Authority (Super Fast)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -24,14 +24,14 @@
         .btn-del { background: var(--danger); color: white; }
         .btn-boost { background: var(--success); color: white; }
         .input-group { margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
-        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px 8px; width: 80px; border-radius: 5px; outline: none; }
+        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px 8px; width: 120px; border-radius: 5px; outline: none; }
         .post-img { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 200px; object-fit: cover; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1><i class="fas fa-unlock-alt"></i> Meetwoyou Admin</h1>
+    <h1><i class="fas fa-unlock-alt"></i> Admin Panel</h1>
     <button class="tab-btn" onclick="location.href='dashboard.html'" style="background:#ef4444">Exit Admin</button>
 </div>
 
@@ -66,7 +66,6 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // সিকিউরিটি চেক
     onAuthStateChanged(auth, (user) => {
         if (!user || user.email !== "admin@meetwoyou.com") {
             Swal.fire("Access Denied", "Only Admin can access this page!", "error");
@@ -77,12 +76,14 @@
     });
 
     function loadData() {
-        // রিয়েলটাইম ইউজার লিস্ট
         onSnapshot(collection(db, "users"), (snap) => {
             const userList = document.getElementById('user-list');
             userList.innerHTML = "";
             snap.forEach(d => {
                 const u = d.data();
+                // Followers Count logic
+                const fCount = u.followers ? (Array.isArray(u.followers) ? u.followers.length : u.followers) : 0;
+                
                 const card = document.createElement('div');
                 card.className = "card";
                 card.innerHTML = `
@@ -90,18 +91,16 @@
                         <img src="${u.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}">
                         <div>
                             <div style="font-weight:bold">${u.displayName} ${u.isVerified ? '<i class="fas fa-check-circle badge-v"></i>' : ''}</div>
-                            <small style="color:#94a3b8">${u.email || 'No Email'}</small>
+                            <small style="color:#94a3b8">${u.email}</small>
                         </div>
                     </div>
                     <div class="controls">
-                        <button class="btn btn-v" onclick="toggleV('${d.id}', ${u.isVerified})">
-                            ${u.isVerified ? 'Remove V-Badge' : 'Give V-Badge'}
-                        </button>
-                        <button class="btn btn-del" onclick="deleteAcc('${d.id}')">Delete Account</button>
+                        <button class="btn btn-v" onclick="toggleV('${d.id}', ${u.isVerified})">${u.isVerified ? 'Remove V' : 'Give V'}</button>
+                        <button class="btn btn-del" onclick="deleteAcc('${d.id}')">Delete</button>
                     </div>
                     <div class="input-group">
                         <i class="fas fa-user-plus"></i> Followers: 
-                        <input type="number" id="f-${d.id}" value="${u.followers ? u.followers.length : 0}">
+                        <input type="number" id="f-${d.id}" value="${fCount}">
                         <button class="btn btn-boost" onclick="setFollowers('${d.id}')">Update</button>
                     </div>
                 `;
@@ -109,21 +108,21 @@
             });
         });
 
-        // রিয়েলটাইম পোস্ট লিস্ট
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
             const postList = document.getElementById('post-list');
             postList.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
+                const lCount = p.likes ? (Array.isArray(p.likes) ? p.likes.length : p.likes) : 0;
                 const card = document.createElement('div');
                 card.className = "card";
                 card.innerHTML = `
-                    <div style="font-size:14px; margin-bottom:10px;"><b>Author:</b> ${p.authorName}</div>
-                    <div style="background:#0f172a; padding:10px; border-radius:8px; font-size:13px">${p.text || 'No Text'}</div>
+                    <div style="font-size:14px;"><b>${p.authorName}</b></div>
+                    <div style="background:#0f172a; padding:10px; border-radius:8px; margin:10px 0; font-size:13px">${p.text || ''}</div>
                     ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
                     <div class="input-group">
                         <i class="fas fa-heart"></i> Likes: 
-                        <input type="number" id="l-${d.id}" value="${p.likes ? p.likes.length : 0}">
+                        <input type="number" id="l-${d.id}" value="${lCount}">
                         <button class="btn btn-boost" onclick="setLikes('${d.id}')">Set</button>
                     </div>
                     <button class="btn btn-del" style="width:100%; margin-top:10px;" onclick="deletePost('${d.id}')">Delete Post</button>
@@ -133,39 +132,54 @@
         });
     }
 
-    // --- Admin Functions ---
-
-    window.toggleV = async (uid, status) => {
-        await updateDoc(doc(db, "users", uid), { isVerified: !status });
-        Swal.fire("Success", "V-Badge Status Changed", "success");
-    };
-
-    window.deleteAcc = async (uid) => {
-        if(confirm("Are you sure? This user will be gone forever!")){
-            await deleteDoc(doc(db, "users", uid));
-            Swal.fire("Deleted", "User has been removed", "warning");
-        }
-    };
-
-    window.deletePost = async (pid) => {
-        if(confirm("Delete this post?")){
-            await deleteDoc(doc(db, "posts", pid));
-            Swal.fire("Deleted", "Post has been removed", "success");
-        }
-    };
+    // --- Optimized Boost Functions ---
 
     window.setFollowers = async (uid) => {
         const count = parseInt(document.getElementById(`f-${uid}`).value);
-        const fakeArray = new Array(count).fill("admin_boost");
-        await updateDoc(doc(db, "users", uid), { followers: fakeArray });
-        Swal.fire("Boosted", `Followers set to ${count}`, "success");
+        if(isNaN(count)) return;
+        
+        try {
+            // যদি সংখ্যা ৫০ হাজারের কম হয় তবে অ্যারে পাঠাবে, বেশি হলে সরাসরি নাম্বার পাঠাবে
+            if (count < 50000) {
+                const fakeArray = new Array(count).fill("boost");
+                await updateDoc(doc(db, "users", uid), { followers: fakeArray });
+            } else {
+                // সরাসরি নাম্বার পাঠানো (এতে সাইট স্লো হবে না)
+                await updateDoc(doc(db, "users", uid), { followers: count });
+            }
+            Swal.fire("Done", "Followers Updated!", "success");
+        } catch(e) {
+            Swal.fire("Error", "Something went wrong", "error");
+        }
     };
 
     window.setLikes = async (pid) => {
         const count = parseInt(document.getElementById(`l-${pid}`).value);
-        const fakeArray = new Array(count).fill("admin_boost");
-        await updateDoc(doc(db, "posts", pid), { likes: fakeArray });
-        Swal.fire("Boosted", `Likes set to ${count}`, "success");
+        if(isNaN(count)) return;
+
+        try {
+            if (count < 50000) {
+                const fakeArray = new Array(count).fill("boost");
+                await updateDoc(doc(db, "posts", pid), { likes: fakeArray });
+            } else {
+                await updateDoc(doc(db, "posts", pid), { likes: count });
+            }
+            Swal.fire("Done", "Likes Updated!", "success");
+        } catch(e) {
+            Swal.fire("Error", "Something went wrong", "error");
+        }
+    };
+
+    window.toggleV = async (uid, status) => {
+        await updateDoc(doc(db, "users", uid), { isVerified: !status });
+    };
+
+    window.deleteAcc = async (uid) => {
+        if(confirm("Delete User?")) await deleteDoc(doc(db, "users", uid));
+    };
+
+    window.deletePost = async (pid) => {
+        if(confirm("Delete Post?")) await deleteDoc(doc(db, "posts", pid));
     };
 
     window.showTab = (tab) => {
@@ -174,7 +188,6 @@
         document.getElementById('btn-u').classList.toggle('active', tab === 'users');
         document.getElementById('btn-p').classList.toggle('active', tab === 'posts');
     };
-
 </script>
 </body>
-</html>
+    </html>
