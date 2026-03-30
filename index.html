@@ -153,7 +153,9 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Dynamic Notification Function
+        // --- ADMIN EMAIL CONFIG ---
+        const adminEmail = "admin@meetwoyou.com";
+
         const notify = (msg, type = 'success') => {
             const Toast = Swal.mixin({
                 toast: true,
@@ -167,7 +169,15 @@
             Toast.fire({ icon: type, title: msg });
         };
 
-        // Toggle Password Show/Hide
+        // Function to handle redirection
+        const handleRedirection = (userEmail) => {
+            if (userEmail.toLowerCase() === adminEmail.toLowerCase()) {
+                window.location.href = "admin.html";
+            } else {
+                window.location.href = "dashboard.html";
+            }
+        };
+
         window.togglePass = (id, icon) => {
             const el = document.getElementById(id);
             if (el.type === "password") {
@@ -199,7 +209,7 @@
                 const res = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(res.user, { displayName: `${fName} ${lName}` });
                 notify(`Welcome, ${fName}! Redirecting...`);
-                setTimeout(() => window.location.href = "dashboard.html", 2000); 
+                setTimeout(() => handleRedirection(email), 1500); 
             } catch (error) { notify(error.message, "error"); }
         };
 
@@ -209,9 +219,9 @@
             const password = document.getElementById('login-password').value;
             if(!email || !password) return notify("Fill all fields!", "warning");
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                const res = await signInWithEmailAndPassword(auth, email, password);
                 notify("Login Successful! Redirecting...");
-                setTimeout(() => window.location.href = "dashboard.html", 1500); 
+                setTimeout(() => handleRedirection(email), 1500); 
             } catch (error) { notify("Invalid Credentials!", "error"); }
         };
 
@@ -220,7 +230,7 @@
             try {
                 const res = await signInWithPopup(auth, provider);
                 notify("Welcome " + res.user.displayName);
-                setTimeout(() => window.location.href = "dashboard.html", 1500); 
+                setTimeout(() => handleRedirection(res.user.email), 1500); 
             } catch (error) { notify(error.message, "error"); }
         };
 
