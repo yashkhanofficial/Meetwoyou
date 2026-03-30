@@ -6,74 +6,53 @@
     <title>Meetwoyou | Master Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #8b5cf6; --bg: #0b0f1a; --card: #161b2c;
-            --text-main: #ffffff; --text-dim: #94a3b8; --danger: #ff4d4d;
-            --success: #00e676; --input: #1f2937;
-        }
-
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 15px; }
-        .container { max-width: 1200px; margin: auto; }
-
-        /* Navigation Bar */
-        .navbar { background: var(--card); padding: 15px 25px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); }
-        .logo { font-size: 20px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-
-        /* Stats Section */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 18px; text-align: center; border: 1px solid rgba(255,255,255,0.03); }
-        .stat-card h3 { margin: 0; font-size: 24px; color: var(--primary); }
-        .stat-card p { margin: 5px 0 0; color: var(--text-dim); font-size: 13px; }
-
-        /* Tab System */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 14px; width: fit-content; }
-        .tab-btn { padding: 10px 20px; border: none; background: transparent; color: var(--text-dim); cursor: pointer; border-radius: 10px; font-weight: 600; transition: 0.3s; }
+        :root { --primary: #8b5cf6; --bg: #0b0f1a; --card: #161b2c; --text: #ffffff; --dim: #94a3b8; --danger: #ff4d4d; --input: #1f2937; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .container { max-width: 1100px; margin: auto; }
+        .navbar { background: var(--card); padding: 15px 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid rgba(255,255,255,0.03); }
+        .stat-card h3 { margin: 0; font-size: 28px; color: var(--primary); }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: var(--card); color: var(--dim); cursor: pointer; border-radius: 10px; font-weight: 600; transition: 0.3s; }
         .tab-btn.active { background: var(--primary); color: white; }
-
-        /* Grid & Cards */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        .user-head { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
-        .user-head img { width: 50px; height: 50px; border-radius: 14px; object-fit: cover; border: 2px solid var(--primary); }
-        
-        /* Inputs & Buttons */
-        input { background: var(--input); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 12px; width: 100%; box-sizing: border-box; margin-bottom: 10px; outline: none; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .card { background: var(--card); border-radius: 15px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .user-info img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary); }
+        input { background: var(--input); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 10px; outline: none; }
         .btn-group { display: flex; gap: 8px; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-        .btn-update { background: var(--primary); color: white; }
-        .btn-delete { background: rgba(255, 77, 77, 0.1); color: var(--danger); width: 50px; flex: none; }
-        .btn-delete:hover { background: var(--danger); color: white; }
-
-        @media (max-width: 600px) { .navbar { flex-direction: column; gap: 10px; text-align: center; } }
+        .btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-up { background: var(--primary); color: white; }
+        .btn-del { background: rgba(255, 77, 77, 0.1); color: var(--danger); border: 1px solid var(--danger); }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="navbar">
-        <div class="logo"><i class="fas fa-user-shield"></i> Master Admin</div>
-        <button class="btn" style="width: auto; background: #2d3748; color: white;" onclick="location.href='dashboard.html'">Back to Home</button>
+        <h2 style="margin:0; font-size: 18px;"><i class="fas fa-user-shield"></i> Master Admin</h2>
+        <button onclick="location.href='dashboard.html'" style="background:#2d3748; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">Dashboard</button>
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card"><h3 id="count-users">0</h3><p>Total Users</p></div>
-        <div class="stat-card"><h3 id="count-posts">0</h3><p>Total Posts</p></div>
+        <div class="stat-card"><h3 id="u-count">0</h3><p style="margin:5px 0 0; font-size:12px;">Users</p></div>
+        <div class="stat-card"><h3 id="p-count">0</h3><p style="margin:5px 0 0; font-size:12px;">Posts</p></div>
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" id="tab-u" onclick="window.switchTab('users')">Manage Users</button>
-        <button class="tab-btn" id="tab-p" onclick="window.switchTab('posts')">Manage Posts</button>
+        <button class="tab-btn active" id="btn-u" onclick="window.showTab('users')">Users</button>
+        <button class="tab-btn" id="btn-p" onclick="window.showTab('posts')">Posts</button>
     </div>
 
-    <div id="users-sec" class="grid"></div>
-    <div id="posts-sec" class="grid" style="display:none;"></div>
+    <div id="sec-users" class="grid"></div>
+    <div id="sec-posts" class="grid" style="display:none;"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -87,100 +66,78 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Number Formatter (1000 -> 1K)
-    const formatNum = (num) => {
-        if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-        return num.toString();
+    // Number Format
+    const formatK = (n) => {
+        if (n >= 1000) return (n/1000).toFixed(1) + "K";
+        return n;
     };
 
-    // Tab Switcher
-    window.switchTab = (tab) => {
-        document.getElementById('users-sec').style.display = tab === 'users' ? 'grid' : 'none';
-        document.getElementById('posts-sec').style.display = tab === 'posts' ? 'grid' : 'none';
-        document.getElementById('tab-u').classList.toggle('active', tab === 'users');
-        document.getElementById('tab-p').classList.toggle('active', tab === 'posts');
+    // Tab Switch
+    window.showTab = (t) => {
+        document.getElementById('sec-users').style.display = t === 'users' ? 'grid' : 'none';
+        document.getElementById('sec-posts').style.display = t === 'posts' ? 'grid' : 'none';
+        document.getElementById('btn-u').classList.toggle('active', t === 'users');
+        document.getElementById('btn-p').classList.toggle('active', t === 'posts');
     };
 
-    // Boost Followers Function
-    window.boostFollowers = async (id) => {
-        const val = document.getElementById(`f-${id}`).value;
-        if(!val) return;
-        const formatted = formatNum(parseInt(val));
-        await updateDoc(doc(db, "users", id), { followers: "boost:" + formatted });
-        Swal.fire({ icon: 'success', title: 'Followers Boosted!', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
+    // Functions
+    window.doBoostU = async (id) => {
+        const v = document.getElementById(`f-${id}`).value;
+        if(!v) return;
+        await updateDoc(doc(db, "users", id), { followers: "boost:" + formatK(v) });
+        Swal.fire({title: "Updated", icon: "success", toast: true, position: 'top-end', timer: 2000, showConfirmButton: false});
     };
 
-    // Boost Likes Function
-    window.boostLikes = async (id) => {
-        const val = document.getElementById(`l-${id}`).value;
-        if(!val) return;
-        const formatted = formatNum(parseInt(val));
-        await updateDoc(doc(db, "posts", id), { likes: "boost:" + formatted });
-        Swal.fire({ icon: 'success', title: 'Likes Boosted!', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
+    window.doBoostP = async (id) => {
+        const v = document.getElementById(`l-${id}`).value;
+        if(!v) return;
+        await updateDoc(doc(db, "posts", id), { likes: "boost:" + formatK(v) });
+        Swal.fire({title: "Updated", icon: "success", toast: true, position: 'top-end', timer: 2000, showConfirmButton: false});
     };
 
-    // Delete Operations
-    window.deleteUser = async (id) => {
-        const res = await Swal.fire({ title: 'Delete User?', text: "Permanent Action!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ff4d4d', background: '#161b2c', color: '#fff' });
-        if(res.isConfirmed) await deleteDoc(doc(db, "users", id));
-    };
-
-    window.deletePost = async (id) => {
-        const res = await Swal.fire({ title: 'Remove Post?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ff4d4d', background: '#161b2c', color: '#fff' });
-        if(res.isConfirmed) await deleteDoc(doc(db, "posts", id));
-    };
+    window.delU = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "users", id)); };
+    window.delP = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "posts", id)); };
 
     // Real-time Listeners
-    // --- Load Users ---
     onSnapshot(collection(db, "users"), (snap) => {
-        document.getElementById('count-users').innerText = snap.size;
-        const area = document.getElementById('users-sec');
-        area.innerHTML = "";
+        document.getElementById('u-count').innerText = snap.size;
+        const area = document.getElementById('sec-users'); area.innerHTML = "";
         snap.forEach(d => {
             const u = d.data();
-            const card = document.createElement('div');
-            card.className = "card";
-            card.innerHTML = `
-                <div class="user-head">
-                    <img src="${u.photoURL || 'https://via.placeholder.com/60'}">
-                    <div style="overflow:hidden">
-                        <b style="display:block; text-overflow:ellipsis; white-space:nowrap;">${u.displayName || 'Unknown'}</b>
-                        <small style="color:var(--text-dim); font-size:10px;">ID: ${d.id}</small>
-                    </div>
+            const div = document.createElement('div');
+            div.className = "card";
+            div.innerHTML = `
+                <div class="user-info">
+                    <img src="${u.photoURL || 'https://via.placeholder.com/50'}">
+                    <b>${u.displayName || 'No Name'}</b>
                 </div>
-                <input type="number" id="f-${d.id}" placeholder="Set Boost Follower">
+                <input type="number" id="f-${d.id}" placeholder="Followers count">
                 <div class="btn-group">
-                    <button class="btn btn-update" onclick="window.boostFollowers('${d.id}')"><i class="fas fa-rocket"></i> Update</button>
-                    <button class="btn btn-delete" onclick="window.deleteUser('${d.id}')"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-up" onclick="window.doBoostU('${d.id}')">Boost</button>
+                    <button class="btn btn-del" onclick="window.delU('${d.id}')"><i class="fas fa-trash"></i></button>
                 </div>`;
-            area.appendChild(card);
+            area.appendChild(div);
         });
     });
 
-    // --- Load Posts ---
     onSnapshot(collection(db, "posts"), (snap) => {
-        document.getElementById('count-posts').innerText = snap.size;
-        const area = document.getElementById('posts-sec');
-        area.innerHTML = "";
+        document.getElementById('p-count').innerText = snap.size;
+        const area = document.getElementById('sec-posts'); area.innerHTML = "";
         snap.forEach(d => {
             const p = d.data();
-            const card = document.createElement('div');
-            card.className = "card";
-            card.innerHTML = `
-                <div style="margin-bottom:12px;">
-                    <b style="color:var(--primary)">@${p.authorName || 'User'}</b>
-                    <p style="font-size:12px; color:var(--text-dim); margin:8px 0; max-height:40px; overflow:hidden;">${p.text || '[Image Only]'}</p>
-                </div>
-                <input type="number" id="l-${d.id}" placeholder="Set Boost Likes">
+            const div = document.createElement('div');
+            div.className = "card";
+            div.innerHTML = `
+                <div style="margin-bottom:10px;"><b style="color:var(--primary)">@${p.authorName}</b></div>
+                <p style="font-size:12px; color:var(--dim); height:30px; overflow:hidden;">${p.text || '[Image]'}</p>
+                <input type="number" id="l-${d.id}" placeholder="Likes count">
                 <div class="btn-group">
-                    <button class="btn btn-update" onclick="window.boostLikes('${d.id}')"><i class="fas fa-heart"></i> Boost</button>
-                    <button class="btn btn-delete" onclick="window.deletePost('${d.id}')"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-up" onclick="window.doBoostP('${d.id}')">Boost</button>
+                    <button class="btn btn-del" onclick="window.delP('${d.id}')"><i class="fas fa-trash"></i></button>
                 </div>`;
-            area.appendChild(card);
+            area.appendChild(div);
         });
     });
-
 </script>
 </body>
 </html>
