@@ -152,12 +152,16 @@
     let activeChatID = null;
     const vB = ` <i class="fas fa-check-circle v-badge"></i>`;
 
-    // --- SMART COUNT LOGIC ---
-    // এটি চেক করে যে ডেটাটি অ্যারে নাকি সরাসরি টেক্সট (যেমন 1M, 1K)
+    // --- SMART COUNT LOGIC (UPDATED) ---
     function smartCount(data) {
         if (!data) return "0";
-        if (Array.isArray(data)) return data.length; // যদি সাধারণ ইউজার হয়
-        return data; // যদি অ্যাডমিন প্যানেল থেকে পাঠানো '1M' বা '500K' হয়
+        // যদি ডাটা বুস্ট করা থাকে (যেমন: boost:10K)
+        if (typeof data === 'string') {
+            return data.replace("boost:", ""); 
+        }
+        // যদি রিয়েল ইউজারদের লিস্ট (Array) হয়
+        if (Array.isArray(data)) return data.length;
+        return data;
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -216,19 +220,39 @@
             </div>
         `;
         const imgEl = div.querySelector('.main-img');
-        if(imgEl) imgEl.ondblclick = () => toggleLike(id, isLiked);
+        if(imgEl) imgEl.ondblclick = () => toggleLike(id, p.likes, isLiked);
         const menuBtn = div.querySelector('.post-menu-trigger');
         if(menuBtn) menuBtn.onclick = (e) => { e.stopPropagation(); postMenu(id, p.text); };
-        div.querySelector('.like-btn').onclick = () => toggleLike(id, isLiked);
+        div.querySelector('.like-btn').onclick = () => toggleLike(id, p.likes, isLiked);
         div.querySelector('.comment-btn').onclick = () => showComments(id);
         div.querySelector('.share-btn').onclick = () => sharePost(id);
         target.appendChild(div);
     }
 
-    async function toggleLike(id, liked) { 
+    // --- PROTECTED TOGGLE LOGIC ---
+    async function toggleLike(id, currentLikes, liked) { 
+        // যদি অ্যাডমিন বুস্ট করা থাকে, তবে রিয়েল ইউজার লাইক দিলে সেটা নষ্ট হবে না
+        if (typeof currentLikes === 'string') return; 
+
         await updateDoc(doc(db, "posts", id), { 
             likes: liked ? arrayRemove(me.uid) : arrayUnion(me.uid) 
         }); 
+    }
+
+    async function toggleFollow(uid, currentFollowers, following) {
+        // যদি টার্গেট ইউজার বুস্ট করা থাকে, তবে ফলো করলে তার কাউন্ট রিসেট হবে না
+        if (typeof currentFollowers === 'string') return;
+
+        const myRef = doc(db, "users", me.uid);
+        const userRef = doc(db, "users", uid);
+        if(following) {
+            await updateDoc(myRef, { following: arrayRemove(uid) });
+            await updateDoc(userRef, { followers: arrayRemove(me.uid) });
+        } else {
+            await updateDoc(myRef, { following: arrayUnion(uid) });
+            await updateDoc(userRef, { followers: arrayUnion(me.uid) });
+        }
+        viewUser(uid);
     }
 
     async function postMenu(postId, oldText) {
@@ -290,7 +314,7 @@
                 </div>
             </div>`;
         
-        view.querySelector('.flw-btn').onclick = () => toggleFollow(uid, isFollowing);
+        view.querySelector('.flw-btn').onclick = () => toggleFollow(uid, u.followers, isFollowing);
         view.querySelector('.msg-btn').onclick = () => openChat(uid, u.displayName, u.photoURL);
 
         onSnapshot(query(collection(db, "posts"), where("uid", "==", uid)), (snap) => {
@@ -437,19 +461,6 @@
             document.getElementById('img-preview-box').innerHTML = `<img src="${e.target.result}" style="width:100%; border-radius:10px; margin-top:10px;">`;
         }; r.readAsDataURL(i.files[0]);
     };
-
-    async function toggleFollow(uid, following) {
-        const myRef = doc(db, "users", me.uid);
-        const userRef = doc(db, "users", uid);
-        if(following) {
-            await updateDoc(myRef, { following: arrayRemove(uid) });
-            await updateDoc(userRef, { followers: arrayRemove(me.uid) });
-        } else {
-            await updateDoc(myRef, { following: arrayUnion(uid) });
-            await updateDoc(userRef, { followers: arrayUnion(me.uid) });
-        }
-        viewUser(uid);
-    }
     
     window.viewSinglePost = (id) => {
         const view = document.getElementById('post-detail-view');
