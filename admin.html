@@ -9,57 +9,54 @@
     <style>
         :root { --primary: #7c3aed; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --danger: #ef4444; --success: #22c55e; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        
-        /* Stats Dashboard */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        .stat-card h3 { margin: 0; font-size: 14px; color: #94a3b8; }
-        .stat-card p { margin: 10px 0; font-size: 24px; font-weight: bold; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .stat-card h3 { margin: 0; font-size: 13px; color: #94a3b8; }
+        .stat-card p { margin: 8px 0; font-size: 22px; font-weight: bold; }
 
-        /* V-Badge Switch */
-        .switch { position: relative; display: inline-block; width: 45px; height: 22px; }
+        /* Global V Switch Style */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; vertical-align: middle; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--success); }
-        input:checked + .slider:before { transform: translateX(23px); }
+        input:checked + .slider:before { transform: translateX(20px); }
 
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+        .tab-btn { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; }
         .tab-btn.active { background: var(--primary); }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
-        .user-info img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--primary); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: var(--card); padding: 18px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .user-info img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--primary); }
         .badge-v { color: #0ea5e9; margin-left: 5px; }
         
-        .controls { display: flex; gap: 8px; margin-top: 15px; }
-        .btn { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; flex: 1; }
+        .controls { display: flex; gap: 6px; margin-top: 12px; }
+        .btn { border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; flex: 1; }
         .btn-v { background: #0ea5e9; color: white; }
         .btn-del { background: var(--danger); color: white; }
-        .btn-boost { background: var(--success); color: white; }
 
-        .input-group { margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
-        input[type="number"] { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px; width: 80px; border-radius: 5px; outline: none;}
-        .post-img { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 200px; object-fit: cover; }
+        .input-group { margin-top: 12px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 13px;}
+        input[type="number"] { background: #0f172a; border: 1px solid #475569; color: white; padding: 4px; width: 70px; border-radius: 4px; }
+        .post-img { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 180px; object-fit: cover; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1><i class="fas fa-user-shield"></i> Admin Panel</h1>
+    <h2>Admin Authority</h2>
     <button class="tab-btn" onclick="location.href='dashboard.html'" style="background:var(--danger)">Exit</button>
 </div>
 
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>TOTAL USERS</h3>
+        <h3>USERS</h3>
         <p id="total-users-count">0</p>
     </div>
     <div class="stat-card">
-        <h3>ONLINE NOW</h3>
+        <h3>ONLINE</h3>
         <p id="online-count" style="color: var(--success);">0</p>
     </div>
     <div class="stat-card">
@@ -68,22 +65,17 @@
             <input type="checkbox" id="global-v-switch">
             <span class="slider"></span>
         </label>
-        <p id="v-status-text" style="font-size: 12px; margin-top: 5px;">OFF</p>
+        <span id="v-status-text" style="font-size: 11px; margin-left: 5px;">OFF</span>
     </div>
 </div>
 
 <div class="tabs">
-    <button class="tab-btn active" id="btn-u">Users</button>
-    <button class="tab-btn" id="btn-p">Posts</button>
+    <button class="tab-btn active" id="btn-u" onclick="showTab('users')">Users</button>
+    <button class="tab-btn" id="btn-p" onclick="showTab('posts')">Posts</button>
 </div>
 
-<div id="users-section">
-    <div class="grid" id="user-list"></div>
-</div>
-
-<div id="posts-section" style="display:none;">
-    <div class="grid" id="post-list"></div>
-</div>
+<div id="users-section"><div class="grid" id="user-list"></div></div>
+<div id="posts-section" style="display:none;"><div class="grid" id="post-list"></div></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -103,161 +95,131 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Number Formatting (60K, 1M)
-    function formatNumbers(num) {
-        if (!num) return "0";
-        let n = Number(num);
-        if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-        if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-        return n.toString();
-    }
+    // Formatting Logic (60K, 1.2M)
+    window.formatNum = (num) => {
+        if (!num || isNaN(num)) return "0";
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num;
+    };
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (!user || user.email !== "admin@meetwoyou.com") {
             window.location.href = "index.html";
         } else {
-            initAdmin();
+            // Load Global Config
+            const vRef = doc(db, "settings", "global_config");
+            const vSnap = await getDoc(vRef);
+            if (vSnap.exists()) {
+                const isEnabled = vSnap.data().vBadgeVisible;
+                document.getElementById('global-v-switch').checked = isEnabled;
+                document.getElementById('v-status-text').innerText = isEnabled ? "ON" : "OFF";
+            }
+
+            // Global V Switch Listener
+            document.getElementById('global-v-switch').onchange = async (e) => {
+                await setDoc(vRef, { vBadgeVisible: e.target.checked }, { merge: true });
+                document.getElementById('v-status-text').innerText = e.target.checked ? "ON" : "OFF";
+            };
+
+            // Online Counter
+            onSnapshot(collection(db, "status"), (s) => document.getElementById('online-count').innerText = s.size);
+
+            loadData();
         }
     });
 
-    async function initAdmin() {
-        // Global V-Badge Logic
-        const vRef = doc(db, "settings", "global_config");
-        const vSnap = await getDoc(vRef);
-        const vSwitch = document.getElementById('global-v-switch');
-        
-        if (vSnap.exists()) {
-            const isEnabled = vSnap.data().vBadgeVisible;
-            vSwitch.checked = isEnabled;
-            document.getElementById('v-status-text').innerText = isEnabled ? "ON" : "OFF";
-        }
-
-        vSwitch.addEventListener('change', async (e) => {
-            const isEnabled = e.target.checked;
-            await setDoc(vRef, { vBadgeVisible: isEnabled }, { merge: true });
-            document.getElementById('v-status-text').innerText = isEnabled ? "ON" : "OFF";
-            Swal.fire("Success", "Global V-Badge " + (isEnabled ? "Enabled" : "Disabled"), "success");
-        });
-
-        // Online Counter (Using 'status' collection)
-        onSnapshot(collection(db, "status"), (snap) => {
-            document.getElementById('online-count').innerText = snap.size;
-        });
-
-        loadData();
-    }
-
     function loadData() {
-        // Users List
+        // Users
         onSnapshot(collection(db, "users"), (snap) => {
             document.getElementById('total-users-count').innerText = snap.size;
-            const userList = document.getElementById('user-list');
-            userList.innerHTML = "";
+            const list = document.getElementById('user-list');
+            list.innerHTML = "";
             snap.forEach(d => {
                 const u = d.data();
-                // Logic: check for followerCount (number) or followers (array)
-                const fCount = u.followerCount !== undefined ? u.followerCount : (Array.isArray(u.followers) ? u.followers.length : 0);
+                // Check multiple fields for follower count
+                const count = u.followerCount || (Array.isArray(u.followers) ? u.followers.length : (u.followers || 0));
                 
-                const card = document.createElement('div');
-                card.className = "card";
-                card.innerHTML = `
+                const div = document.createElement('div');
+                div.className = "card";
+                div.innerHTML = `
                     <div class="user-info">
                         <img src="${u.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}">
                         <div>
-                            <div style="font-weight:bold">${u.displayName} ${u.isVerified ? '<i class="fas fa-check-circle badge-v"></i>' : ''}</div>
+                            <b>${u.displayName} ${u.isVerified ? '<i class="fas fa-check-circle badge-v"></i>' : ''}</b><br>
                             <small style="color:#94a3b8">${u.email}</small>
                         </div>
                     </div>
                     <div class="controls">
-                        <button class="btn btn-v" id="vbtn-${d.id}">${u.isVerified ? 'Remove V' : 'Give V'}</button>
-                        <button class="btn btn-del" id="dbtn-${d.id}">Delete</button>
+                        <button class="btn btn-v" onclick="window.toggleV('${d.id}', ${u.isVerified})">${u.isVerified ? 'Remove V' : 'Give V'}</button>
+                        <button class="btn btn-del" onclick="window.delUser('${d.id}')">Delete</button>
                     </div>
                     <div class="input-group">
-                        <small>Followers: <b>${formatNumbers(fCount)}</b></small>
-                        <input type="number" id="f-${d.id}" placeholder="New">
-                        <button class="btn btn-boost" id="bbtn-${d.id}">Set</button>
+                        <span>Followers: <b>${window.formatNum(count)}</b></span>
+                        <div style="display:flex; gap:5px;">
+                            <input type="number" id="in-f-${d.id}" placeholder="Set">
+                            <button class="btn btn-v" style="padding:4px 8px;" onclick="window.setFollowers('${d.id}')">Set</button>
+                        </div>
                     </div>
                 `;
-                userList.appendChild(card);
-
-                // Add Event Listeners for Module Functions
-                document.getElementById(`vbtn-${d.id}`).onclick = () => toggleV(d.id, u.isVerified);
-                document.getElementById(`dbtn-${d.id}`).onclick = () => deleteAcc(d.id);
-                document.getElementById(`bbtn-${d.id}`).onclick = () => setFollowers(d.id);
+                list.appendChild(div);
             });
         });
 
-        // Posts List
+        // Posts
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
-            const postList = document.getElementById('post-list');
-            postList.innerHTML = "";
+            const list = document.getElementById('post-list');
+            list.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
-                const lCount = p.likeCount !== undefined ? p.likeCount : (Array.isArray(p.likes) ? p.likes.length : 0);
-                const card = document.createElement('div');
-                card.className = "card";
-                card.innerHTML = `
-                    <div style="font-size:14px;"><b>${p.authorName}</b></div>
-                    <div style="font-size:12px; padding:10px; background:#0f172a; border-radius:5px; margin:10px 0;">${p.text || ''}</div>
+                const lCount = p.likeCount || (Array.isArray(p.likes) ? p.likes.length : (p.likes || 0));
+                const div = document.createElement('div');
+                div.className = "card";
+                div.innerHTML = `
+                    <div style="font-size:13px;"><b>${p.authorName}</b></div>
+                    <div style="font-size:12px; margin:8px 0; background:#0f172a; padding:8px; border-radius:5px;">${p.text || ''}</div>
                     ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
                     <div class="input-group">
-                        <small>Likes: <b>${formatNumbers(lCount)}</b></small>
-                        <input type="number" id="l-${d.id}" placeholder="Set">
-                        <button class="btn btn-boost" id="lbtn-${d.id}">Set</button>
+                        <span>Likes: <b>${window.formatNum(lCount)}</b></span>
+                        <div style="display:flex; gap:5px;">
+                            <input type="number" id="in-l-${d.id}" placeholder="Set">
+                            <button class="btn btn-v" style="padding:4px 8px;" onclick="window.setLikes('${d.id}')">Set</button>
+                        </div>
                     </div>
-                    <button class="btn btn-del" style="width:100%; margin-top:10px;" id="dpbtn-${d.id}">Delete Post</button>
+                    <button class="btn btn-del" style="width:100%; margin-top:10px;" onclick="window.delPost('${d.id}')">Remove Post</button>
                 `;
-                postList.appendChild(card);
-                
-                document.getElementById(`lbtn-${d.id}`).onclick = () => setLikes(d.id);
-                document.getElementById(`dpbtn-${d.id}`).onclick = () => deletePost(d.id);
+                list.appendChild(div);
             });
         });
     }
 
-    // --- Core Functions ---
-    async function setFollowers(uid) {
-        const val = parseInt(document.getElementById(`f-${uid}`).value);
-        if(isNaN(val)) return;
-        await updateDoc(doc(db, "users", uid), { 
-            followerCount: val,
-            followers: [] // Reset array to prevent confusion
-        });
-        Swal.fire("Done", "Followers set to " + val, "success");
-    }
+    // Exporting functions to window for onclick access
+    window.setFollowers = async (id) => {
+        const val = parseInt(document.getElementById(`in-f-${id}`).value);
+        if(!isNaN(val)) {
+            await updateDoc(doc(db, "users", id), { followerCount: val, followers: val }); 
+            Swal.fire("Done", "Followers set to " + val, "success");
+        }
+    };
 
-    async function setLikes(pid) {
-        const val = parseInt(document.getElementById(`l-${pid}`).value);
-        if(isNaN(val)) return;
-        await updateDoc(doc(db, "posts", pid), { 
-            likeCount: val,
-            likes: [] 
-        });
-        Swal.fire("Done", "Likes set to " + val, "success");
-    }
+    window.setLikes = async (id) => {
+        const val = parseInt(document.getElementById(`in-l-${id}`).value);
+        if(!isNaN(val)) {
+            await updateDoc(doc(db, "posts", id), { likeCount: val, likes: val });
+            Swal.fire("Done", "Likes set to " + val, "success");
+        }
+    };
 
-    async function toggleV(uid, status) {
-        await updateDoc(doc(db, "users", uid), { isVerified: !status });
-    }
+    window.toggleV = async (id, s) => await updateDoc(doc(db, "users", id), { isVerified: !s });
+    window.delUser = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "users", id)); };
+    window.delPost = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "posts", id)); };
 
-    async function deleteAcc(uid) {
-        if(confirm("Delete User?")) await deleteDoc(doc(db, "users", uid));
-    }
-
-    async function deletePost(pid) {
-        if(confirm("Delete Post?")) await deleteDoc(doc(db, "posts", pid));
-    }
-
-    // Tab Switch Logic
-    document.getElementById('btn-u').onclick = () => showTab('users');
-    document.getElementById('btn-p').onclick = () => showTab('posts');
-
-    function showTab(tab) {
-        document.getElementById('users-section').style.display = tab === 'users' ? 'block' : 'none';
-        document.getElementById('posts-section').style.display = tab === 'posts' ? 'block' : 'none';
-        document.getElementById('btn-u').classList.toggle('active', tab === 'users');
-        document.getElementById('btn-p').classList.toggle('active', tab === 'posts');
-    }
+    window.showTab = (t) => {
+        document.getElementById('users-section').style.display = t === 'users' ? 'block' : 'none';
+        document.getElementById('posts-section').style.display = t === 'posts' ? 'block' : 'none';
+        document.getElementById('btn-u').classList.toggle('active', t === 'users');
+        document.getElementById('btn-p').classList.toggle('active', t === 'posts');
+    };
 </script>
 </body>
 </html>
