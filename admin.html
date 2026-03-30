@@ -9,37 +9,27 @@
     <style>
         :root { --primary: #8b5cf6; --bg: #020617; --card: #1e293b; --text: #f8fafc; --danger: #ef4444; --success: #10b981; --accent: #3b82f6; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        
         .header { display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.7); padding: 15px 25px; border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 25px; }
         .stats-bar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
         .stat-card i { font-size: 20px; color: var(--primary); margin-bottom: 5px; }
-        
         .tabs { display: flex; gap: 10px; background: #0f172a; padding: 5px; border-radius: 10px; margin-bottom: 20px; width: fit-content; }
         .tab-btn { background: transparent; color: #94a3b8; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; }
         .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
-        
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
         .card { background: var(--card); padding: 20px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; position: relative; overflow: hidden; }
         .card:hover { transform: translateY(-5px); border-color: var(--primary); }
-        
         .user-info { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .user-info img { width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; }
         .badge-v { color: #0095f6; margin-left: 5px; }
-        
         .input-group { background: #0f172a; padding: 12px; border-radius: 12px; margin-top: 15px; display: flex; align-items: center; gap: 8px; }
         input { background: #1e293b; border: 1px solid #334155; color: white; padding: 8px; width: 100%; border-radius: 6px; outline: none; font-size: 14px; }
-        
         .btn { border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; display: flex; align-items: center; gap: 5px; justify-content: center; }
         .btn-v { background: var(--accent); color: white; flex: 1; }
         .btn-del { background: #334155; color: #ef4444; width: 40px; }
         .btn-boost { background: var(--success); color: white; white-space: nowrap; }
-        
         .post-preview { background: #0f172a; padding: 12px; border-radius: 10px; margin: 10px 0; font-size: 13px; border-left: 3px solid var(--primary); }
         .post-img { width: 100%; border-radius: 8px; margin-top: 10px; height: 150px; object-fit: cover; }
-        
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -93,7 +83,6 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // সংখ্যাকে K, M, B তে রূপান্তর করার ফাংশন
     const formatValue = (num) => {
         if (num >= 1000000000) return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
         if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
@@ -110,14 +99,17 @@
     });
 
     function loadData() {
-        // ইউজারের তথ্য
         onSnapshot(collection(db, "users"), (snap) => {
             document.getElementById('total-users').innerText = snap.size;
             const userList = document.getElementById('user-list');
             userList.innerHTML = "";
             snap.forEach(d => {
                 const u = d.data();
-                const curFollowers = u.followers || "0";
+                const displayCount = (val) => {
+                    if(!val) return "0";
+                    if(typeof val === 'string' && val.startsWith("boost:")) return val.replace("boost:", "");
+                    return Array.isArray(val) ? val.length : val;
+                };
                 
                 const card = document.createElement('div');
                 card.className = "card";
@@ -126,34 +118,33 @@
                         <img src="${u.photoURL || 'https://via.placeholder.com/60'}">
                         <div style="flex:1">
                             <div style="font-weight:bold">${u.displayName} ${u.isVerified ? '<i class="fas fa-check-circle badge-v"></i>' : ''}</div>
-                            <small style="color:#94a3b8; font-size:11px;">ID: ${d.id}</small>
                         </div>
                         <button class="btn btn-del" onclick="deleteAcc('${d.id}')"><i class="fas fa-trash"></i></button>
                     </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn btn-v" onclick="toggleV('${d.id}', ${u.isVerified})">
-                            <i class="fas ${u.isVerified ? 'fa-user-minus' : 'fa-user-check'}"></i> 
-                            ${u.isVerified ? 'Remove V' : 'Verify'}
-                        </button>
-                    </div>
+                    <button class="btn btn-v" style="width:100%;" onclick="toggleV('${d.id}', ${u.isVerified})">
+                        ${u.isVerified ? 'Remove Verification' : 'Verify User'}
+                    </button>
                     <div class="input-group">
-                        <input type="number" id="f-${d.id}" placeholder="Enter amount">
-                        <button class="btn btn-boost" onclick="setFollowers('${d.id}')">Add Followers</button>
+                        <input type="number" id="f-${d.id}" placeholder="Enter number">
+                        <button class="btn btn-boost" onclick="setFollowers('${d.id}')">Boost</button>
                     </div>
-                    <div style="margin-top:8px; font-size:12px; color:var(--primary)">Current: <b>${Array.isArray(curFollowers) ? curFollowers.length : curFollowers}</b></div>
+                    <div style="margin-top:8px; font-size:12px; color:var(--primary)">Followers: <b>${displayCount(u.followers)}</b></div>
                 `;
                 userList.appendChild(card);
             });
         });
 
-        // পোস্টের তথ্য
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
             document.getElementById('total-posts').innerText = snap.size;
             const postList = document.getElementById('post-list');
             postList.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
-                const curLikes = p.likes || "0";
+                const displayCount = (val) => {
+                    if(!val) return "0";
+                    if(typeof val === 'string' && val.startsWith("boost:")) return val.replace("boost:", "");
+                    return Array.isArray(val) ? val.length : val;
+                };
                 const card = document.createElement('div');
                 card.className = "card";
                 card.innerHTML = `
@@ -161,57 +152,38 @@
                         <b>${p.authorName}</b>
                         <button class="btn btn-del" onclick="deletePost('${d.id}')"><i class="fas fa-times"></i></button>
                     </div>
-                    <div class="post-preview">${p.text || 'No text content'}</div>
-                    ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
+                    <div class="post-preview">${p.text || 'No text'}</div>
                     <div class="input-group">
-                        <input type="number" id="l-${d.id}" placeholder="Set likes">
-                        <button class="btn btn-boost" onclick="setLikes('${d.id}')">Set Likes</button>
+                        <input type="number" id="l-${d.id}" placeholder="Set amount">
+                        <button class="btn btn-boost" onclick="setLikes('${d.id}')">Boost Likes</button>
                     </div>
-                    <div style="margin-top:8px; font-size:12px; color:var(--success)">Current Likes: <b>${Array.isArray(curLikes) ? curLikes.length : curLikes}</b></div>
+                    <div style="margin-top:8px; font-size:12px; color:var(--success)">Likes: <b>${displayCount(p.likes)}</b></div>
                 `;
                 postList.appendChild(card);
             });
         });
     }
 
-    // --- Actions ---
-
     window.setFollowers = async (uid) => {
         const val = parseInt(document.getElementById(`f-${uid}`).value);
-        if(isNaN(val)) return Swal.fire("Error", "Enter number", "error");
-        
+        if(isNaN(val)) return;
         const formatted = formatValue(val);
-        await updateDoc(doc(db, "users", uid), { followers: formatted });
-        Swal.fire("Success", `Set to ${formatted}`, "success");
-        document.getElementById(`f-${uid}`).value = "";
+        // "boost:" ট্যাগ দিয়ে পাঠানো হচ্ছে
+        await updateDoc(doc(db, "users", uid), { followers: "boost:" + formatted });
+        Swal.fire("Done", "Followers Boosted!", "success");
     };
 
     window.setLikes = async (pid) => {
         const val = parseInt(document.getElementById(`l-${pid}`).value);
         if(isNaN(val)) return;
-        
         const formatted = formatValue(val);
-        await updateDoc(doc(db, "posts", pid), { likes: formatted });
-        Swal.fire("Success", `Set to ${formatted}`, "success");
-        document.getElementById(`l-${pid}`).value = "";
+        await updateDoc(doc(db, "posts", pid), { likes: "boost:" + formatted });
+        Swal.fire("Done", "Likes Boosted!", "success");
     };
 
-    window.toggleV = async (uid, status) => {
-        await updateDoc(doc(db, "users", uid), { isVerified: !status });
-    };
-
-    window.deleteAcc = async (uid) => {
-        const result = await Swal.fire({
-            title: 'Delete User?', text: "This action cannot be undone!", icon: 'warning',
-            showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Yes, delete!'
-        });
-        if(result.isConfirmed) await deleteDoc(doc(db, "users", uid));
-    };
-
-    window.deletePost = async (pid) => {
-        if(confirm("Delete this post?")) await deleteDoc(doc(db, "posts", pid));
-    };
-
+    window.toggleV = async (uid, status) => { await updateDoc(doc(db, "users", uid), { isVerified: !status }); };
+    window.deleteAcc = async (uid) => { if(confirm("Delete User?")) await deleteDoc(doc(db, "users", uid)); };
+    window.deletePost = async (pid) => { if(confirm("Delete Post?")) await deleteDoc(doc(db, "posts", pid)); };
     window.showTab = (tab) => {
         document.getElementById('users-section').style.display = tab === 'users' ? 'block' : 'none';
         document.getElementById('posts-section').style.display = tab === 'posts' ? 'block' : 'none';
