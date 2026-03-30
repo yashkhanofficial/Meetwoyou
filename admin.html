@@ -1,160 +1,180 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Meetwoyou - Admin Control</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meetwoyou - Admin Authority</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #7c3aed; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --danger: #ef4444; --success: #22c55e; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { background: var(--primary); box-shadow: 0 0 15px rgba(124, 58, 237, 0.4); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .user-info img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--primary); }
+        .badge-v { color: #0095f6; margin-left: 5px; }
+        .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .btn { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
+        .btn-v { background: #0ea5e9; color: white; }
+        .btn-del { background: var(--danger); color: white; }
+        .btn-boost { background: var(--success); color: white; }
+        .input-group { margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
+        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px 8px; width: 80px; border-radius: 5px; outline: none; }
+        .post-img { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 200px; object-fit: cover; }
+    </style>
 </head>
-<body class="bg-gray-900 text-white p-5">
+<body>
 
-    <div id="admin-content" style="display:none;" class="max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-blue-500"><i class="fas fa-user-shield"></i> Admin Dashboard</h1>
-            <div class="flex gap-3">
-                <button onclick="sendGlobalAlert()" class="bg-amber-600 px-4 py-2 rounded-lg hover:bg-amber-500 text-sm"><i class="fas fa-bullhorn"></i> Send Notice</button>
-                <button onclick="location.href='index.html'" class="bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600 text-sm">Back to App</button>
-            </div>
-        </div>
+<div class="header">
+    <h1><i class="fas fa-unlock-alt"></i> Meetwoyou Admin</h1>
+    <button class="tab-btn" onclick="location.href='dashboard.html'" style="background:#ef4444">Exit Admin</button>
+</div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-                <h3 class="text-gray-400 text-sm uppercase tracking-wider">Total Users</h3>
-                <p id="total-users" class="text-4xl font-bold text-blue-400 mt-2">0</p>
-            </div>
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-                <h3 class="text-gray-400 text-sm uppercase tracking-wider">Total Posts</h3>
-                <p id="total-posts" class="text-4xl font-bold text-green-400 mt-2">0</p>
-            </div>
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-                <h3 class="text-gray-400 text-sm uppercase tracking-wider">Total Reels</h3>
-                <p id="total-reels" class="text-4xl font-bold text-purple-400 mt-2">0</p>
-            </div>
-        </div>
+<div class="tabs">
+    <button class="tab-btn active" id="btn-u" onclick="showTab('users')"><i class="fas fa-users"></i> Users</button>
+    <button class="tab-btn" id="btn-p" onclick="showTab('posts')"><i class="fas fa-stream"></i> Posts</button>
+</div>
 
-        <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 shadow-2xl">
-            <div class="p-4 bg-gray-700/50 border-b border-gray-700 font-bold flex justify-between items-center">
-                <span>User Management Center</span>
-                <span class="text-xs text-gray-400">Live Sync Enabled</span>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-900/50 text-gray-400 text-sm">
-                        <tr>
-                            <th class="p-4">Profile</th>
-                            <th class="p-4">UID (Identity)</th>
-                            <th class="p-4">Status</th>
-                            <th class="p-4 text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-user-list" class="divide-y divide-gray-700">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+<div id="users-section" class="tab-content">
+    <div class="grid" id="user-list"></div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, deleteDoc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<div id="posts-section" class="tab-content" style="display:none;">
+    <div class="grid" id="post-list"></div>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
-            authDomain: "meetwoyou-436a2.firebaseapp.com",
-            projectId: "meetwoyou-436a2",
-            storageBucket: "meetwoyou-436a2.firebasestorage.app",
-            messagingSenderId: "612788132077",
-            appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
-        };
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    const firebaseConfig = {
+        apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
+        authDomain: "meetwoyou-436a2.firebaseapp.com",
+        projectId: "meetwoyou-436a2",
+        storageBucket: "meetwoyou-436a2.firebasestorage.app",
+        messagingSenderId: "612788132077",
+        appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+    };
 
-        const ADMIN_EMAIL = "info.yashkhanofficial@gmail.com";
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-        // Security: Email Whitelist Check
-        onAuthStateChanged(auth, (user) => {
-            if (user && user.email === ADMIN_EMAIL) {
-                document.getElementById('admin-content').style.display = 'block';
-                loadStats();
-                loadUsers();
-            } else {
-                alert("Unauthorized Access! Redirecting...");
-                window.location.href = "index.html";
-            }
+    // সিকিউরিটি চেক
+    onAuthStateChanged(auth, (user) => {
+        if (!user || user.email !== "admin@meetwoyou.com") {
+            Swal.fire("Access Denied", "Only Admin can access this page!", "error");
+            setTimeout(() => window.location.href = "index.html", 2000);
+        } else {
+            loadData();
+        }
+    });
+
+    function loadData() {
+        // রিয়েলটাইম ইউজার লিস্ট
+        onSnapshot(collection(db, "users"), (snap) => {
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = "";
+            snap.forEach(d => {
+                const u = d.data();
+                const card = document.createElement('div');
+                card.className = "card";
+                card.innerHTML = `
+                    <div class="user-info">
+                        <img src="${u.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}">
+                        <div>
+                            <div style="font-weight:bold">${u.displayName} ${u.isVerified ? '<i class="fas fa-check-circle badge-v"></i>' : ''}</div>
+                            <small style="color:#94a3b8">${u.email || 'No Email'}</small>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-v" onclick="toggleV('${d.id}', ${u.isVerified})">
+                            ${u.isVerified ? 'Remove V-Badge' : 'Give V-Badge'}
+                        </button>
+                        <button class="btn btn-del" onclick="deleteAcc('${d.id}')">Delete Account</button>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-user-plus"></i> Followers: 
+                        <input type="number" id="f-${d.id}" value="${u.followers ? u.followers.length : 0}">
+                        <button class="btn btn-boost" onclick="setFollowers('${d.id}')">Update</button>
+                    </div>
+                `;
+                userList.appendChild(card);
+            });
         });
 
-        function loadStats() {
-            onSnapshot(collection(db, "users"), snap => document.getElementById('total-users').innerText = snap.size);
-            onSnapshot(collection(db, "posts"), snap => document.getElementById('total-posts').innerText = snap.size);
-            onSnapshot(collection(db, "reels"), snap => document.getElementById('total-reels').innerText = snap.size);
-        }
-
-        function loadUsers() {
-            onSnapshot(collection(db, "users"), (snap) => {
-                const list = document.getElementById('admin-user-list');
-                list.innerHTML = "";
-                snap.forEach(d => {
-                    const u = d.data();
-                    const isV = u.verified || false;
-                    const row = `
-                        <tr class="hover:bg-gray-700/30 transition">
-                            <td class="p-4 flex items-center gap-3">
-                                <img src="${u.photoURL}" class="w-10 h-10 rounded-full border-2 border-gray-600 object-cover">
-                                <div>
-                                    <p class="font-semibold text-sm">${u.displayName} ${isV ? '<i class="fas fa-check-circle text-blue-500"></i>' : ''}</p>
-                                    <p class="text-[10px] text-gray-500">${u.email || 'No Email'}</p>
-                                </div>
-                            </td>
-                            <td class="p-4 font-mono text-[10px] text-gray-500">${d.id}</td>
-                            <td class="p-4">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] ${isV ? 'bg-blue-900/50 text-blue-400 border border-blue-500/30' : 'bg-gray-700 text-gray-400'}">
-                                    ${isV ? 'VERIFIED' : 'PENDING'}
-                                </span>
-                            </td>
-                            <td class="p-4 text-center">
-                                <div class="flex justify-center gap-2">
-                                    <button onclick="verifyUser('${d.id}', ${isV})" class="p-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600 hover:text-white transition" title="Verify User">
-                                        <i class="fas fa-certificate text-xs"></i>
-                                    </button>
-                                    <button onclick="deleteUser('${d.id}')" class="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600 hover:text-white transition" title="Delete User">
-                                        <i class="fas fa-trash-alt text-xs"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    list.innerHTML += row;
-                });
+        // রিয়েলটাইম পোস্ট লিস্ট
+        onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
+            const postList = document.getElementById('post-list');
+            postList.innerHTML = "";
+            snap.forEach(d => {
+                const p = d.data();
+                const card = document.createElement('div');
+                card.className = "card";
+                card.innerHTML = `
+                    <div style="font-size:14px; margin-bottom:10px;"><b>Author:</b> ${p.authorName}</div>
+                    <div style="background:#0f172a; padding:10px; border-radius:8px; font-size:13px">${p.text || 'No Text'}</div>
+                    ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
+                    <div class="input-group">
+                        <i class="fas fa-heart"></i> Likes: 
+                        <input type="number" id="l-${d.id}" value="${p.likes ? p.likes.length : 0}">
+                        <button class="btn btn-boost" onclick="setLikes('${d.id}')">Set</button>
+                    </div>
+                    <button class="btn btn-del" style="width:100%; margin-top:10px;" onclick="deletePost('${d.id}')">Delete Post</button>
+                `;
+                postList.appendChild(card);
             });
+        });
+    }
+
+    // --- Admin Functions ---
+
+    window.toggleV = async (uid, status) => {
+        await updateDoc(doc(db, "users", uid), { isVerified: !status });
+        Swal.fire("Success", "V-Badge Status Changed", "success");
+    };
+
+    window.deleteAcc = async (uid) => {
+        if(confirm("Are you sure? This user will be gone forever!")){
+            await deleteDoc(doc(db, "users", uid));
+            Swal.fire("Deleted", "User has been removed", "warning");
         }
+    };
 
-        window.deleteUser = async (id) => {
-            if(confirm("আপনি কি নিশ্চিতভাবে এই ইউজারকে ডিলিট করতে চান? এটি আর ফিরিয়ে আনা যাবে না।")) {
-                await deleteDoc(doc(db, "users", id));
-            }
-        };
+    window.deletePost = async (pid) => {
+        if(confirm("Delete this post?")){
+            await deleteDoc(doc(db, "posts", pid));
+            Swal.fire("Deleted", "Post has been removed", "success");
+        }
+    };
 
-        window.verifyUser = async (id, status) => {
-            await updateDoc(doc(db, "users", id), { verified: !status });
-        };
+    window.setFollowers = async (uid) => {
+        const count = parseInt(document.getElementById(`f-${uid}`).value);
+        const fakeArray = new Array(count).fill("admin_boost");
+        await updateDoc(doc(db, "users", uid), { followers: fakeArray });
+        Swal.fire("Boosted", `Followers set to ${count}`, "success");
+    };
 
-        // Global Alert Functionality
-        window.sendGlobalAlert = async () => {
-            const msg = prompt("সব ইউজারের জন্য একটি জরুরি নোটিশ লিখুন:");
-            if(msg) {
-                await addDoc(collection(db, "notifications"), {
-                    message: msg,
-                    sender: "Admin",
-                    type: "global_alert",
-                    timestamp: serverTimestamp()
-                });
-                alert("নোটিশ পাঠানো হয়েছে!");
-            }
-        };
+    window.setLikes = async (pid) => {
+        const count = parseInt(document.getElementById(`l-${pid}`).value);
+        const fakeArray = new Array(count).fill("admin_boost");
+        await updateDoc(doc(db, "posts", pid), { likes: fakeArray });
+        Swal.fire("Boosted", `Likes set to ${count}`, "success");
+    };
 
-    </script>
+    window.showTab = (tab) => {
+        document.getElementById('users-section').style.display = tab === 'users' ? 'block' : 'none';
+        document.getElementById('posts-section').style.display = tab === 'posts' ? 'block' : 'none';
+        document.getElementById('btn-u').classList.toggle('active', tab === 'users');
+        document.getElementById('btn-p').classList.toggle('active', tab === 'posts');
+    };
+
+</script>
 </body>
 </html>
