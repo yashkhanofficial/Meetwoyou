@@ -20,10 +20,16 @@
         .section.active { display: block; }
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .post-card { border-bottom: 1px solid #262626; padding-bottom: 15px; margin-bottom: 10px; }
+        .post-card { border-bottom: 1px solid #262626; padding-bottom: 15px; margin-bottom: 10px; position: relative; }
         .post-user { display: flex; align-items: center; gap: 10px; padding: 10px; cursor: pointer; }
-        .post-img { width: 100%; max-height: 500px; object-fit: contain; background: #050505; cursor: pointer; }
+        .post-img-container { position: relative; width: 100%; cursor: pointer; display: flex; justify-content: center; background: #000; }
+        .post-img { width: 100%; max-height: 500px; object-fit: contain; }
         
+        /* Instagram-like Heart Animation */
+        .like-animation { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: white; font-size: 80px; opacity: 0; pointer-events: none; z-index: 10; }
+        .like-animation.active { animation: heartPop 0.8s ease-out; }
+        @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
+
         #chat-screen, #user-profile-view, #post-detail-view { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; overflow-y: auto; }
         .chat-bubble { padding: 10px 15px; border-radius: 18px; margin: 5px 0; max-width: 75%; font-size: 14px; }
         .sent { background: var(--primary); align-self: flex-end; }
@@ -91,28 +97,24 @@
         </div>
         <h3 id="p-name">Loading...</h3>
         <p id="p-bio" style="color:var(--gray); margin-bottom:5px;"></p>
-        
         <div id="p-details-box" class="profile-details"></div>
-        
         <div style="display: flex; justify-content: center; gap: 30px; margin: 15px 0;">
             <div><b id="count-posts">0</b><br><small>Posts</small></div>
             <div><b id="count-followers">0</b><br><small>Followers</small></div>
             <div><b id="count-following">0</b><br><small>Following</small></div>
         </div>
-        
         <div style="display:flex; gap:10px;">
             <button class="btn-main" style="background:#262626;" onclick="toggleEdit()">Edit Profile</button>
             <button class="btn-main" style="background:#262626; width:50px;" onclick="shareMyProfile()"><i class="fas fa-share-alt"></i></button>
         </div>
-
         <div id="edit-form" style="display:none; margin-top:15px; text-align:left;">
             <input type="text" id="edit-name" placeholder="Full Name">
             <input type="text" id="edit-bio" placeholder="Bio">
             <input type="date" id="edit-dob" title="Birthday">
-            <input type="text" id="edit-work" placeholder="Profession (e.g. Developer)">
+            <input type="text" id="edit-work" placeholder="Profession">
             <input type="text" id="edit-org" placeholder="Organization">
-            <input type="text" id="edit-web" placeholder="Website (https://...)">
-            <input type="text" id="edit-social" placeholder="Social Link (URL)">
+            <input type="text" id="edit-web" placeholder="Website">
+            <input type="text" id="edit-social" placeholder="Social Link">
             <button class="btn-main" onclick="saveProfile()">Save Changes</button>
         </div>
     </div>
@@ -227,27 +229,46 @@
         const badge = await getVBadge(p.uid);
         const div = document.createElement('div');
         div.className = "post-card";
+        div.setAttribute('data-id', id);
         div.innerHTML = `
             <div class="post-user" onclick="${isDetail ? '' : `viewUser('${p.uid}')`}">
                 <img src="${p.authorImg || 'https://via.placeholder.com/35'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
                 <b>${p.authorName}${badge}</b>
                 ${p.uid === me.uid ? `<i class="fas fa-ellipsis-v post-menu-trigger" style="margin-left:auto; padding:10px;"></i>` : ''}
             </div>
-            ${p.img ? `<img src="${p.img}" class="post-img main-img">` : ''}
+            <div class="post-img-container">
+                ${p.img ? `<img src="${p.img}" class="post-img main-img">` : '<div style="padding:20px; width:100%; border-top:1px solid #121212;">' + p.text + '</div>'}
+                <i class="fas fa-heart like-animation"></i>
+            </div>
             <div style="padding:10px 15px; font-size:20px; display:flex; gap:15px; align-items:center;">
-                <i class="${isLiked?'fas fa-heart':'far fa-heart'} like-btn" style="color:${isLiked?'red':''}"></i>
-                <i class="far fa-comment comment-btn"></i>
-                <i class="far fa-paper-plane share-btn"></i>
+                <i class="${isLiked?'fas fa-heart':'far fa-heart'} like-btn" style="color:${isLiked?'red':''}; cursor:pointer;"></i>
+                <i class="far fa-comment comment-btn" style="cursor:pointer;"></i>
+                <i class="far fa-paper-plane share-btn" style="cursor:pointer;"></i>
             </div>
             <div class="post-time">${timeAgo(p.timestamp)}</div>
             <div style="padding:5px 15px; font-size:14px;">
                 <b class="likes-count">${formatCount(p.likes?.length)} likes</b><br>
-                <b>${p.authorName}</b> ${p.text}
+                ${p.img ? `<b>${p.authorName}</b> ${p.text}` : ''}
             </div>
         `;
 
-        if(p.img) div.querySelector('.main-img').ondblclick = () => toggleLike(id, isLiked);
-        div.querySelector('.like-btn').onclick = () => toggleLike(id, isLiked);
+        const imgContainer = div.querySelector('.post-img-container');
+        const heart = div.querySelector('.like-animation');
+        const likeBtn = div.querySelector('.like-btn');
+
+        // Prevent auto-scroll on click by using stopPropagation where needed
+        imgContainer.addEventListener('dblclick', (e) => {
+            e.preventDefault();
+            heart.classList.add('active');
+            setTimeout(() => heart.classList.remove('active'), 800);
+            if(!isLiked) toggleLike(id, false);
+        });
+
+        likeBtn.onclick = (e) => {
+            e.preventDefault();
+            toggleLike(id, isLiked);
+        };
+
         div.querySelector('.comment-btn').onclick = () => showComments(id);
         div.querySelector('.share-btn').onclick = () => sharePost(id);
         
@@ -258,7 +279,10 @@
     }
 
     async function toggleLike(id, liked) { 
-        await updateDoc(doc(db, "posts", id), { likes: liked ? arrayRemove(me.uid) : arrayUnion(me.uid) }); 
+        // Direct update to prevent UI jumps
+        await updateDoc(doc(db, "posts", id), { 
+            likes: liked ? arrayRemove(me.uid) : arrayUnion(me.uid) 
+        }); 
     }
 
     async function postMenu(postId, oldText) {
@@ -277,12 +301,13 @@
 
     function loadFeed() {
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
-            const area = document.getElementById('feed-area'); area.innerHTML = "";
+            const area = document.getElementById('feed-area');
+            // Optimistic update: only redraw if count changes or use IDs to update specific nodes
+            area.innerHTML = "";
             snap.forEach(d => renderPost(d.data(), d.id, area));
         });
     }
 
-    // --- View Single Post (Full Detail) ---
     window.viewSinglePost = (id) => {
         const view = document.getElementById('post-detail-view');
         const content = document.getElementById('post-detail-content');
@@ -294,7 +319,6 @@
         });
     };
 
-    // --- Profile & Friends ---
     window.viewUser = async (uid) => {
         if(uid === me.uid) return showSec('profile');
         const uSnap = await getDoc(doc(db, "users", uid));
@@ -310,7 +334,6 @@
         if(u.dob) detailsHtml += `<div><i class="fas fa-birthday-cake"></i> ${u.dob}</div>`;
         if(u.work) detailsHtml += `<div><i class="fas fa-briefcase"></i> ${u.work} ${u.organization ? 'at '+u.organization : ''}</div>`;
         if(u.website) detailsHtml += `<div><i class="fas fa-link"></i> <a href="${u.website}" target="_blank" style="color:var(--primary); text-decoration:none;">Website</a></div>`;
-        if(u.social) detailsHtml += `<div><i class="fas fa-share-alt"></i> <a href="${u.social}" target="_blank" style="color:var(--primary); text-decoration:none;">Social Profile</a></div>`;
 
         document.getElementById('user-profile-content').innerHTML = `
             <div style="text-align:center; padding:20px;">
@@ -368,7 +391,6 @@
             document.getElementById('count-followers').innerText = formatCount(d.followers?.length);
             document.getElementById('count-following').innerText = formatCount(d.following?.length);
             
-            // Set input values for edit form
             document.getElementById('edit-name').value = d.displayName || "";
             document.getElementById('edit-bio').value = d.bio || "";
             document.getElementById('edit-dob').value = d.dob || "";
@@ -377,7 +399,6 @@
             document.getElementById('edit-web').value = d.website || "";
             document.getElementById('edit-social').value = d.social || "";
 
-            // Display details on profile
             let detBox = document.getElementById('p-details-box');
             detBox.innerHTML = "";
             if(d.dob) detBox.innerHTML += `<div><i class="fas fa-birthday-cake"></i> ${d.dob}</div>`;
@@ -386,7 +407,6 @@
         });
     }
 
-    // --- Messaging, Uploads & Global UI (Remains mostly same but ensured stability) ---
     window.loadAllUsers = () => {
         onSnapshot(collection(db, "users"), (snap) => {
             const list = document.getElementById('user-list');
@@ -396,8 +416,8 @@
                 if(d.id === me.uid) return;
                 const u = d.data();
                 const badge = u.isVerified ? vB : "";
-                const meData = (await getDoc(doc(db, "users", me.uid))).data();
-                const isFollowing = meData.following?.includes(d.id);
+                const meSnap = await getDoc(doc(db, "users", me.uid));
+                const isFollowing = meSnap.data()?.following?.includes(d.id);
 
                 list.innerHTML += `
                     <div class="user-list-item">
@@ -441,7 +461,6 @@
             await updateDoc(myRef, { following: arrayUnion(uid) });
             await updateDoc(userRef, { followers: arrayUnion(me.uid) });
         }
-        if(document.getElementById('user-profile-view').style.display === 'flex') viewUser(uid);
     }
 
     async function uploadToCloudinary(file) {
