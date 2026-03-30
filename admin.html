@@ -28,8 +28,8 @@
 </div>
 
 <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('users')">Users</button>
-    <button class="tab-btn" onclick="switchTab('posts')">Posts</button>
+    <button class="tab-btn active" id="tab-u" onclick="switchTab('users')">Users</button>
+    <button class="tab-btn" id="tab-p" onclick="switchTab('posts')">Posts</button>
 </div>
 
 <div id="users-sec" class="grid"></div>
@@ -51,59 +51,20 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // সংখ্যা ফরম্যাট করার জন্য (1000 -> 1K)
     const formatNum = (num) => {
         if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
         if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
         return num.toString();
     };
 
-    // ডাটা লোড করা
-    function loadAdminData() {
-        // Users
-        onSnapshot(collection(db, "users"), (snap) => {
-            const area = document.getElementById('users-sec'); area.innerHTML = "";
-            snap.forEach(d => {
-                const u = d.data();
-                const card = document.createElement('div');
-                card.className = "card";
-                card.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%;">
-                        <b>${u.displayName}</b>
-                    </div>
-                    <div style="margin-top:15px;">
-                        <input type="number" id="f-${d.id}" placeholder="Enter Follower Count (e.g. 5000)">
-                        <button class="btn btn-boost" onclick="boostFollowers('${d.id}')">Boost Followers</button>
-                        <button class="btn btn-del" onclick="deleteUser('${d.id}')">Delete User</button>
-                    </div>
-                `;
-                area.appendChild(card);
-            });
-        });
+    // ফাংশনগুলোকে window অবজেক্টে সেট করা (যাতে HTML থেকে কল করা যায়)
+    window.switchTab = (tab) => {
+        document.getElementById('users-sec').style.display = tab === 'users' ? 'grid' : 'none';
+        document.getElementById('posts-sec').style.display = tab === 'posts' ? 'grid' : 'none';
+        document.getElementById('tab-u').classList.toggle('active', tab === 'users');
+        document.getElementById('tab-p').classList.toggle('active', tab === 'posts');
+    };
 
-        // Posts
-        onSnapshot(collection(db, "posts"), (snap) => {
-            const area = document.getElementById('posts-sec'); area.innerHTML = "";
-            snap.forEach(d => {
-                const p = d.data();
-                const card = document.createElement('div');
-                card.className = "card";
-                card.innerHTML = `
-                    <p><b>Post by:</b> ${p.authorName}</p>
-                    <p style="font-size:12px; color:gray;">${p.text || '[Image Post]'}</p>
-                    <div style="margin-top:10px;">
-                        <input type="number" id="l-${d.id}" placeholder="Enter Like Count">
-                        <button class="btn btn-boost" onclick="boostLikes('${d.id}')">Boost Likes</button>
-                        <button class="btn btn-del" onclick="deletePost('${d.id}')">Delete Post</button>
-                    </div>
-                `;
-                area.appendChild(card);
-            });
-        });
-    }
-
-    // বুস্ট ফাংশন (অবশ্যই "boost:" যোগ করবে)
     window.boostFollowers = async (id) => {
         const val = document.getElementById(`f-${id}`).value;
         if(!val) return;
@@ -120,17 +81,56 @@
         Swal.fire("Success", "Likes boosted to " + formatted, "success");
     };
 
-    window.deleteUser = async (id) => { if(confirm("Delete this user?")) await deleteDoc(doc(db, "users", id)); };
-    window.deletePost = async (id) => { if(confirm("Delete this post?")) await deleteDoc(doc(db, "posts", id)); };
-
-    window.switchTab = (tab) => {
-        document.getElementById('users-sec').style.display = tab === 'users' ? 'grid' : 'none';
-        document.getElementById('posts-sec').style.display = tab === 'posts' ? 'grid' : 'none';
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
+    window.deleteUser = async (id) => { 
+        const res = await Swal.fire({ title: 'Delete User?', icon: 'warning', showCancelButton: true });
+        if(res.isConfirmed) await deleteDoc(doc(db, "users", id)); 
     };
 
-    loadAdminData();
+    window.deletePost = async (id) => { 
+        const res = await Swal.fire({ title: 'Delete Post?', icon: 'warning', showCancelButton: true });
+        if(res.isConfirmed) await deleteDoc(doc(db, "posts", id)); 
+    };
+
+    // ডাটা লোড করা
+    onSnapshot(collection(db, "users"), (snap) => {
+        const area = document.getElementById('users-sec'); area.innerHTML = "";
+        snap.forEach(d => {
+            const u = d.data();
+            const card = document.createElement('div');
+            card.className = "card";
+            card.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <img src="${u.photoURL || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                    <b>${u.displayName}</b>
+                </div>
+                <div style="margin-top:15px;">
+                    <input type="number" id="f-${d.id}" placeholder="Enter Follower Count">
+                    <button class="btn btn-boost" onclick="boostFollowers('${d.id}')">Boost Followers</button>
+                    <button class="btn btn-del" onclick="deleteUser('${d.id}')">Delete User</button>
+                </div>
+            `;
+            area.appendChild(card);
+        });
+    });
+
+    onSnapshot(collection(db, "posts"), (snap) => {
+        const area = document.getElementById('posts-sec'); area.innerHTML = "";
+        snap.forEach(d => {
+            const p = d.data();
+            const card = document.createElement('div');
+            card.className = "card";
+            card.innerHTML = `
+                <p><b>Post by:</b> ${p.authorName}</p>
+                <p style="font-size:12px; color:gray;">${p.text || '[Image Post]'}</p>
+                <div style="margin-top:10px;">
+                    <input type="number" id="l-${d.id}" placeholder="Enter Like Count">
+                    <button class="btn btn-boost" onclick="boostLikes('${d.id}')">Boost Likes</button>
+                    <button class="btn btn-del" onclick="deletePost('${d.id}')">Delete Post</button>
+                </div>
+            `;
+            area.appendChild(card);
+        });
+    });
 </script>
 </body>
 </html>
