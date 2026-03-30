@@ -42,7 +42,7 @@
         .btn-boost { background: var(--success); color: white; }
 
         .input-group { margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
-        input[type="number"] { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px; width: 80px; border-radius: 5px; }
+        input[type="number"] { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px; width: 80px; border-radius: 5px; outline: none;}
         .post-img { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 200px; object-fit: cover; }
     </style>
 </head>
@@ -73,8 +73,8 @@
 </div>
 
 <div class="tabs">
-    <button class="tab-btn active" id="btn-u" onclick="showTab('users')">Users</button>
-    <button class="tab-btn" id="btn-p" onclick="showTab('posts')">Posts</button>
+    <button class="tab-btn active" id="btn-u">Users</button>
+    <button class="tab-btn" id="btn-p">Posts</button>
 </div>
 
 <div id="users-section">
@@ -103,12 +103,13 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // --- Utility: Format Numbers (60K, 1M) ---
+    // Number Formatting (60K, 1M)
     function formatNumbers(num) {
-        if (!num) return 0;
-        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return num;
+        if (!num) return "0";
+        let n = Number(num);
+        if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+        if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+        return n.toString();
     }
 
     onAuthStateChanged(auth, (user) => {
@@ -120,24 +121,25 @@
     });
 
     async function initAdmin() {
-        // Load Global V-Badge Status
+        // Global V-Badge Logic
         const vRef = doc(db, "settings", "global_config");
         const vSnap = await getDoc(vRef);
+        const vSwitch = document.getElementById('global-v-switch');
+        
         if (vSnap.exists()) {
-            const status = vSnap.data().vBadgeVisible;
-            document.getElementById('global-v-switch').checked = status;
-            document.getElementById('v-status-text').innerText = status ? "ON" : "OFF";
+            const isEnabled = vSnap.data().vBadgeVisible;
+            vSwitch.checked = isEnabled;
+            document.getElementById('v-status-text').innerText = isEnabled ? "ON" : "OFF";
         }
 
-        // Global V-Badge Toggle listener
-        document.getElementById('global-v-switch').addEventListener('change', async (e) => {
+        vSwitch.addEventListener('change', async (e) => {
             const isEnabled = e.target.checked;
             await setDoc(vRef, { vBadgeVisible: isEnabled }, { merge: true });
             document.getElementById('v-status-text').innerText = isEnabled ? "ON" : "OFF";
-            Swal.fire("Success", "Global V-Badge visibility updated!", "success");
+            Swal.fire("Success", "Global V-Badge " + (isEnabled ? "Enabled" : "Disabled"), "success");
         });
 
-        // Track Online Users
+        // Online Counter (Using 'status' collection)
         onSnapshot(collection(db, "status"), (snap) => {
             document.getElementById('online-count').innerText = snap.size;
         });
@@ -146,14 +148,15 @@
     }
 
     function loadData() {
-        // Users
+        // Users List
         onSnapshot(collection(db, "users"), (snap) => {
             document.getElementById('total-users-count').innerText = snap.size;
             const userList = document.getElementById('user-list');
             userList.innerHTML = "";
             snap.forEach(d => {
                 const u = d.data();
-                const fCount = u.followerCount || (Array.isArray(u.followers) ? u.followers.length : 0);
+                // Logic: check for followerCount (number) or followers (array)
+                const fCount = u.followerCount !== undefined ? u.followerCount : (Array.isArray(u.followers) ? u.followers.length : 0);
                 
                 const card = document.createElement('div');
                 card.className = "card";
@@ -166,26 +169,31 @@
                         </div>
                     </div>
                     <div class="controls">
-                        <button class="btn btn-v" onclick="toggleV('${d.id}', ${u.isVerified})">${u.isVerified ? 'Unverify' : 'Verify'}</button>
-                        <button class="btn btn-del" onclick="deleteAcc('${d.id}')">Delete</button>
+                        <button class="btn btn-v" id="vbtn-${d.id}">${u.isVerified ? 'Remove V' : 'Give V'}</button>
+                        <button class="btn btn-del" id="dbtn-${d.id}">Delete</button>
                     </div>
                     <div class="input-group">
                         <small>Followers: <b>${formatNumbers(fCount)}</b></small>
                         <input type="number" id="f-${d.id}" placeholder="New">
-                        <button class="btn btn-boost" onclick="setFollowers('${d.id}')">Set</button>
+                        <button class="btn btn-boost" id="bbtn-${d.id}">Set</button>
                     </div>
                 `;
                 userList.appendChild(card);
+
+                // Add Event Listeners for Module Functions
+                document.getElementById(`vbtn-${d.id}`).onclick = () => toggleV(d.id, u.isVerified);
+                document.getElementById(`dbtn-${d.id}`).onclick = () => deleteAcc(d.id);
+                document.getElementById(`bbtn-${d.id}`).onclick = () => setFollowers(d.id);
             });
         });
 
-        // Posts
+        // Posts List
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
             const postList = document.getElementById('post-list');
             postList.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
-                const lCount = p.likeCount || (Array.isArray(p.likes) ? p.likes.length : 0);
+                const lCount = p.likeCount !== undefined ? p.likeCount : (Array.isArray(p.likes) ? p.likes.length : 0);
                 const card = document.createElement('div');
                 card.className = "card";
                 card.innerHTML = `
@@ -195,49 +203,61 @@
                     <div class="input-group">
                         <small>Likes: <b>${formatNumbers(lCount)}</b></small>
                         <input type="number" id="l-${d.id}" placeholder="Set">
-                        <button class="btn btn-boost" onclick="setLikes('${d.id}')">Set</button>
+                        <button class="btn btn-boost" id="lbtn-${d.id}">Set</button>
                     </div>
-                    <button class="btn btn-del" style="width:100%; margin-top:10px;" onclick="deletePost('${d.id}')">Delete Post</button>
+                    <button class="btn btn-del" style="width:100%; margin-top:10px;" id="dpbtn-${d.id}">Delete Post</button>
                 `;
                 postList.appendChild(card);
+                
+                document.getElementById(`lbtn-${d.id}`).onclick = () => setLikes(d.id);
+                document.getElementById(`dpbtn-${d.id}`).onclick = () => deletePost(d.id);
             });
         });
     }
 
-    // --- Functions for Buttons ---
-    window.setFollowers = async (uid) => {
+    // --- Core Functions ---
+    async function setFollowers(uid) {
         const val = parseInt(document.getElementById(`f-${uid}`).value);
         if(isNaN(val)) return;
-        // Directly set number to avoid array issues
-        await updateDoc(doc(db, "users", uid), { followerCount: val });
-        Swal.fire("Updated", "Follower count set to " + val, "success");
-    };
+        await updateDoc(doc(db, "users", uid), { 
+            followerCount: val,
+            followers: [] // Reset array to prevent confusion
+        });
+        Swal.fire("Done", "Followers set to " + val, "success");
+    }
 
-    window.setLikes = async (pid) => {
+    async function setLikes(pid) {
         const val = parseInt(document.getElementById(`l-${pid}`).value);
         if(isNaN(val)) return;
-        await updateDoc(doc(db, "posts", pid), { likeCount: val });
-        Swal.fire("Updated", "Like count set to " + val, "success");
-    };
+        await updateDoc(doc(db, "posts", pid), { 
+            likeCount: val,
+            likes: [] 
+        });
+        Swal.fire("Done", "Likes set to " + val, "success");
+    }
 
-    window.toggleV = async (uid, status) => {
+    async function toggleV(uid, status) {
         await updateDoc(doc(db, "users", uid), { isVerified: !status });
-    };
+    }
 
-    window.deleteAcc = async (uid) => {
+    async function deleteAcc(uid) {
         if(confirm("Delete User?")) await deleteDoc(doc(db, "users", uid));
-    };
+    }
 
-    window.deletePost = async (pid) => {
+    async function deletePost(pid) {
         if(confirm("Delete Post?")) await deleteDoc(doc(db, "posts", pid));
-    };
+    }
 
-    window.showTab = (tab) => {
+    // Tab Switch Logic
+    document.getElementById('btn-u').onclick = () => showTab('users');
+    document.getElementById('btn-p').onclick = () => showTab('posts');
+
+    function showTab(tab) {
         document.getElementById('users-section').style.display = tab === 'users' ? 'block' : 'none';
         document.getElementById('posts-section').style.display = tab === 'posts' ? 'block' : 'none';
         document.getElementById('btn-u').classList.toggle('active', tab === 'users');
         document.getElementById('btn-p').classList.toggle('active', tab === 'posts');
-    };
+    }
 </script>
 </body>
 </html>
