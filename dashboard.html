@@ -80,8 +80,6 @@
             <div><b id="count-following">0</b><br><small>Following</small></div>
         </div>
         
-        <div id="p-info-display" style="text-align:left; font-size:13px; color:#ccc; padding:10px;"></div>
-
         <div style="display:flex; gap:10px;">
             <button class="btn-main" style="background:#262626;" onclick="toggleEdit()">Edit Profile</button>
             <button class="btn-main" style="background:#262626; width:50px;" onclick="shareMyProfile()"><i class="fas fa-share-alt"></i></button>
@@ -90,11 +88,6 @@
         <div id="edit-form" style="display:none; margin-top:15px; text-align:left;">
             <input type="text" id="edit-name" placeholder="Full Name">
             <input type="text" id="edit-bio" placeholder="Bio">
-            <input type="text" id="edit-edu" placeholder="Education">
-            <input type="text" id="edit-work" placeholder="Work">
-            <input type="date" id="edit-dob" title="Date of Birth">
-            <input type="text" id="edit-web" placeholder="Website URL (https://...)">
-            <input type="text" id="edit-social" placeholder="Social Media URL">
             <button class="btn-main" onclick="saveProfile()">Save Changes</button>
         </div>
     </div>
@@ -159,17 +152,37 @@
     let activeChatID = null;
     const vB = ` <i class="fas fa-check-circle v-badge"></i>`;
 
+    // --- SMART COUNT LOGIC ---
+    // এটি চেক করে যে ডেটাটি অ্যারে নাকি সরাসরি টেক্সট (যেমন 1M, 1K)
+    function smartCount(data) {
+        if (!data) return "0";
+        if (Array.isArray(data)) return data.length; // যদি সাধারণ ইউজার হয়
+        return data; // যদি অ্যাডমিন প্যানেল থেকে পাঠানো '1M' বা '500K' হয়
+    }
+
     onAuthStateChanged(auth, async (user) => {
-        if (user) { me = user; init(); } 
-        else { window.location.href = "index.html"; }
+        if (user) { 
+            me = user;
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            if (!snap.exists()) {
+                await setDoc(userRef, {
+                    displayName: user.displayName || "New User",
+                    photoURL: user.photoURL || "https://via.placeholder.com/90",
+                    bio: "Welcome to my profile!",
+                    followers: [],
+                    following: [],
+                    uid: user.uid,
+                    timestamp: serverTimestamp()
+                });
+                location.reload(); 
+                return; 
+            }
+            init(); 
+        } else { window.location.href = "index.html"; }
     });
 
-    function init() {
-        loadMyProfile();
-        loadFeed();
-        loadAllUsers();
-        loadMyPosts();
-    }
+    function init() { loadMyProfile(); loadFeed(); loadAllUsers(); loadMyPosts(); }
 
     function timeAgo(timestamp) {
         if(!timestamp) return "...";
@@ -180,9 +193,8 @@
         return timestamp.toDate().toLocaleDateString();
     }
 
-    // --- Core UI Functions ---
     function renderPost(p, id, target, isDetail = false) {
-        const isLiked = p.likes?.includes(me.uid);
+        const isLiked = Array.isArray(p.likes) && p.likes.includes(me.uid);
         const div = document.createElement('div');
         div.className = "post-card";
         div.innerHTML = `
@@ -199,24 +211,17 @@
             </div>
             <div class="post-time">${timeAgo(p.timestamp)}</div>
             <div style="padding:5px 15px; font-size:14px;">
-                <b class="likes-count">${p.likes?.length || 0} likes</b><br>
+                <b class="likes-count">${smartCount(p.likes)} likes</b><br>
                 <b>${p.authorName}</b> ${p.text}
             </div>
         `;
-
-        // Double Click Like Logic
         const imgEl = div.querySelector('.main-img');
         if(imgEl) imgEl.ondblclick = () => toggleLike(id, isLiked);
-
-        // Menu Logic
         const menuBtn = div.querySelector('.post-menu-trigger');
         if(menuBtn) menuBtn.onclick = (e) => { e.stopPropagation(); postMenu(id, p.text); };
-
-        // Buttons
         div.querySelector('.like-btn').onclick = () => toggleLike(id, isLiked);
         div.querySelector('.comment-btn').onclick = () => showComments(id);
         div.querySelector('.share-btn').onclick = () => sharePost(id);
-
         target.appendChild(div);
     }
 
@@ -239,18 +244,6 @@
             if(res.isConfirmed) await deleteDoc(doc(db, "posts", postId));
         }
     }
-
-    // --- Profile Post Fetcher ---
-    window.viewSinglePost = (id) => {
-        const view = document.getElementById('post-detail-view');
-        const content = document.getElementById('post-detail-content');
-        view.style.display = 'flex';
-        onSnapshot(doc(db, "posts", id), (snap) => {
-            if(!snap.exists()) { view.style.display='none'; return; }
-            content.innerHTML = "";
-            renderPost(snap.data(), id, content, true);
-        });
-    };
 
     function loadFeed() {
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
@@ -278,7 +271,7 @@
         const uSnap = await getDoc(doc(db, "users", uid));
         const u = uSnap.data();
         const meSnap = await getDoc(doc(db, "users", me.uid));
-        const isFollowing = meSnap.data().following?.includes(uid);
+        const isFollowing = Array.isArray(meSnap.data().following) && meSnap.data().following.includes(uid);
 
         const view = document.getElementById('user-profile-view');
         view.style.display = 'flex';
@@ -288,8 +281,8 @@
                 <h3>${u.displayName}${vB}</h3>
                 <p style="color:gray;">${u.bio || ''}</p>
                 <div style="display:flex; justify-content:center; gap:20px; margin:15px;">
-                    <b>${u.followers?.length || 0} <br><small>Followers</small></b>
-                    <b>${u.following?.length || 0} <br><small>Following</small></b>
+                    <b>${smartCount(u.followers)} <br><small>Followers</small></b>
+                    <b>${smartCount(u.following)} <br><small>Following</small></b>
                 </div>
                 <div style="display:flex; gap:10px; padding:0 15px;">
                     <button class="btn-main flw-btn">${isFollowing?'Unfollow':'Follow'}</button>
@@ -305,12 +298,25 @@
             snap.forEach(d => {
                 const item = document.createElement('div');
                 item.className = "grid-item";
-                item.onclick = () => viewSinglePost(d.id); // অন্যের পোস্টে ক্লিক করলে ডিটেইলস দেখাবে
+                item.onclick = () => viewSinglePost(d.id);
                 item.innerHTML = d.data().img ? `<img src="${d.data().img}">` : `<div style="padding:10px;">${d.data().text}</div>`;
                 grid.appendChild(item);
             });
         });
     };
+
+    function loadMyProfile() {
+        onSnapshot(doc(db, "users", me.uid), (snap) => {
+            const d = snap.data(); if(!d) return;
+            document.getElementById('p-name').innerHTML = d.displayName + vB;
+            document.getElementById('p-img').src = d.photoURL || "https://via.placeholder.com/90";
+            document.getElementById('p-bio').innerText = d.bio || "";
+            document.getElementById('count-followers').innerText = smartCount(d.followers);
+            document.getElementById('count-following').innerText = smartCount(d.following);
+            document.getElementById('edit-name').value = d.displayName || "";
+            document.getElementById('edit-bio').value = d.bio || "";
+        });
+    }
 
     // --- Global Exposed ---
     window.showSec = (id) => {
@@ -378,30 +384,12 @@
     window.saveProfile = async () => {
         const data = {
             displayName: document.getElementById('edit-name').value,
-            bio: document.getElementById('edit-bio').value,
-            education: document.getElementById('edit-edu').value,
-            work: document.getElementById('edit-work').value,
-            dob: document.getElementById('edit-dob').value,
-            website: document.getElementById('edit-web').value,
-            social: document.getElementById('edit-social').value
+            bio: document.getElementById('edit-bio').value
         };
         await updateDoc(doc(db, "users", me.uid), data);
         await updateProfile(auth.currentUser, { displayName: data.displayName });
         toggleEdit();
     };
-
-    function loadMyProfile() {
-        onSnapshot(doc(db, "users", me.uid), (snap) => {
-            const d = snap.data(); if(!d) return;
-            document.getElementById('p-name').innerHTML = d.displayName + vB;
-            document.getElementById('p-img').src = d.photoURL || "https://via.placeholder.com/90";
-            document.getElementById('p-bio').innerText = d.bio || "";
-            document.getElementById('count-followers').innerText = d.followers?.length || 0;
-            document.getElementById('count-following').innerText = d.following?.length || 0;
-            document.getElementById('edit-name').value = d.displayName || "";
-            document.getElementById('edit-bio').value = d.bio || "";
-        });
-    }
 
     window.loadAllUsers = () => {
         onSnapshot(collection(db, "users"), (snap) => {
@@ -462,38 +450,18 @@
         }
         viewUser(uid);
     }
-
-    onAuthStateChanged(auth, async (user) => {
-    if (user) { 
-        me = user;
-
-        // --- নতুন ইউজার চেক এবং প্রোফাইল তৈরি (এই অংশটুকু যোগ করুন) ---
-        const userRef = doc(db, "users", user.uid);
-        const snap = await getDoc(userRef);
-        
-        if (!snap.exists()) {
-            // যদি ডাটাবেসে প্রোফাইল না থাকে, তবে নতুন তৈরি হবে
-            await setDoc(userRef, {
-                displayName: user.displayName || "New User",
-                photoURL: user.photoURL || "https://via.placeholder.com/90",
-                bio: "Welcome to my profile!",
-                followers: [],
-                following: [],
-                uid: user.uid,
-                timestamp: serverTimestamp()
-            });
-            // পেজটি একবার রিলোড হতে পারে যাতে নতুন ডাটা ঠিকমতো লোড হয়
-            location.reload(); 
-            return; 
-        }
-        // -------------------------------------------------------
-
-        init(); 
-    } else { 
-        window.location.href = "index.html"; 
-    }
-});
     
+    window.viewSinglePost = (id) => {
+        const view = document.getElementById('post-detail-view');
+        const content = document.getElementById('post-detail-content');
+        view.style.display = 'flex';
+        onSnapshot(doc(db, "posts", id), (snap) => {
+            if(!snap.exists()) { view.style.display='none'; return; }
+            content.innerHTML = "";
+            renderPost(snap.data(), id, content, true);
+        });
+    };
+
 </script>
 </body>
 </html>
