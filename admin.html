@@ -1,3 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meetwoyou - Admin Master Control</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #7c3aed; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --danger: #ef4444; --success: #22c55e; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        
+        /* Stats Dashboard */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .stat-card h3 { margin: 0; font-size: 14px; color: #94a3b8; }
+        .stat-card p { margin: 10px 0; font-size: 24px; font-weight: bold; }
+
+        /* V-Badge Switch */
+        .switch { position: relative; display: inline-block; width: 45px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(23px); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { background: var(--primary); }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .user-info img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--primary); }
+        .badge-v { color: #0ea5e9; margin-left: 5px; }
+        
+        .controls { display: flex; gap: 8px; margin-top: 15px; }
+        .btn { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; flex: 1; }
+        .btn-v { background: #0ea5e9; color: white; }
+        .btn-del { background: var(--danger); color: white; }
+        .btn-boost { background: var(--success); color: white; }
+
+        .input-group { margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
+        input[type="number"] { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px; width: 80px; border-radius: 5px; }
+        .post-img { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 200px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><i class="fas fa-user-shield"></i> Admin Panel</h1>
+    <button class="tab-btn" onclick="location.href='dashboard.html'" style="background:var(--danger)">Exit</button>
+</div>
+
 <div class="stats-grid">
     <div class="stat-card">
         <h3>TOTAL USERS</h3>
@@ -10,83 +65,179 @@
     <div class="stat-card">
         <h3>GLOBAL V-BADGE</h3>
         <label class="switch">
-            <input type="checkbox" id="global-v-switch" onclick="toggleGlobalV()">
+            <input type="checkbox" id="global-v-switch">
             <span class="slider"></span>
         </label>
-        <small id="v-status-text">OFF</small>
+        <p id="v-status-text" style="font-size: 12px; margin-top: 5px;">OFF</p>
     </div>
+</div>
+
+<div class="tabs">
+    <button class="tab-btn active" id="btn-u" onclick="showTab('users')">Users</button>
+    <button class="tab-btn" id="btn-p" onclick="showTab('posts')">Posts</button>
+</div>
+
+<div id="users-section">
+    <div class="grid" id="user-list"></div>
+</div>
+
+<div id="posts-section" style="display:none;">
+    <div class="grid" id="post-list"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- Utility Function: Number Formatting (e.g., 50k, 1M) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
+        authDomain: "meetwoyou-436a2.firebaseapp.com",
+        projectId: "meetwoyou-436a2",
+        storageBucket: "meetwoyou-436a2.firebasestorage.app",
+        messagingSenderId: "612788132077",
+        appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // --- Utility: Format Numbers (60K, 1M) ---
     function formatNumbers(num) {
+        if (!num) return 0;
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
         if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
         return num;
     }
 
-    // --- Loading Delay Fix & Online Counter ---
-    // User active thakle 'status' collection-e update korbe (Dashboard/Home page-e thakbe)
-    function trackOnlineUsers() {
+    onAuthStateChanged(auth, (user) => {
+        if (!user || user.email !== "admin@meetwoyou.com") {
+            window.location.href = "index.html";
+        } else {
+            initAdmin();
+        }
+    });
+
+    async function initAdmin() {
+        // Load Global V-Badge Status
+        const vRef = doc(db, "settings", "global_config");
+        const vSnap = await getDoc(vRef);
+        if (vSnap.exists()) {
+            const status = vSnap.data().vBadgeVisible;
+            document.getElementById('global-v-switch').checked = status;
+            document.getElementById('v-status-text').innerText = status ? "ON" : "OFF";
+        }
+
+        // Global V-Badge Toggle listener
+        document.getElementById('global-v-switch').addEventListener('change', async (e) => {
+            const isEnabled = e.target.checked;
+            await setDoc(vRef, { vBadgeVisible: isEnabled }, { merge: true });
+            document.getElementById('v-status-text').innerText = isEnabled ? "ON" : "OFF";
+            Swal.fire("Success", "Global V-Badge visibility updated!", "success");
+        });
+
+        // Track Online Users
         onSnapshot(collection(db, "status"), (snap) => {
             document.getElementById('online-count').innerText = snap.size;
         });
+
+        loadData();
     }
 
-    // --- Global V-Badge System ---
-    // Settings name-e ekta special doc create hobe database-e
-    window.toggleGlobalV = async () => {
-        const isEnabled = document.getElementById('global-v-switch').checked;
-        await setDoc(doc(db, "settings", "global_config"), { vBadgeVisible: isEnabled }, { merge: true });
-        document.getElementById('v-status-text').innerText = isEnabled ? "ON" : "OFF";
-    };
-
-    // --- Follower Boost Fix (Prevents resetting to 1) ---
-    window.setFollowers = async (uid) => {
-        const inputVal = parseInt(document.getElementById(`f-${uid}`).value);
-        if(isNaN(inputVal)) return;
-
-        try {
-            // Ekhane array use na kore directly 'followerCount' field update kora hobe
-            // Jate user follow korle updateDoc(..., { followerCount: increment(1) }) kaj kore
-            await updateDoc(doc(db, "users", uid), { 
-                followerCount: inputVal,
-                boosted: true // Ei flag thakle system bujhbe eta manually set
-            });
-            Swal.fire("Success", `Followers set to ${formatNumbers(inputVal)}`, "success");
-        } catch(e) { console.error(e); }
-    };
-
-    // --- Load Data with Formatting ---
     function loadData() {
+        // Users
         onSnapshot(collection(db, "users"), (snap) => {
+            document.getElementById('total-users-count').innerText = snap.size;
             const userList = document.getElementById('user-list');
             userList.innerHTML = "";
             snap.forEach(d => {
                 const u = d.data();
-                // Check if it's array or number
-                const count = u.followerCount || (Array.isArray(u.followers) ? u.followers.length : 0);
+                const fCount = u.followerCount || (Array.isArray(u.followers) ? u.followers.length : 0);
                 
                 const card = document.createElement('div');
+                card.className = "card";
                 card.innerHTML = `
+                    <div class="user-info">
+                        <img src="${u.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}">
+                        <div>
+                            <div style="font-weight:bold">${u.displayName} ${u.isVerified ? '<i class="fas fa-check-circle badge-v"></i>' : ''}</div>
+                            <small style="color:#94a3b8">${u.email}</small>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-v" onclick="toggleV('${d.id}', ${u.isVerified})">${u.isVerified ? 'Unverify' : 'Verify'}</button>
+                        <button class="btn btn-del" onclick="deleteAcc('${d.id}')">Delete</button>
+                    </div>
                     <div class="input-group">
-                        <span>Followers: ${formatNumbers(count)}</span>
-                        <input type="number" id="f-${d.id}" placeholder="Set New">
-                        <button onclick="setFollowers('${d.id}')">Boost</button>
+                        <small>Followers: <b>${formatNumbers(fCount)}</b></small>
+                        <input type="number" id="f-${d.id}" placeholder="New">
+                        <button class="btn btn-boost" onclick="setFollowers('${d.id}')">Set</button>
                     </div>
                 `;
                 userList.appendChild(card);
             });
         });
-    }
-</script>
 
-<style>
-    /* CSS for Switch */
-    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-    .slider { position: absolute; cursor: pointer; background: #ccc; border-radius: 34px; width: 100%; height: 100%; transition: .4s; }
-    input:checked + .slider { background: var(--success); }
-</style>
+        // Posts
+        onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
+            const postList = document.getElementById('post-list');
+            postList.innerHTML = "";
+            snap.forEach(d => {
+                const p = d.data();
+                const lCount = p.likeCount || (Array.isArray(p.likes) ? p.likes.length : 0);
+                const card = document.createElement('div');
+                card.className = "card";
+                card.innerHTML = `
+                    <div style="font-size:14px;"><b>${p.authorName}</b></div>
+                    <div style="font-size:12px; padding:10px; background:#0f172a; border-radius:5px; margin:10px 0;">${p.text || ''}</div>
+                    ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
+                    <div class="input-group">
+                        <small>Likes: <b>${formatNumbers(lCount)}</b></small>
+                        <input type="number" id="l-${d.id}" placeholder="Set">
+                        <button class="btn btn-boost" onclick="setLikes('${d.id}')">Set</button>
+                    </div>
+                    <button class="btn btn-del" style="width:100%; margin-top:10px;" onclick="deletePost('${d.id}')">Delete Post</button>
+                `;
+                postList.appendChild(card);
+            });
+        });
+    }
+
+    // --- Functions for Buttons ---
+    window.setFollowers = async (uid) => {
+        const val = parseInt(document.getElementById(`f-${uid}`).value);
+        if(isNaN(val)) return;
+        // Directly set number to avoid array issues
+        await updateDoc(doc(db, "users", uid), { followerCount: val });
+        Swal.fire("Updated", "Follower count set to " + val, "success");
+    };
+
+    window.setLikes = async (pid) => {
+        const val = parseInt(document.getElementById(`l-${pid}`).value);
+        if(isNaN(val)) return;
+        await updateDoc(doc(db, "posts", pid), { likeCount: val });
+        Swal.fire("Updated", "Like count set to " + val, "success");
+    };
+
+    window.toggleV = async (uid, status) => {
+        await updateDoc(doc(db, "users", uid), { isVerified: !status });
+    };
+
+    window.deleteAcc = async (uid) => {
+        if(confirm("Delete User?")) await deleteDoc(doc(db, "users", uid));
+    };
+
+    window.deletePost = async (pid) => {
+        if(confirm("Delete Post?")) await deleteDoc(doc(db, "posts", pid));
+    };
+
+    window.showTab = (tab) => {
+        document.getElementById('users-section').style.display = tab === 'users' ? 'block' : 'none';
+        document.getElementById('posts-section').style.display = tab === 'posts' ? 'block' : 'none';
+        document.getElementById('btn-u').classList.toggle('active', tab === 'users');
+        document.getElementById('btn-p').classList.toggle('active', tab === 'posts');
+    };
+</script>
+</body>
+</html>
