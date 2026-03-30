@@ -3,50 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel | Meetwoyou</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Meetwoyou - Admin Authority (Super Fast)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --primary: #8b5cf6; --bg: #05070a; --card: #11141d; --text: #ffffff; --dim: #94a3b8; --danger: #ff4d4d; --input: #1b202b; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-        .container { max-width: 1000px; margin: auto; }
-        .header { background: var(--card); padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        .stats { display: flex; gap: 15px; margin-bottom: 20px; }
-        .stat-box { flex: 1; background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.03); }
-        .stat-box h2 { margin: 0; color: var(--primary); font-size: 24px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .u-info { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-        .u-info img { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; }
-        input { background: var(--input); border: 1px solid #2d3748; color: white; padding: 10px; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
-        .btn { width: 100%; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-up { background: var(--primary); color: white; margin-bottom: 5px; }
-        .btn-del { background: rgba(255,77,77,0.1); color: var(--danger); font-size: 12px; }
-        /* Debug Console Style */
-        #debug-log { background: #000; color: #0f0; font-family: monospace; padding: 10px; font-size: 10px; border-radius: 5px; margin-bottom: 10px; max-height: 100px; overflow-y: auto; display: none; }
+        :root { --primary: #7c3aed; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --danger: #ef4444; --success: #22c55e; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { background: var(--primary); box-shadow: 0 0 15px rgba(124, 58, 237, 0.4); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .user-info img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--primary); }
+        .badge-v { color: #0095f6; margin-left: 5px; }
+        .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .btn { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
+        .btn-v { background: #0ea5e9; color: white; }
+        .btn-del { background: var(--danger); color: white; }
+        .btn-boost { background: var(--success); color: white; }
+        .input-group { margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
+        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px 8px; width: 120px; border-radius: 5px; outline: none; }
+        .post-img { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 200px; object-fit: cover; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="debug-log">System Initializing...</div>
+<div class="header">
+    <h1><i class="fas fa-unlock-alt"></i> Admin Panel</h1>
+    <button class="tab-btn" onclick="location.href='dashboard.html'" style="background:#ef4444">Exit Admin</button>
+</div>
 
-    <div class="header">
-        <h3 style="margin:0">Meetwoyou Admin</h3>
-        <button onclick="location.href='dashboard.html'" style="background:#2d3748; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;">Dashboard</button>
-    </div>
+<div class="tabs">
+    <button class="tab-btn active" id="btn-u" onclick="showTab('users')"><i class="fas fa-users"></i> Users</button>
+    <button class="tab-btn" id="btn-p" onclick="showTab('posts')"><i class="fas fa-stream"></i> Posts</button>
+</div>
 
-    <div class="stats">
-        <div class="stat-box"><h2 id="u-total">0</h2><small>Users</small></div>
-        <div class="stat-box"><h2 id="p-total">0</h2><small>Posts</small></div>
-    </div>
+<div id="users-section" class="tab-content">
+    <div class="grid" id="user-list"></div>
+</div>
 
-    <div id="user-list" class="grid"></div>
+<div id="posts-section" class="tab-content" style="display:none;">
+    <div class="grid" id="post-list"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -57,63 +62,132 @@
         appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
     };
 
-    const log = (msg) => { 
-        const d = document.getElementById('debug-log');
-        d.style.display = 'block';
-        d.innerHTML += `<br>> ${msg}`;
-    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    try {
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        log("Firebase Connected.");
+    onAuthStateChanged(auth, (user) => {
+        if (!user || user.email !== "admin@meetwoyou.com") {
+            Swal.fire("Access Denied", "Only Admin can access this page!", "error");
+            setTimeout(() => window.location.href = "index.html", 2000);
+        } else {
+            loadData();
+        }
+    });
 
-        // Functions
-        window.boostU = async (id) => {
-            const val = document.getElementById(`in-${id}`).value;
-            if(!val) return;
-            await updateDoc(doc(db, "users", id), { followers: "boost:" + val + "K" });
-            Swal.fire({title: 'Success!', icon: 'success', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false});
-        };
-
-        window.delU = async (id) => {
-            if(confirm("Delete User?")) await deleteDoc(doc(db, "users", id));
-        };
-
-        // Real-time listener with Error Catching
+    function loadData() {
         onSnapshot(collection(db, "users"), (snap) => {
-            log(`Data Received: ${snap.size} users found.`);
-            document.getElementById('u-total').innerText = snap.size;
-            const area = document.getElementById('user-list');
-            area.innerHTML = "";
-
-            if(snap.empty) {
-                area.innerHTML = "<p style='text-align:center; width:100%'>No users found in Database.</p>";
-            }
-
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = "";
             snap.forEach(d => {
                 const u = d.data();
+                // Followers Count logic
+                const fCount = u.followers ? (Array.isArray(u.followers) ? u.followers.length : u.followers) : 0;
+                
                 const card = document.createElement('div');
                 card.className = "card";
                 card.innerHTML = `
-                    <div class="u-info">
-                        <img src="${u.photoURL || 'https://via.placeholder.com/50'}">
-                        <b>${u.displayName || 'No Name'}</b>
+                    <div class="user-info">
+                        <img src="${u.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}">
+                        <div>
+                            <div style="font-weight:bold">${u.displayName} ${u.isVerified ? '<i class="fas fa-check-circle badge-v"></i>' : ''}</div>
+                            <small style="color:#94a3b8">${u.email}</small>
+                        </div>
                     </div>
-                    <input type="number" id="in-${d.id}" placeholder="Followers (e.g. 10)">
-                    <button class="btn btn-up" onclick="window.boostU('${d.id}')">Boost Followers</button>
-                    <button class="btn btn-del" onclick="window.delU('${d.id}')">Delete User</button>
+                    <div class="controls">
+                        <button class="btn btn-v" onclick="toggleV('${d.id}', ${u.isVerified})">${u.isVerified ? 'Remove V' : 'Give V'}</button>
+                        <button class="btn btn-del" onclick="deleteAcc('${d.id}')">Delete</button>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-user-plus"></i> Followers: 
+                        <input type="number" id="f-${d.id}" value="${fCount}">
+                        <button class="btn btn-boost" onclick="setFollowers('${d.id}')">Update</button>
+                    </div>
                 `;
-                area.appendChild(card);
+                userList.appendChild(card);
             });
-        }, (err) => {
-            log(`CRITICAL ERROR: ${err.message}`);
-            console.error(err);
         });
 
-    } catch (e) {
-        log(`Init Error: ${e.message}`);
+        onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
+            const postList = document.getElementById('post-list');
+            postList.innerHTML = "";
+            snap.forEach(d => {
+                const p = d.data();
+                const lCount = p.likes ? (Array.isArray(p.likes) ? p.likes.length : p.likes) : 0;
+                const card = document.createElement('div');
+                card.className = "card";
+                card.innerHTML = `
+                    <div style="font-size:14px;"><b>${p.authorName}</b></div>
+                    <div style="background:#0f172a; padding:10px; border-radius:8px; margin:10px 0; font-size:13px">${p.text || ''}</div>
+                    ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
+                    <div class="input-group">
+                        <i class="fas fa-heart"></i> Likes: 
+                        <input type="number" id="l-${d.id}" value="${lCount}">
+                        <button class="btn btn-boost" onclick="setLikes('${d.id}')">Set</button>
+                    </div>
+                    <button class="btn btn-del" style="width:100%; margin-top:10px;" onclick="deletePost('${d.id}')">Delete Post</button>
+                `;
+                postList.appendChild(card);
+            });
+        });
     }
+
+    // --- Optimized Boost Functions ---
+
+    window.setFollowers = async (uid) => {
+        const count = parseInt(document.getElementById(`f-${uid}`).value);
+        if(isNaN(count)) return;
+        
+        try {
+            // যদি সংখ্যা ৫০ হাজারের কম হয় তবে অ্যারে পাঠাবে, বেশি হলে সরাসরি নাম্বার পাঠাবে
+            if (count < 50000) {
+                const fakeArray = new Array(count).fill("boost");
+                await updateDoc(doc(db, "users", uid), { followers: fakeArray });
+            } else {
+                // সরাসরি নাম্বার পাঠানো (এতে সাইট স্লো হবে না)
+                await updateDoc(doc(db, "users", uid), { followers: count });
+            }
+            Swal.fire("Done", "Followers Updated!", "success");
+        } catch(e) {
+            Swal.fire("Error", "Something went wrong", "error");
+        }
+    };
+
+    window.setLikes = async (pid) => {
+        const count = parseInt(document.getElementById(`l-${pid}`).value);
+        if(isNaN(count)) return;
+
+        try {
+            if (count < 50000) {
+                const fakeArray = new Array(count).fill("boost");
+                await updateDoc(doc(db, "posts", pid), { likes: fakeArray });
+            } else {
+                await updateDoc(doc(db, "posts", pid), { likes: count });
+            }
+            Swal.fire("Done", "Likes Updated!", "success");
+        } catch(e) {
+            Swal.fire("Error", "Something went wrong", "error");
+        }
+    };
+
+    window.toggleV = async (uid, status) => {
+        await updateDoc(doc(db, "users", uid), { isVerified: !status });
+    };
+
+    window.deleteAcc = async (uid) => {
+        if(confirm("Delete User?")) await deleteDoc(doc(db, "users", uid));
+    };
+
+    window.deletePost = async (pid) => {
+        if(confirm("Delete Post?")) await deleteDoc(doc(db, "posts", pid));
+    };
+
+    window.showTab = (tab) => {
+        document.getElementById('users-section').style.display = tab === 'users' ? 'block' : 'none';
+        document.getElementById('posts-section').style.display = tab === 'posts' ? 'block' : 'none';
+        document.getElementById('btn-u').classList.toggle('active', tab === 'users');
+        document.getElementById('btn-p').classList.toggle('active', tab === 'posts');
+    };
 </script>
 </body>
-</html>
+    </html>
