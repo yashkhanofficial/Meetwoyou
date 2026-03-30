@@ -3,48 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Admin Authority (Super Fast)</title>
+    <title>Meetwoyou - Ultimate Admin Authority</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --primary: #7c3aed; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --danger: #ef4444; --success: #22c55e; }
+        :root { --primary: #8b5cf6; --bg: #020617; --card: #1e293b; --text: #f8fafc; --danger: #ef4444; --success: #10b981; --accent: #3b82f6; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .tab-btn.active { background: var(--primary); box-shadow: 0 0 15px rgba(124, 58, 237, 0.4); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
-        .user-info img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--primary); }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.7); padding: 15px 25px; border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 25px; }
+        .stats-bar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-card i { font-size: 20px; color: var(--primary); margin-bottom: 5px; }
+        
+        .tabs { display: flex; gap: 10px; background: #0f172a; padding: 5px; border-radius: 10px; margin-bottom: 20px; width: fit-content; }
+        .tab-btn { background: transparent; color: #94a3b8; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; position: relative; overflow: hidden; }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        
+        .user-info { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .user-info img { width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; }
         .badge-v { color: #0095f6; margin-left: 5px; }
-        .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
-        .btn { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
-        .btn-v { background: #0ea5e9; color: white; }
-        .btn-del { background: var(--danger); color: white; }
-        .btn-boost { background: var(--success); color: white; }
-        .input-group { margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
-        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 5px 8px; width: 120px; border-radius: 5px; outline: none; }
-        .post-img { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 200px; object-fit: cover; }
+        
+        .input-group { background: #0f172a; padding: 12px; border-radius: 12px; margin-top: 15px; display: flex; align-items: center; gap: 8px; }
+        input { background: #1e293b; border: 1px solid #334155; color: white; padding: 8px; width: 100%; border-radius: 6px; outline: none; font-size: 14px; }
+        
+        .btn { border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; display: flex; align-items: center; gap: 5px; justify-content: center; }
+        .btn-v { background: var(--accent); color: white; flex: 1; }
+        .btn-del { background: #334155; color: #ef4444; width: 40px; }
+        .btn-boost { background: var(--success); color: white; white-space: nowrap; }
+        
+        .post-preview { background: #0f172a; padding: 12px; border-radius: 10px; margin: 10px 0; font-size: 13px; border-left: 3px solid var(--primary); }
+        .post-img { width: 100%; border-radius: 8px; margin-top: 10px; height: 150px; object-fit: cover; }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1><i class="fas fa-unlock-alt"></i> Admin Panel</h1>
-    <button class="tab-btn" onclick="location.href='dashboard.html'" style="background:#ef4444">Exit Admin</button>
+    <h2 style="margin:0;"><i class="fas fa-shield-alt"></i> Meetwoyou Admin</h2>
+    <button class="btn" style="background:var(--danger); color:white" onclick="location.href='dashboard.html'"><i class="fas fa-sign-out-alt"></i> Exit</button>
+</div>
+
+<div class="stats-bar">
+    <div class="stat-card">
+        <i class="fas fa-users"></i>
+        <div id="total-users" style="font-size:18px; font-weight:bold;">0</div>
+        <small style="color:#94a3b8">Total Members</small>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-images"></i>
+        <div id="total-posts" style="font-size:18px; font-weight:bold;">0</div>
+        <small style="color:#94a3b8">Total Posts</small>
+    </div>
 </div>
 
 <div class="tabs">
-    <button class="tab-btn active" id="btn-u" onclick="showTab('users')"><i class="fas fa-users"></i> Users</button>
-    <button class="tab-btn" id="btn-p" onclick="showTab('posts')"><i class="fas fa-stream"></i> Posts</button>
+    <button class="tab-btn active" id="btn-u" onclick="showTab('users')">Users List</button>
+    <button class="tab-btn" id="btn-p" onclick="showTab('posts')">Global Posts</button>
 </div>
 
-<div id="users-section" class="tab-content">
+<div id="users-section">
     <div class="grid" id="user-list"></div>
 </div>
 
-<div id="posts-section" class="tab-content" style="display:none;">
+<div id="posts-section" style="display:none;">
     <div class="grid" id="post-list"></div>
 </div>
 
@@ -66,108 +93,107 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
+    // সংখ্যাকে K, M, B তে রূপান্তর করার ফাংশন
+    const formatValue = (num) => {
+        if (num >= 1000000000) return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+        if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+        return num.toString();
+    };
+
     onAuthStateChanged(auth, (user) => {
         if (!user || user.email !== "admin@meetwoyou.com") {
-            Swal.fire("Access Denied", "Only Admin can access this page!", "error");
-            setTimeout(() => window.location.href = "index.html", 2000);
+            window.location.href = "index.html";
         } else {
             loadData();
         }
     });
 
     function loadData() {
+        // ইউজারের তথ্য
         onSnapshot(collection(db, "users"), (snap) => {
+            document.getElementById('total-users').innerText = snap.size;
             const userList = document.getElementById('user-list');
             userList.innerHTML = "";
             snap.forEach(d => {
                 const u = d.data();
-                // Followers Count logic
-                const fCount = u.followers ? (Array.isArray(u.followers) ? u.followers.length : u.followers) : 0;
+                const curFollowers = u.followers || "0";
                 
                 const card = document.createElement('div');
                 card.className = "card";
                 card.innerHTML = `
                     <div class="user-info">
-                        <img src="${u.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}">
-                        <div>
+                        <img src="${u.photoURL || 'https://via.placeholder.com/60'}">
+                        <div style="flex:1">
                             <div style="font-weight:bold">${u.displayName} ${u.isVerified ? '<i class="fas fa-check-circle badge-v"></i>' : ''}</div>
-                            <small style="color:#94a3b8">${u.email}</small>
+                            <small style="color:#94a3b8; font-size:11px;">ID: ${d.id}</small>
                         </div>
+                        <button class="btn btn-del" onclick="deleteAcc('${d.id}')"><i class="fas fa-trash"></i></button>
                     </div>
-                    <div class="controls">
-                        <button class="btn btn-v" onclick="toggleV('${d.id}', ${u.isVerified})">${u.isVerified ? 'Remove V' : 'Give V'}</button>
-                        <button class="btn btn-del" onclick="deleteAcc('${d.id}')">Delete</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-v" onclick="toggleV('${d.id}', ${u.isVerified})">
+                            <i class="fas ${u.isVerified ? 'fa-user-minus' : 'fa-user-check'}"></i> 
+                            ${u.isVerified ? 'Remove V' : 'Verify'}
+                        </button>
                     </div>
                     <div class="input-group">
-                        <i class="fas fa-user-plus"></i> Followers: 
-                        <input type="number" id="f-${d.id}" value="${fCount}">
-                        <button class="btn btn-boost" onclick="setFollowers('${d.id}')">Update</button>
+                        <input type="number" id="f-${d.id}" placeholder="Enter amount">
+                        <button class="btn btn-boost" onclick="setFollowers('${d.id}')">Add Followers</button>
                     </div>
+                    <div style="margin-top:8px; font-size:12px; color:var(--primary)">Current: <b>${Array.isArray(curFollowers) ? curFollowers.length : curFollowers}</b></div>
                 `;
                 userList.appendChild(card);
             });
         });
 
+        // পোস্টের তথ্য
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
+            document.getElementById('total-posts').innerText = snap.size;
             const postList = document.getElementById('post-list');
             postList.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
-                const lCount = p.likes ? (Array.isArray(p.likes) ? p.likes.length : p.likes) : 0;
+                const curLikes = p.likes || "0";
                 const card = document.createElement('div');
                 card.className = "card";
                 card.innerHTML = `
-                    <div style="font-size:14px;"><b>${p.authorName}</b></div>
-                    <div style="background:#0f172a; padding:10px; border-radius:8px; margin:10px 0; font-size:13px">${p.text || ''}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <b>${p.authorName}</b>
+                        <button class="btn btn-del" onclick="deletePost('${d.id}')"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="post-preview">${p.text || 'No text content'}</div>
                     ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
                     <div class="input-group">
-                        <i class="fas fa-heart"></i> Likes: 
-                        <input type="number" id="l-${d.id}" value="${lCount}">
-                        <button class="btn btn-boost" onclick="setLikes('${d.id}')">Set</button>
+                        <input type="number" id="l-${d.id}" placeholder="Set likes">
+                        <button class="btn btn-boost" onclick="setLikes('${d.id}')">Set Likes</button>
                     </div>
-                    <button class="btn btn-del" style="width:100%; margin-top:10px;" onclick="deletePost('${d.id}')">Delete Post</button>
+                    <div style="margin-top:8px; font-size:12px; color:var(--success)">Current Likes: <b>${Array.isArray(curLikes) ? curLikes.length : curLikes}</b></div>
                 `;
                 postList.appendChild(card);
             });
         });
     }
 
-    // --- Optimized Boost Functions ---
+    // --- Actions ---
 
     window.setFollowers = async (uid) => {
-        const count = parseInt(document.getElementById(`f-${uid}`).value);
-        if(isNaN(count)) return;
+        const val = parseInt(document.getElementById(`f-${uid}`).value);
+        if(isNaN(val)) return Swal.fire("Error", "Enter number", "error");
         
-        try {
-            // যদি সংখ্যা ৫০ হাজারের কম হয় তবে অ্যারে পাঠাবে, বেশি হলে সরাসরি নাম্বার পাঠাবে
-            if (count < 50000) {
-                const fakeArray = new Array(count).fill("boost");
-                await updateDoc(doc(db, "users", uid), { followers: fakeArray });
-            } else {
-                // সরাসরি নাম্বার পাঠানো (এতে সাইট স্লো হবে না)
-                await updateDoc(doc(db, "users", uid), { followers: count });
-            }
-            Swal.fire("Done", "Followers Updated!", "success");
-        } catch(e) {
-            Swal.fire("Error", "Something went wrong", "error");
-        }
+        const formatted = formatValue(val);
+        await updateDoc(doc(db, "users", uid), { followers: formatted });
+        Swal.fire("Success", `Set to ${formatted}`, "success");
+        document.getElementById(`f-${uid}`).value = "";
     };
 
     window.setLikes = async (pid) => {
-        const count = parseInt(document.getElementById(`l-${pid}`).value);
-        if(isNaN(count)) return;
-
-        try {
-            if (count < 50000) {
-                const fakeArray = new Array(count).fill("boost");
-                await updateDoc(doc(db, "posts", pid), { likes: fakeArray });
-            } else {
-                await updateDoc(doc(db, "posts", pid), { likes: count });
-            }
-            Swal.fire("Done", "Likes Updated!", "success");
-        } catch(e) {
-            Swal.fire("Error", "Something went wrong", "error");
-        }
+        const val = parseInt(document.getElementById(`l-${pid}`).value);
+        if(isNaN(val)) return;
+        
+        const formatted = formatValue(val);
+        await updateDoc(doc(db, "posts", pid), { likes: formatted });
+        Swal.fire("Success", `Set to ${formatted}`, "success");
+        document.getElementById(`l-${pid}`).value = "";
     };
 
     window.toggleV = async (uid, status) => {
@@ -175,11 +201,15 @@
     };
 
     window.deleteAcc = async (uid) => {
-        if(confirm("Delete User?")) await deleteDoc(doc(db, "users", uid));
+        const result = await Swal.fire({
+            title: 'Delete User?', text: "This action cannot be undone!", icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Yes, delete!'
+        });
+        if(result.isConfirmed) await deleteDoc(doc(db, "users", uid));
     };
 
     window.deletePost = async (pid) => {
-        if(confirm("Delete Post?")) await deleteDoc(doc(db, "posts", pid));
+        if(confirm("Delete this post?")) await deleteDoc(doc(db, "posts", pid));
     };
 
     window.showTab = (tab) => {
@@ -190,4 +220,4 @@
     };
 </script>
 </body>
-    </html>
+</html>
