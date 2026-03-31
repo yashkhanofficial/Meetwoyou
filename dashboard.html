@@ -585,6 +585,15 @@
         location.reload();
     };
 
+    // Image Compression before Cloudinary
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+// এটি ছবিকে ক্লিয়ার রেখে সাইজ কমিয়ে দিবে
+canvas.toBlob((blob) => { 
+    const finalFile = new File([blob], file.name, {type: 'image/jpeg'});
+    uploadToCloudinary(finalFile);
+}, 'image/jpeg', 0.7);
+    
 </script>
 </body>
 </html>
