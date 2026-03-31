@@ -3,47 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Ultimate OS</title>
+    <title>Meetwoyou - Ultimate Experience</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --primary: #0095f6; --bg: #000; --card: #121212; --text: #fff; --gray: #8e8e8e; --verified: #0095f6; --danger: #ed4956; --accent: #ffd700; }
+        :root { --primary: #0095f6; --bg: #000; --card: #121212; --text: #fff; --gray: #8e8e8e; --danger: #ed4956; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 75px; overflow-x: hidden; }
         
+        /* Loader */
         #app-loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .loader-circle { width: 50px; height: 50px; border: 3px solid #262626; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* UI Elements */
         .header { background: var(--bg); padding: 15px; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .v-badge { color: var(--verified); font-size: 13px; margin-left: 4px; }
         .section { display: none; max-width: 500px; margin: auto; animation: slideUp 0.3s ease; }
         .section.active { display: block; }
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .post-card { border-bottom: 1px solid #262626; padding-bottom: 15px; margin-bottom: 10px; position: relative; }
-        .post-user { display: flex; align-items: center; gap: 10px; padding: 10px; cursor: pointer; }
-        .post-img-container { position: relative; width: 100%; cursor: pointer; display: flex; justify-content: center; background: #000; min-height: 200px; }
-        .post-img { width: 100%; max-height: 500px; object-fit: contain; }
+        .post-card { border-bottom: 1px solid #262626; padding-bottom: 15px; margin-bottom: 10px; }
+        .post-media { width: 100%; max-height: 500px; object-fit: contain; background: #000; }
         
-        /* Highlighted Comment */
-        .trending-comment { border: 1px solid var(--accent); background: rgba(255, 215, 0, 0.05); padding: 10px; border-radius: 12px; margin-bottom: 10px; }
-
-        #chat-screen, #user-profile-view, #post-detail-view { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; overflow-y: auto; }
-        .chat-bubble { padding: 10px 15px; border-radius: 18px; margin: 5px 0; max-width: 75%; font-size: 14px; word-wrap: break-word; }
+        /* Chat UI */
+        #chat-screen { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; }
+        .chat-bubble { padding: 10px 15px; border-radius: 18px; margin: 5px 0; max-width: 75%; font-size: 14px; position: relative; cursor: pointer; }
         .sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
         .recv { background: #262626; align-self: flex-start; border-bottom-left-radius: 2px; }
-        
-        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 15px; }
-        .grid-item { aspect-ratio: 1/1; background: #121212; overflow: hidden; cursor: pointer; }
-        .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
-        
+        .msg-time { font-size: 9px; opacity: 0.7; display: block; margin-top: 4px; text-align: right; }
+
+        /* Navigation */
         .nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 1px solid #262626; display: flex; justify-content: space-around; padding: 15px 0; z-index: 1000; }
         .nav i { font-size: 24px; cursor: pointer; color: #fff; }
         
+        /* Buttons & Inputs */
         .btn-main { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
         input, textarea { width: 100%; padding: 12px; background: #121212; border: 1px solid #262626; color: white; border-radius: 8px; margin-bottom: 8px; box-sizing: border-box; }
-        .post-time { font-size: 10px; color: var(--gray); padding: 0 15px; }
-        .user-list-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; border-bottom: 1px solid #121212; }
+        
+        /* Media Preview */
+        #media-preview-container { position: relative; margin-top: 10px; display: none; }
+        .preview-img { width: 100%; border-radius: 10px; }
+
+        /* Notification Badge */
+        .notif-dot { position: absolute; top: -5px; right: -5px; width: 10px; height: 10px; background: red; border-radius: 50%; display: none; }
     </style>
 </head>
 <body>
@@ -54,24 +55,29 @@
 </div>
 
 <div class="header">
-    <i class="fas fa-power-off" onclick="userLogout()" style="font-size:20px; color:var(--danger); cursor:pointer;"></i>
+    <i class="fas fa-power-off" onclick="userLogout()" style="color:var(--danger); cursor:pointer;"></i>
     <h2 style="margin:0; font-family: 'Grand Hotel', cursive;">Meetwoyou</h2>
-    <div style="position: relative;"><i class="far fa-bell" style="font-size:22px;"></i></div>
+    <div style="position: relative;" onclick="requestNotifPermission()">
+        <i class="far fa-bell" style="font-size:22px;"></i>
+        <div id="notif-dot" class="notif-dot"></div>
+    </div>
 </div>
 
 <div id="home-sec" class="section active">
     <div style="background: var(--card); padding: 15px; border-radius: 10px; margin: 10px; border: 1px solid #262626;">
         <textarea id="post-text" placeholder="What's on your mind?"></textarea>
-        <input type="file" id="post-file" accept="image/*,video/*" style="display:none" onchange="previewMedia(this)">
-        <button onclick="document.getElementById('post-file').click()" style="background:#262626; color:white; border:none; padding:8px; border-radius:5px; margin-bottom:10px; cursor:pointer;">Add Media</button>
-        <div id="img-preview-box"></div>
+        <div id="media-preview-container"></div>
+        <div style="display:flex; gap:10px;">
+            <button onclick="document.getElementById('post-file').click()" style="flex:1; background:#262626; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;"><i class="fas fa-photo-video"></i> Media</button>
+            <input type="file" id="post-file" accept="image/*,video/*" style="display:none" onchange="handleMediaSelect(this)">
+        </div>
         <button class="btn-main" onclick="uploadPost()">Share Post</button>
     </div>
     <div id="feed-area"></div>
 </div>
 
 <div id="discover-sec" class="section">
-    <div style="padding:15px;"><input type="text" id="user-search" placeholder="Search friends..."></div>
+    <div style="padding:15px;"><input type="text" id="user-search" placeholder="Search friends..." oninput="searchUsers(this.value)"></div>
     <div id="user-list"></div>
 </div>
 
@@ -84,8 +90,8 @@
     <div style="text-align: center; padding: 20px 15px;">
         <img id="p-img" src="" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:2px solid #262626;">
         <h3 id="p-name"></h3>
-        <p id="p-bio" style="color:var(--gray);"></p>
-        <div id="my-posts-grid" class="profile-grid"></div>
+        <p id="p-bio"></p>
+        <div id="my-posts-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px;"></div>
     </div>
 </div>
 
@@ -94,9 +100,15 @@
         <i class="fas fa-arrow-left" onclick="closeChat()" style="cursor:pointer;"></i>
         <img id="chat-h-img" src="" style="width:35px; height:35px; border-radius:50%;">
         <b id="chat-h-name"></b>
+        <div style="margin-left:auto; display:flex; gap:15px;">
+            <i class="fas fa-phone"></i>
+            <i class="fas fa-video"></i>
+        </div>
     </div>
     <div id="chat-box" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column;"></div>
-    <div style="padding:10px; display:flex; gap:10px; background:#121212;">
+    <div style="padding:10px; display:flex; gap:10px; background:#121212; align-items:center;">
+        <i class="fas fa-image" onclick="document.getElementById('chat-file').click()" style="cursor:pointer; font-size:20px;"></i>
+        <input type="file" id="chat-file" accept="image/*" style="display:none" onchange="sendImageMsg(this)">
         <input type="text" id="chat-input" placeholder="Message..." style="margin:0;">
         <button onclick="sendMsg()" style="background:none; color:var(--primary); border:none; font-weight:bold; cursor:pointer;">Send</button>
     </div>
@@ -112,7 +124,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -129,179 +141,206 @@
 
     let me = null;
     let activeChatID = null;
+    let selectedFile = null;
 
     onAuthStateChanged(auth, (user) => {
         if (user) { me = user; init(); setTimeout(() => document.getElementById('app-loader').style.display = 'none', 1000); }
         else { window.location.href = "index.html"; }
     });
 
-    function init() { loadFeed(); loadMyProfile(); loadAllUsers(); }
+    function init() { loadFeed(); loadMyProfile(); loadChatList(); listenNotifications(); }
 
-    // --- Media Compression & Video ---
-    async function compressMedia(file) {
-        if(file.type.startsWith('video/')) return file;
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (e) => {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if(w > 1080) { h *= 1080/w; w = 1080; }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    canvas.toBlob((b) => resolve(new File([b], file.name, {type:'image/jpeg'})), 'image/jpeg', 0.7);
-                };
-            };
-        });
-    }
-
-    window.previewMedia = (i) => {
-        const file = i.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById('img-preview-box').innerHTML = file.type.startsWith('video') ? 
-                `<video src="${e.target.result}" style="width:100%; border-radius:10px; margin-top:10px;" autoplay muted loop></video>` :
-                `<img src="${e.target.result}" style="width:100%; border-radius:10px; margin-top:10px;">`;
-        };
-        reader.readAsDataURL(file);
-    };
-
-    window.uploadPost = async () => {
-        const txt = document.getElementById('post-text').value;
-        const file = document.getElementById('post-file').files[0];
-        if(!txt && !file) return;
-        Swal.fire({title: 'Sharing...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
-        
-        let mediaUrl = null;
-        let mType = 'text';
-        if(file) {
-            const finalFile = await compressMedia(file);
-            mediaUrl = await uploadToCloudinary(finalFile);
-            mType = file.type.startsWith('video') ? 'video' : 'image';
+    // --- Media Handling (Auto Compression & Video Support) ---
+    window.handleMediaSelect = (input) => {
+        selectedFile = input.files[0];
+        const container = document.getElementById('media-preview-container');
+        container.style.display = 'block';
+        if (selectedFile.type.startsWith('video')) {
+            container.innerHTML = `<video src="${URL.createObjectURL(selectedFile)}" class="preview-img" muted autoplay loop></video>`;
+        } else {
+            container.innerHTML = `<img src="${URL.createObjectURL(selectedFile)}" class="preview-img">`;
         }
-
-        await addDoc(collection(db, "posts"), {
-            uid: me.uid, text: txt, img: mediaUrl, fileType: mType,
-            authorName: me.displayName, authorImg: me.photoURL,
-            timestamp: serverTimestamp(), likes: [], comments: []
-        });
-        document.getElementById('post-text').value = ""; document.getElementById('img-preview-box').innerHTML = ""; Swal.close();
     };
 
     async function uploadToCloudinary(file) {
-        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Meetwoyou');
-        const res = await fetch(`https://api.cloudinary.com/v1_1/dpgawb5sl/auto/upload`, { method: 'POST', body: fd });
-        const d = await res.json(); return d.secure_url;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'Meetwoyou');
+        // Image/Video detection for optimized upload
+        const type = file.type.startsWith('video') ? 'video' : 'image';
+        const res = await fetch(`https://api.cloudinary.com/v1_1/dpgawb5sl/${type}/upload`, { method: 'POST', body: formData });
+        const data = await res.json();
+        return data.secure_url;
     }
 
-    // --- Feed with Highlighted Comments ---
+    window.uploadPost = async () => {
+        const txt = document.getElementById('post-text').value;
+        if (!txt && !selectedFile) return;
+        
+        Swal.fire({title: 'Uploading...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+        
+        let mediaUrl = null;
+        let mediaType = 'none';
+        
+        if (selectedFile) {
+            mediaUrl = await uploadToCloudinary(selectedFile);
+            mediaType = selectedFile.type.startsWith('video') ? 'video' : 'image';
+        }
+
+        await addDoc(collection(db, "posts"), {
+            uid: me.uid, text: txt, media: mediaUrl, type: mediaType,
+            authorName: me.displayName, authorImg: me.photoURL,
+            timestamp: serverTimestamp(), likes: [], comments: []
+        });
+
+        document.getElementById('post-text').value = "";
+        document.getElementById('media-preview-container').innerHTML = "";
+        selectedFile = null;
+        Swal.close();
+    };
+
+    // --- Feed Logic ---
     function loadFeed() {
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
-            const area = document.getElementById('feed-area'); area.innerHTML = "";
-            snap.forEach(docSnap => {
-                const p = docSnap.data(); const id = docSnap.id;
-                const isLiked = p.likes?.includes(me.uid);
+            const area = document.getElementById('feed-area');
+            area.innerHTML = "";
+            snap.forEach(d => {
+                const p = d.data();
                 area.innerHTML += `
                     <div class="post-card">
                         <div class="post-user">
                             <img src="${p.authorImg}" style="width:35px; height:35px; border-radius:50%;">
                             <b>${p.authorName}</b>
                         </div>
-                        <div class="post-img-container">
-                            ${p.fileType === 'video' ? `<video src="${p.img}" class="post-img" controls loop muted autoplay></video>` : (p.img ? `<img src="${p.img}" class="post-img">` : `<div style="padding:20px;">${p.text}</div>`)}
+                        <div style="padding:10px;">${p.text}</div>
+                        ${p.type === 'image' ? `<img src="${p.media}" class="post-media">` : ''}
+                        ${p.type === 'video' ? `<video src="${p.media}" class="post-media" controls></video>` : ''}
+                        <div style="padding:10px; display:flex; gap:15px; font-size:20px;">
+                            <i class="far fa-heart"></i>
+                            <i class="far fa-comment"></i>
                         </div>
-                        <div style="padding:10px 15px; display:flex; gap:15px; font-size:22px;">
-                            <i class="${isLiked?'fas fa-heart':'far fa-heart'}" style="color:${isLiked?'red':''}; cursor:pointer;" onclick="toggleLike('${id}', ${isLiked})"></i>
-                            <i class="far fa-comment" onclick="showComments('${id}')" style="cursor:pointer;"></i>
-                        </div>
-                        <div style="padding:0 15px; font-size:14px;"><b>${p.likes?.length || 0} likes</b><br>${p.img ? `<b>${p.authorName}</b> ${p.text}`:''}</div>
                     </div>`;
             });
         });
     }
 
-    window.toggleLike = async (id, liked) => {
-        await updateDoc(doc(db, "posts", id), { likes: liked ? arrayRemove(me.uid) : arrayUnion(me.uid) });
-    };
-
-    window.showComments = async (postId) => {
-        const snap = await getDoc(doc(db, "posts", postId));
-        const comments = snap.data().comments || [];
-        let html = '<div style="max-height:300px; overflow-y:auto; text-align:left;">';
-        comments.forEach(c => {
-            // Highlight Logic: 3+ Replies/Likes check (Using length for simulation)
-            const isTrending = (comments.length >= 3 && c.text.length > 20); 
-            html += `<div class="${isTrending ? 'trending-comment' : ''}" style="margin-bottom:8px; border-bottom:1px solid #222; padding-bottom:5px;">
-                        <b style="${isTrending ? 'color:var(--accent)' : ''}">${c.user} ${isTrending ? '🔥' : ''}</b><br>${c.text}
-                     </div>`;
+    // --- Chat System (Improved) ---
+    function loadChatList() {
+        onSnapshot(collection(db, "users"), (snap) => {
+            const list = document.getElementById('chat-list');
+            list.innerHTML = "";
+            snap.forEach(d => {
+                if (d.id !== me.uid) {
+                    const u = d.data();
+                    list.innerHTML += `
+                        <div class="post-user" onclick="openChat('${d.id}', '${u.displayName}', '${u.photoURL}')" style="padding:15px; border-bottom:1px solid #121212;">
+                            <img src="${u.photoURL}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">
+                            <div><b>${u.displayName}</b><br><small style="color:gray;">Tap to message</small></div>
+                        </div>`;
+                }
+            });
         });
-        html += '</div>';
-        const { value: text } = await Swal.fire({
-            title: 'Comments', html: html, input: 'text', inputPlaceholder: 'Write a comment...',
-            showCancelButton: true, background: '#121212', color: '#fff'
-        });
-        if(text) await updateDoc(doc(db, "posts", postId), { comments: arrayUnion({ user: me.displayName, text: text }) });
-    };
+    }
 
-    // --- Chat Fix (No Duplicates) ---
     window.openChat = (uid, name, img) => {
         activeChatID = uid;
         document.getElementById('chat-h-name').innerText = name;
         document.getElementById('chat-h-img').src = img;
         document.getElementById('chat-screen').style.display = 'flex';
+        
         onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "asc")), (snap) => {
-            const box = document.getElementById('chat-box'); box.innerHTML = "";
-            let msgIds = new Set();
+            const box = document.getElementById('chat-box');
+            box.innerHTML = "";
             snap.forEach(d => {
                 const m = d.data();
-                if(!msgIds.has(d.id)) {
-                    if((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
-                        box.innerHTML += `<div class="chat-bubble ${m.sender === me.uid?'sent':'recv'}">${m.text}</div>`;
-                        msgIds.add(d.id);
-                    }
+                if ((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
+                    const isMe = m.sender === me.uid;
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = `chat-bubble ${isMe ? 'sent' : 'recv'}`;
+                    msgDiv.innerHTML = `
+                        ${m.img ? `<img src="${m.img}" style="width:100%; border-radius:10px; margin-bottom:5px;">` : ''}
+                        ${m.text ? `<div>${m.text}</div>` : ''}
+                        <span class="msg-time">${m.timestamp ? new Date(m.timestamp.toMillis()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+                    `;
+                    
+                    // Delete on Long Press
+                    let timer;
+                    msgDiv.onmousedown = () => { timer = setTimeout(() => confirmDeleteMsg(d.id, isMe), 800); };
+                    msgDiv.onmouseup = () => clearTimeout(timer);
+                    msgDiv.ontouchstart = () => { timer = setTimeout(() => confirmDeleteMsg(d.id, isMe), 800); };
+                    msgDiv.ontouchend = () => clearTimeout(timer);
+
+                    box.appendChild(msgDiv);
                 }
             });
             box.scrollTop = box.scrollHeight;
         });
     };
 
+    async function confirmDeleteMsg(id, isMe) {
+        if (!isMe) return;
+        const res = await Swal.fire({ title: 'Delete Message?', showCancelButton: true, background: '#121212', color: '#fff' });
+        if (res.isConfirmed) await deleteDoc(doc(db, "messages", id));
+    }
+
     window.sendMsg = async () => {
-        const i = document.getElementById('chat-input'); if(!i.value.trim()) return;
-        await addDoc(collection(db, "messages"), { sender: me.uid, receiver: activeChatID, text: i.value, timestamp: serverTimestamp() });
-        i.value = "";
+        const input = document.getElementById('chat-input');
+        if (!input.value.trim()) return;
+        await addDoc(collection(db, "messages"), {
+            sender: me.uid, receiver: activeChatID, text: input.value, timestamp: serverTimestamp()
+        });
+        // Create Notification in DB
+        await addDoc(collection(db, "notifications"), {
+            to: activeChatID, fromName: me.displayName, type: 'message', timestamp: serverTimestamp()
+        });
+        input.value = "";
     };
 
-    // --- Basic Helpers ---
+    window.sendImageMsg = async (input) => {
+        if(!input.files[0]) return;
+        Swal.fire({title: 'Sending...', didOpen: () => Swal.showLoading()});
+        const url = await uploadToCloudinary(input.files[0]);
+        await addDoc(collection(db, "messages"), {
+            sender: me.uid, receiver: activeChatID, img: url, timestamp: serverTimestamp()
+        });
+        Swal.close();
+    };
+
+    // --- Search & Highlights ---
+    window.searchUsers = (val) => {
+        const users = document.querySelectorAll('#user-list .post-user');
+        users.forEach(u => {
+            const name = u.querySelector('b').innerText.toLowerCase();
+            u.style.background = (val && name.includes(val.toLowerCase())) ? '#1e293b' : 'transparent';
+        });
+    };
+
+    // --- Notifications Logic ---
+    function listenNotifications() {
+        onSnapshot(query(collection(db, "notifications"), where("to", "==", me.uid), orderBy("timestamp", "desc"), limit(1)), (snap) => {
+            if(!snap.empty) {
+                document.getElementById('notif-dot').style.display = 'block';
+                const n = snap.docs[0].data();
+                if(Notification.permission === 'granted') {
+                    new Notification("Meetwoyou", { body: `${n.fromName} sent you a ${n.type}` });
+                }
+            }
+        });
+    }
+
+    window.requestNotifPermission = () => {
+        Notification.requestPermission();
+        document.getElementById('notif-dot').style.display = 'none';
+    };
+
+    // --- Base Helpers ---
     window.showSec = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id + '-sec').classList.add('active');
     };
     window.loadMyProfile = () => {
-        onSnapshot(doc(db, "users", me.uid), (snap) => {
-            const d = snap.data();
-            document.getElementById('p-name').innerText = d.displayName;
-            document.getElementById('p-img').src = d.photoURL;
-            document.getElementById('p-bio').innerText = d.bio || "";
-        });
-    };
-    window.loadAllUsers = () => {
-        onSnapshot(collection(db, "users"), (snap) => {
-            const list = document.getElementById('user-list');
-            const chatList = document.getElementById('chat-list');
-            list.innerHTML = ""; chatList.innerHTML = "";
-            snap.forEach(d => {
-                if(d.id !== me.uid) {
-                    const u = d.data();
-                    const html = `<div class="post-user" onclick="openChat('${d.id}', '${u.displayName}', '${u.photoURL}')">
-                        <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%;">
-                        <b>${u.displayName}</b></div>`;
-                    list.innerHTML += html; chatList.innerHTML += html;
-                }
-            });
-        });
+        document.getElementById('p-name').innerText = me.displayName;
+        document.getElementById('p-img').src = me.photoURL;
     };
     window.userLogout = () => signOut(auth);
     window.closeChat = () => document.getElementById('chat-screen').style.display = 'none';
