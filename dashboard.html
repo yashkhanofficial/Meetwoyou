@@ -7,39 +7,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --primary: #0095f6; --bg: #000; --card: #121212; --text: #fff; --gray: #8e8e8e; --verified: #0095f6; --danger: #ed4956; --border: #262626; }
+        :root { --primary: #0095f6; --bg: #000; --card: #121212; --text: #fff; --gray: #8e8e8e; --verified: #0095f6; --danger: #ed4956; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 75px; overflow-x: hidden; }
         
         #app-loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .loader-circle { width: 50px; height: 50px; border: 3px solid #262626; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .header { background: var(--bg); padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .header { background: var(--bg); padding: 15px; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
         .v-badge { color: var(--verified); font-size: 13px; margin-left: 4px; }
         .section { display: none; max-width: 500px; margin: auto; animation: slideUp 0.3s ease; }
         .section.active { display: block; }
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        /* Story Section */
-        .stories-container { display: flex; gap: 12px; padding: 15px; overflow-x: auto; border-bottom: 1px solid var(--border); scrollbar-width: none; }
-        .stories-container::-webkit-scrollbar { display: none; }
-        .story-card { min-width: 75px; text-align: center; cursor: pointer; position: relative; }
-        .story-img-wrapper { width: 66px; height: 66px; border-radius: 50%; padding: 2px; border: 2px solid var(--primary); margin: 0 auto 5px; }
-        .story-img-wrapper img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #000; }
-        .story-name { font-size: 11px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 70px; }
-        .add-story-btn { position: absolute; bottom: 20px; right: 5px; background: var(--primary); border-radius: 50%; width: 20px; height: 20px; border: 2px solid #000; display: flex; align-items: center; justify-content: center; font-size: 12px; }
-
-        /* Modern Post Box */
-        .create-post { background: var(--card); margin: 10px; border-radius: 12px; border: 1px solid var(--border); padding: 12px; }
-        .post-input-wrapper { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
-        .post-input-wrapper img { width: 40px; height: 40px; border-radius: 50%; }
-        .post-input-wrapper textarea { background: transparent; border: none; resize: none; color: white; flex: 1; padding: 8px 0; font-size: 15px; outline: none; }
-        .post-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); pt: 10px; padding-top: 10px; }
-        .action-item { color: var(--gray); cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px; }
-        .action-item:hover { color: var(--primary); }
-
-        /* Post Card */
-        .post-card { border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 10px; position: relative; }
+        
+        .post-card { border-bottom: 1px solid #262626; padding-bottom: 15px; margin-bottom: 10px; position: relative; }
         .post-user { display: flex; align-items: center; gap: 10px; padding: 10px; cursor: pointer; }
         .post-img-container { position: relative; width: 100%; cursor: pointer; display: flex; justify-content: center; background: #000; }
         .post-img { width: 100%; max-height: 500px; object-fit: contain; }
@@ -48,13 +29,7 @@
         .like-animation.active { animation: heartPop 0.8s ease-out; }
         @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
 
-        /* General Views */
-        #chat-screen, #user-profile-view, #post-detail-view, #story-view { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; overflow-y: auto; }
-        .story-viewer-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-        .story-progress { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 5px; }
-        .progress-bar { height: 2px; background: rgba(255,255,255,0.3); flex: 1; }
-        .progress-fill { height: 100%; background: #fff; width: 0%; }
-
+        #chat-screen, #user-profile-view, #post-detail-view, #story-viewer { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; overflow-y: auto; }
         .chat-bubble { padding: 10px 15px; border-radius: 18px; margin: 5px 0; max-width: 75%; font-size: 14px; word-wrap: break-word; }
         .sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
         .recv { background: #262626; align-self: flex-start; border-bottom-left-radius: 2px; }
@@ -63,13 +38,37 @@
         .grid-item { aspect-ratio: 1/1; background: #121212; overflow: hidden; cursor: pointer; }
         .grid-item img { width: 100%; height: 100%; object-fit: cover; }
         
-        .nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 15px 0; z-index: 1000; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 1px solid #262626; display: flex; justify-content: space-around; padding: 15px 0; z-index: 1000; }
         .nav i { font-size: 24px; cursor: pointer; color: #fff; }
         
         .btn-main { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
-        input, textarea { width: 100%; padding: 12px; background: #121212; border: 1px solid var(--border); color: white; border-radius: 8px; margin-bottom: 8px; box-sizing: border-box; }
+        .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
+        input, textarea { width: 100%; padding: 12px; background: #121212; border: 1px solid #262626; color: white; border-radius: 8px; margin-bottom: 8px; box-sizing: border-box; }
         .post-time { font-size: 10px; color: var(--gray); padding: 0 15px; }
+        .user-list-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; border-bottom: 1px solid #121212; }
+        
         .profile-details { text-align: left; padding: 10px 20px; font-size: 14px; color: #ccc; }
+        .profile-details div { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .profile-details i { width: 18px; color: var(--gray); }
+
+        /* Story Styles */
+        .story-container { display: flex; overflow-x: auto; padding: 10px; gap: 12px; border-bottom: 1px solid #262626; scrollbar-width: none; }
+        .story-container::-webkit-scrollbar { display: none; }
+        .story-circle { flex-shrink: 0; width: 64px; text-align: center; cursor: pointer; }
+        .story-ring { width: 60px; height: 60px; border-radius: 50%; padding: 2px; border: 2px solid var(--primary); object-fit: cover; }
+        .story-ring.watched { border-color: #262626; }
+        .story-name { font-size: 11px; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .add-story { position: relative; }
+        .add-story-btn { position: absolute; bottom: 18px; right: 2px; background: var(--primary); color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 2px solid #000; }
+        
+        #story-viewer { z-index: 3000; justify-content: center; align-items: center; background: #000; }
+        .story-progress { position: absolute; top: 10px; left: 10px; right: 10px; height: 2px; background: #555; display: flex; gap: 4px; }
+        .progress-bar { height: 100%; background: #fff; flex: 1; transform-origin: left; transform: scaleX(0); }
+        .progress-bar.active { animation: storyProgress 5s linear forwards; }
+        @keyframes storyProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        .story-header { position: absolute; top: 25px; left: 15px; display: flex; align-items: center; gap: 10px; z-index: 10; width: calc(100% - 30px); }
+        .story-media { width: 100%; max-height: 80vh; object-fit: contain; }
+        .story-footer { position: absolute; bottom: 20px; left: 0; right: 0; display: flex; justify-content: space-around; align-items: center; padding: 0 20px; }
     </style>
 </head>
 <body>
@@ -86,33 +85,23 @@
 </div>
 
 <div id="home-sec" class="section active">
-    <div class="stories-container" id="story-area">
-        <div class="story-card" onclick="document.getElementById('story-file').click()">
-            <div class="story-img-wrapper" style="border-color: #555;">
-                <img id="my-story-avatar" src="https://via.placeholder.com/66">
-            </div>
+    <div class="story-container" id="story-area">
+        <div class="story-circle add-story" onclick="document.getElementById('story-file').click()">
+            <img id="my-story-img" src="https://via.placeholder.com/60" class="story-ring watched">
             <div class="add-story-btn"><i class="fas fa-plus"></i></div>
             <div class="story-name">Your Story</div>
-            <input type="file" id="story-file" accept="image/*" style="display:none" onchange="uploadStory(this)">
+            <input type="file" id="story-file" accept="image/*,video/*" style="display:none" onchange="uploadStory(this)">
         </div>
-        <div id="other-stories" style="display:contents;"></div>
+        <div id="other-stories" style="display: flex; gap: 12px;"></div>
     </div>
 
-    <div class="create-post">
-        <div class="post-input-wrapper">
-            <img id="post-box-avatar" src="https://via.placeholder.com/40">
-            <textarea id="post-text" placeholder="What's on your mind?"></textarea>
-        </div>
+    <div style="background: var(--card); padding: 15px; border-radius: 10px; margin: 10px; border: 1px solid #262626;">
+        <textarea id="post-text" placeholder="What's on your mind?"></textarea>
+        <input type="file" id="post-file" accept="image/*" style="display:none" onchange="previewImg(this)">
+        <button id="add-photo-btn" onclick="document.getElementById('post-file').click()" style="background:#262626; color:white; border:none; padding:8px; border-radius:5px; margin-bottom:10px; cursor:pointer;">Add Photo</button>
         <div id="img-preview-box"></div>
-        <div class="post-actions">
-            <div class="action-item" onclick="document.getElementById('post-file').click()">
-                <i class="fas fa-image" style="color: #45bd62;"></i> Photo
-            </div>
-            <input type="file" id="post-file" accept="image/*" style="display:none" onchange="previewImg(this)">
-            <button onclick="uploadPost()" style="background:var(--primary); color:white; border:none; padding:6px 15px; border-radius:20px; font-weight:bold; cursor:pointer;">Post</button>
-        </div>
+        <button id="share-post-btn" class="btn-main" onclick="uploadPost()">Share Post</button>
     </div>
-
     <div id="feed-area"></div>
 </div>
 
@@ -161,23 +150,6 @@
     <div id="my-posts-grid" class="profile-grid"></div>
 </div>
 
-<div id="story-view">
-    <div class="story-progress" id="story-prog-container"></div>
-    <div style="padding:40px 15px 10px; display:flex; align-items:center; gap:10px; z-index:10;">
-        <img id="st-h-img" src="" style="width:35px; height:35px; border-radius:50%;">
-        <b id="st-h-name"></b>
-        <small id="st-h-time" style="color:var(--gray)"></small>
-        <i class="fas fa-times" onclick="closeStory()" style="margin-left:auto; cursor:pointer; font-size:20px;"></i>
-    </div>
-    <div class="story-viewer-content" onclick="nextStory()">
-        <img id="story-display-img" src="" style="width:100%; max-height:80vh; object-fit:contain;">
-    </div>
-    <div style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
-        <div id="st-views" style="font-size:13px; color:var(--gray);"><i class="far fa-eye"></i> 0</div>
-        <div onclick="likeStory()" style="cursor:pointer;"><i id="st-like-icon" class="far fa-heart" style="font-size:24px;"></i></div>
-    </div>
-</div>
-
 <div id="user-profile-view">
     <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px;">
         <i class="fas fa-arrow-left" onclick="closeProfileView()" style="cursor:pointer;"></i>
@@ -208,6 +180,31 @@
     </div>
 </div>
 
+<div id="story-viewer">
+    <div class="story-progress" id="s-progress-container"></div>
+    <div class="story-header">
+        <img id="s-user-img" src="" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+        <b id="s-user-name"></b>
+        <small id="s-time" style="color:#8e8e8e;"></small>
+        <i class="fas fa-times" onclick="closeStory()" style="margin-left:auto; cursor:pointer; font-size:20px;"></i>
+    </div>
+    <div id="s-media-container" style="width:100%; display:flex; justify-content:center;"></div>
+    <div class="story-footer">
+        <div onclick="toggleStoryLike()" style="text-align:center; cursor:pointer;">
+            <i id="s-like-icon" class="far fa-heart" style="font-size:24px;"></i>
+            <div id="s-like-count" style="font-size:12px;">0</div>
+        </div>
+        <div id="s-views-box" style="text-align:center; display:none;">
+            <i class="far fa-eye" style="font-size:24px;"></i>
+            <div id="s-view-count" style="font-size:12px;">0</div>
+        </div>
+        <div id="s-delete-box" onclick="deleteCurrentStory()" style="text-align:center; cursor:pointer; display:none; color:var(--danger);">
+            <i class="far fa-trash-alt" style="font-size:24px;"></i>
+            <div style="font-size:12px;">Delete</div>
+        </div>
+    </div>
+</div>
+
 <div class="nav">
     <i class="fas fa-home" onclick="showSec('home')"></i>
     <i class="fas fa-search" onclick="showSec('discover')"></i>
@@ -235,22 +232,29 @@
 
     let me = null;
     let activeChatID = null;
-    let currentStoryList = [];
     let currentStoryIndex = 0;
+    let activeStories = [];
+    let storyTimer = null;
     const vB = ` <i class="fas fa-check-circle v-badge"></i>`;
+
+    function formatCount(num) {
+        if (!num) return "0";
+        if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + "M";
+        if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + "K";
+        return num.toString();
+    }
 
     onAuthStateChanged(auth, async (user) => {
         if (user) { 
             me = user;
-            document.getElementById('my-story-avatar').src = user.photoURL || "https://via.placeholder.com/66";
-            document.getElementById('post-box-avatar').src = user.photoURL || "https://via.placeholder.com/40";
             const userRef = doc(db, "users", user.uid);
             const snap = await getDoc(userRef);
             if (!snap.exists()) {
                 await setDoc(userRef, {
                     displayName: user.displayName || "New User",
                     photoURL: user.photoURL || "https://via.placeholder.com/90",
-                    bio: "Welcome to Meetwoyou!", followers: [], following: [], uid: user.uid,
+                    bio: "Welcome to Meetwoyou!",
+                    followers: [], following: [], uid: user.uid,
                     isVerified: false, timestamp: serverTimestamp()
                 });
                 location.reload(); return; 
@@ -260,13 +264,12 @@
         } else { window.location.href = "index.html"; }
     });
 
-    function init() { loadMyProfile(); loadFeed(); loadAllUsers(); loadMyPosts(); loadStories(); }
-
-    function formatCount(num) {
-        if (!num) return "0";
-        if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + "M";
-        if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + "K";
-        return num.toString();
+    function init() { 
+        loadMyProfile(); 
+        loadFeed(); 
+        loadAllUsers(); 
+        loadMyPosts(); 
+        loadStories();
     }
 
     function timeAgo(timestamp) {
@@ -278,106 +281,6 @@
         return timestamp.toDate().toLocaleDateString();
     }
 
-    // Story Logic
-    async function uploadStory(input) {
-        if(!input.files[0]) return;
-        Swal.fire({title: 'Uploading Story...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
-        const url = await uploadToCloudinary(input.files[0]);
-        await addDoc(collection(db, "stories"), {
-            uid: me.uid, userName: me.displayName, userImg: me.photoURL,
-            img: url, timestamp: serverTimestamp(),
-            views: [], likes: [], expiresAt: Date.now() + (24 * 60 * 60 * 1000)
-        });
-        Swal.fire({icon: 'success', title: 'Story Shared!', timer: 1500, background: '#121212', color: '#fff'});
-    }
-
-    function loadStories() {
-        const now = Date.now();
-        onSnapshot(query(collection(db, "stories"), orderBy("timestamp", "desc")), (snap) => {
-            const area = document.getElementById('other-stories');
-            area.innerHTML = "";
-            let uniqueUsers = {};
-            snap.forEach(doc => {
-                const s = doc.data();
-                if(s.expiresAt > now) {
-                    if(!uniqueUsers[s.uid]) {
-                        uniqueUsers[s.uid] = { ...s, id: doc.id };
-                    }
-                } else {
-                    // Logic to delete expired stories can be added in backend cloud functions
-                }
-            });
-
-            Object.values(uniqueUsers).forEach(s => {
-                if(s.uid === me.uid) return;
-                const card = document.createElement('div');
-                card.className = "story-card";
-                card.onclick = () => openStoryView(s.uid);
-                card.innerHTML = `
-                    <div class="story-img-wrapper"><img src="${s.userImg}"></div>
-                    <div class="story-name">${s.userName}</div>
-                `;
-                area.appendChild(card);
-            });
-        });
-    }
-
-    window.openStoryView = async (uid) => {
-        const q = query(collection(db, "stories"), where("uid", "==", uid), orderBy("timestamp", "asc"));
-        const snap = await getDoc(doc(db, "users", uid));
-        const userD = snap.data();
-        
-        onSnapshot(q, (sSnap) => {
-            currentStoryList = [];
-            sSnap.forEach(d => {
-                if(d.data().expiresAt > Date.now()) currentStoryList.push({id: d.id, ...d.data()});
-            });
-            if(currentStoryList.length > 0) {
-                currentStoryIndex = 0;
-                renderStory();
-                document.getElementById('story-view').style.display = 'flex';
-            }
-        });
-    };
-
-    function renderStory() {
-        const s = currentStoryList[currentStoryIndex];
-        document.getElementById('st-h-img').src = s.userImg;
-        document.getElementById('st-h-name').innerText = s.userName;
-        document.getElementById('st-h-time').innerText = timeAgo(s.timestamp);
-        document.getElementById('story-display-img').src = s.img;
-        document.getElementById('st-views').innerHTML = `<i class="far fa-eye"></i> ${s.views.length}`;
-        
-        const isLiked = s.likes.includes(me.uid);
-        document.getElementById('st-like-icon').className = isLiked ? "fas fa-heart" : "far fa-heart";
-        document.getElementById('st-like-icon').style.color = isLiked ? "red" : "white";
-
-        // Add view if not already
-        if(!s.views.includes(me.uid)) {
-            updateDoc(doc(db, "stories", s.id), { views: arrayUnion(me.uid) });
-        }
-    }
-
-    window.nextStory = () => {
-        if(currentStoryIndex < currentStoryList.length - 1) {
-            currentStoryIndex++;
-            renderStory();
-        } else {
-            closeStory();
-        }
-    };
-
-    window.likeStory = async () => {
-        const s = currentStoryList[currentStoryIndex];
-        const isLiked = s.likes.includes(me.uid);
-        await updateDoc(doc(db, "stories", s.id), { 
-            likes: isLiked ? arrayRemove(me.uid) : arrayUnion(me.uid) 
-        });
-    };
-
-    window.closeStory = () => document.getElementById('story-view').style.display = 'none';
-
-    // Post & Feed Logic (Optimized for Modern View)
     async function loadFeed() {
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
             const area = document.getElementById('feed-area');
@@ -405,6 +308,7 @@
         const div = document.createElement('div');
         div.className = "post-card";
         div.setAttribute('data-id', id);
+        div.setAttribute('data-time', p.timestamp ? p.timestamp.toMillis() : Date.now());
         div.innerHTML = `
             <div class="post-user" onclick="viewUser('${p.uid}')">
                 <img src="${p.authorImg || 'https://via.placeholder.com/35'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
@@ -412,7 +316,7 @@
                 ${p.uid === me.uid ? `<i class="fas fa-ellipsis-v post-menu-trigger" style="margin-left:auto; padding:10px;"></i>` : ''}
             </div>
             <div class="post-img-container">
-                ${p.img ? `<img src="${p.img}" class="post-img">` : '<div style="padding:20px; width:100%; border-top:1px solid #121212;">' + p.text + '</div>'}
+                ${p.img ? `<img src="${p.img}" class="post-img main-img">` : '<div style="padding:20px; width:100%; border-top:1px solid #121212;">' + p.text + '</div>'}
                 <i class="fas fa-heart like-animation"></i>
             </div>
             <div style="padding:10px 15px; font-size:20px; display:flex; gap:15px; align-items:center;">
@@ -426,101 +330,257 @@
                 ${p.img ? `<b>${p.authorName}</b> ${p.text}` : ''}
             </div>
         `;
-        // Events
-        const imgCont = div.querySelector('.post-img-container');
-        imgCont.ondblclick = () => {
-            div.querySelector('.like-animation').classList.add('active');
-            setTimeout(() => div.querySelector('.like-animation').classList.remove('active'), 800);
+        const imgContainer = div.querySelector('.post-img-container');
+        const heart = div.querySelector('.like-animation');
+        const likeBtn = div.querySelector('.like-btn');
+        imgContainer.addEventListener('dblclick', () => {
+            heart.classList.add('active');
+            setTimeout(() => heart.classList.remove('active'), 800);
             if(!isLiked) toggleLike(id, false);
-        };
-        div.querySelector('.like-btn').onclick = () => toggleLike(id, isLiked);
+        });
+        likeBtn.onclick = () => toggleLike(id, isLiked);
         div.querySelector('.comment-btn').onclick = () => showComments(id);
         div.querySelector('.share-btn').onclick = () => sharePost(id);
-        if(p.uid === me.uid) div.querySelector('.post-menu-trigger').onclick = (e) => { e.stopPropagation(); postMenu(id, p.text); };
+        const menuBtn = div.querySelector('.post-menu-trigger');
+        if(menuBtn) menuBtn.onclick = (e) => { e.stopPropagation(); postMenu(id, p.text); };
         return div;
     }
 
-    async function toggleLike(id, liked) { 
-        await updateDoc(doc(db, "posts", id), { likes: liked ? arrayRemove(me.uid) : arrayUnion(me.uid) }); 
+    /* STORY SYSTEM LOGIC */
+    async function uploadStory(input) {
+        if(!input.files[0]) return;
+        const file = input.files[0];
+        Swal.fire({title: 'Uploading Story...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
+        
+        try {
+            const url = await uploadToCloudinary(file);
+            await addDoc(collection(db, "stories"), {
+                uid: me.uid,
+                mediaUrl: url,
+                type: file.type.startsWith('video') ? 'video' : 'image',
+                timestamp: serverTimestamp(),
+                views: [],
+                likes: [],
+                authorName: me.displayName,
+                authorImg: me.photoURL
+            });
+            Swal.fire({icon: 'success', title: 'Story Uploaded', timer: 1500, showConfirmButton: false, background: '#121212', color: '#fff'});
+        } catch (e) {
+            Swal.fire({icon: 'error', title: 'Upload Failed', background: '#121212', color: '#fff'});
+        }
+    }
+    window.uploadStory = uploadStory;
+
+    function loadStories() {
+        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const q = query(collection(db, "stories"), where("timestamp", ">", yesterday), orderBy("timestamp", "desc"));
+        
+        onSnapshot(q, (snap) => {
+            const otherStoriesArea = document.getElementById('other-stories');
+            otherStoriesArea.innerHTML = "";
+            const groupedStories = {};
+            
+            snap.forEach(doc => {
+                const s = doc.data();
+                const id = doc.id;
+                if (!groupedStories[s.uid]) groupedStories[s.uid] = [];
+                groupedStories[s.uid].push({ ...s, id });
+            });
+
+            // Update my own story circle
+            document.getElementById('my-story-img').src = me.photoURL;
+
+            for (let uid in groupedStories) {
+                if (uid === me.uid) continue;
+                const userStories = groupedStories[uid];
+                const lastStory = userStories[0];
+                const hasUnwatched = userStories.some(s => !s.views.includes(me.uid));
+                
+                const storyDiv = document.createElement('div');
+                storyDiv.className = "story-circle";
+                storyDiv.onclick = () => openStoryViewer(userStories);
+                storyDiv.innerHTML = `
+                    <img src="${lastStory.authorImg}" class="story-ring ${hasUnwatched ? '' : 'watched'}">
+                    <div class="story-name">${lastStory.authorName}</div>
+                `;
+                otherStoriesArea.appendChild(storyDiv);
+            }
+            
+            // Handle clicking own stories
+            if (groupedStories[me.uid]) {
+                document.getElementById('my-story-img').classList.remove('watched');
+                document.querySelector('.add-story').onclick = (e) => {
+                    if(e.target.closest('.add-story-btn')) return;
+                    openStoryViewer(groupedStories[me.uid]);
+                };
+            }
+        });
     }
 
+    function openStoryViewer(stories) {
+        activeStories = stories.reverse(); // chronological
+        currentStoryIndex = 0;
+        document.getElementById('story-viewer').style.display = 'flex';
+        showStory(0);
+    }
+    window.openStoryViewer = openStoryViewer;
+
+    async function showStory(index) {
+        clearTimeout(storyTimer);
+        if (index >= activeStories.length) { closeStory(); return; }
+        
+        currentStoryIndex = index;
+        const story = activeStories[index];
+        
+        // UI Updates
+        document.getElementById('s-user-img').src = story.authorImg;
+        document.getElementById('s-user-name').innerText = story.authorName;
+        document.getElementById('s-time').innerText = timeAgo(story.timestamp);
+        
+        const mediaContainer = document.getElementById('s-media-container');
+        mediaContainer.innerHTML = story.type === 'video' 
+            ? `<video src="${story.mediaUrl}" class="story-media" autoplay muted></video>`
+            : `<img src="${story.mediaUrl}" class="story-media">`;
+            
+        // Progress bars
+        const progContainer = document.getElementById('s-progress-container');
+        progContainer.innerHTML = activeStories.map((_, i) => 
+            `<div class="progress-bar ${i < index ? 'watched' : ''} ${i === index ? 'active' : ''}" style="transform: scaleX(${i < index ? 1 : 0})"></div>`
+        ).join('');
+
+        // Likes & Views
+        const isLiked = story.likes.includes(me.uid);
+        document.getElementById('s-like-icon').className = isLiked ? 'fas fa-heart' : 'far fa-heart';
+        document.getElementById('s-like-icon').style.color = isLiked ? 'red' : 'white';
+        document.getElementById('s-like-count').innerText = story.likes.length;
+
+        const isOwner = story.uid === me.uid;
+        document.getElementById('s-views-box').style.display = isOwner ? 'block' : 'none';
+        document.getElementById('s-view-count').innerText = story.views.length;
+        document.getElementById('s-delete-box').style.display = isOwner ? 'block' : 'none';
+
+        // Mark as viewed
+        if (!story.views.includes(me.uid)) {
+            await updateDoc(doc(db, "stories", story.id), { views: arrayUnion(me.uid) });
+        }
+
+        storyTimer = setTimeout(() => showStory(index + 1), 5000);
+    }
+
+    window.closeStory = () => {
+        clearTimeout(storyTimer);
+        document.getElementById('story-viewer').style.display = 'none';
+        document.getElementById('s-media-container').innerHTML = "";
+    };
+
+    window.toggleStoryLike = async () => {
+        const story = activeStories[currentStoryIndex];
+        const isLiked = story.likes.includes(me.uid);
+        await updateDoc(doc(db, "stories", story.id), {
+            likes: isLiked ? arrayRemove(me.uid) : arrayUnion(me.uid)
+        });
+        // Refresh local data
+        if(isLiked) story.likes = story.likes.filter(id => id !== me.uid);
+        else story.likes.push(me.uid);
+        showStory(currentStoryIndex);
+    };
+
+    window.deleteCurrentStory = async () => {
+        const story = activeStories[currentStoryIndex];
+        const res = await Swal.fire({ title: 'Delete Story?', background: '#121212', color: '#fff', showCancelButton: true });
+        if(res.isConfirmed) {
+            await deleteDoc(doc(db, "stories", story.id));
+            activeStories.splice(currentStoryIndex, 1);
+            showStory(currentStoryIndex);
+        }
+    };
+
+    /* UPDATED POST SYSTEM */
     window.uploadPost = async () => {
         const txt = document.getElementById('post-text').value;
         const file = document.getElementById('post-file').files[0];
+        const shareBtn = document.getElementById('share-post-btn');
+        const addPhotoBtn = document.getElementById('add-photo-btn');
+        
         if(!txt && !file) return;
-        Swal.fire({title: 'Sharing...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
-        let imgUrl = file ? await uploadToCloudinary(file) : null;
-        await addDoc(collection(db, "posts"), {
-            uid: me.uid, text: txt, img: imgUrl, authorName: me.displayName, authorImg: me.photoURL,
-            timestamp: serverTimestamp(), likes: [], comments: []
-        });
-        document.getElementById('post-text').value = ""; document.getElementById('img-preview-box').innerHTML = ""; 
-        document.getElementById('post-file').value = ""; Swal.close();
-    };
 
-    async function uploadToCloudinary(file) {
-        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Meetwoyou');
-        const res = await fetch(`https://api.cloudinary.com/v1_1/dpgawb5sl/image/upload`, { method: 'POST', body: fd });
-        const data = await res.json(); return data.secure_url;
-    }
+        // Modern UX: Disable UI
+        shareBtn.disabled = true;
+        addPhotoBtn.style.pointerEvents = 'none';
+        shareBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sharing...`;
 
-    // Profile, Users, Chat Functions (Identical to original for stability)
-    window.loadAllUsers = () => {
-        onSnapshot(doc(db, "users", me.uid), (mySnap) => {
-            const myFollowing = mySnap.data()?.following || [];
-            onSnapshot(collection(db, "users"), (snap) => {
-                const list = document.getElementById('user-list'); list.innerHTML = "";
-                snap.forEach(d => {
-                    if(d.id !== me.uid) {
-                        const u = d.data(); const isF = myFollowing.includes(d.id);
-                        list.innerHTML += `<div class="user-list-item">
-                            <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="viewUser('${d.id}')">
-                                <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-                                <div><b>${u.displayName}${u.isVerified?vB:''}</b><br><small style="color:gray;">${formatCount(u.followers?.length)} followers</small></div>
-                            </div>
-                            <button onclick="toggleFollow('${d.id}', ${isF})" style="background:${isF?'#262626':'#0095f6'}; color:white; border:none; padding:5px 12px; border-radius:5px; font-weight:bold;">${isF?'Unfollow':'Follow'}</button>
-                        </div>`;
-                    }
-                });
+        try {
+            let imgUrl = file ? await uploadToCloudinary(file) : null;
+            await addDoc(collection(db, "posts"), {
+                uid: me.uid, text: txt, img: imgUrl, authorName: me.displayName, authorImg: me.photoURL,
+                timestamp: serverTimestamp(), likes: [], comments: []
             });
-        });
+            
+            // Reset UI
+            document.getElementById('post-text').value = ""; 
+            document.getElementById('img-preview-box').innerHTML = "";
+            document.getElementById('post-file').value = "";
+            
+            Swal.fire({ icon: 'success', title: 'Posted Successfully', timer: 1500, showConfirmButton: false, background: '#121212', color: '#fff' });
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Post Failed', text: e.message, background: '#121212', color: '#fff' });
+        } finally {
+            shareBtn.disabled = false;
+            addPhotoBtn.style.pointerEvents = 'auto';
+            shareBtn.innerHTML = `Share Post`;
+        }
     };
 
-    window.toggleFollow = async (tUid, isF) => {
-        const mRef = doc(db, "users", me.uid); const tRef = doc(db, "users", tUid);
-        if(isF) { await updateDoc(mRef, { following: arrayRemove(tUid) }); await updateDoc(tRef, { followers: arrayRemove(me.uid) }); }
-        else { await updateDoc(mRef, { following: arrayUnion(tUid) }); await updateDoc(tRef, { followers: arrayUnion(me.uid) }); }
+    /* EXISTING FEATURES RETAINED */
+    window.toggleFollow = async (targetUid, isFollowing) => {
+        const myRef = doc(db, "users", me.uid);
+        const targetRef = doc(db, "users", targetUid);
+        try {
+            if (isFollowing) {
+                await updateDoc(myRef, { following: arrayRemove(targetUid) });
+                await updateDoc(targetRef, { followers: arrayRemove(me.uid) });
+            } else {
+                await updateDoc(myRef, { following: arrayUnion(targetUid) });
+                await updateDoc(targetRef, { followers: arrayUnion(me.uid) });
+            }
+        } catch (e) { console.error(e); }
     };
 
     window.viewUser = async (uid) => {
         if(uid === me.uid) { showSec('profile'); return; }
         document.getElementById('user-profile-view').style.display = 'flex';
         onSnapshot(doc(db, "users", uid), async (snap) => {
-            const d = snap.data(); if(!d) return;
+            const d = snap.data();
+            if(!d) return;
             const mySnap = await getDoc(doc(db, "users", me.uid));
-            const isF = mySnap.data()?.following?.includes(uid);
+            const isFollowing = mySnap.data()?.following?.includes(uid);
             document.getElementById('view-user-name-title').innerText = d.displayName;
             document.getElementById('user-profile-content').innerHTML = `
                 <div style="text-align: center; padding: 20px 15px;">
                     <img src="${d.photoURL}" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:2px solid #262626;">
                     <h3>${d.displayName}${d.isVerified?vB:''}</h3>
                     <p style="color:var(--gray)">${d.bio || ""}</p>
+                    <div class="profile-details">
+                        ${d.work ? `<div><i class="fas fa-briefcase"></i> ${d.work}</div>` : ''}
+                        ${d.org ? `<div><i class="fas fa-university"></i> ${d.org}</div>` : ''}
+                    </div>
                     <div style="display: flex; justify-content: center; gap: 30px; margin: 15px 0;">
                         <div><b>${formatCount(d.followers?.length)}</b><br><small>Followers</small></div>
                         <div><b>${formatCount(d.following?.length)}</b><br><small>Following</small></div>
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn-main" onclick="toggleFollow('${uid}', ${isF})" style="background:${isF?'#262626':'#0095f6'}">${isF?'Unfollow':'Follow'}</button>
+                        <button class="btn-main" onclick="toggleFollow('${uid}', ${isFollowing})" style="background:${isFollowing?'#262626':'#0095f6'}">${isFollowing?'Unfollow':'Follow'}</button>
                         <button class="btn-main" style="background:#262626;" onclick="openChat('${uid}', '${d.displayName}', '${d.photoURL}')">Message</button>
                     </div>
                 </div>`;
         });
-        const qPosts = query(collection(db, "posts"), where("uid", "==", uid));
-        onSnapshot(qPosts, (pSnap) => {
-            const grid = document.getElementById('user-posts-grid'); grid.innerHTML = "";
+        onSnapshot(query(collection(db, "posts"), where("uid", "==", uid)), (pSnap) => {
+            const grid = document.getElementById('user-posts-grid');
+            grid.innerHTML = "";
             pSnap.forEach(postDoc => {
                 const pd = postDoc.data();
-                const item = document.createElement('div'); item.className = "grid-item";
+                const item = document.createElement('div');
+                item.className = "grid-item";
                 item.onclick = () => viewSinglePost(postDoc.id);
                 item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
                 grid.appendChild(item);
@@ -528,9 +588,92 @@
         });
     };
 
+    window.loadAllUsers = () => {
+        onSnapshot(doc(db, "users", me.uid), (mySnap) => {
+            const myFollowing = mySnap.data()?.following || [];
+            onSnapshot(collection(db, "users"), (snap) => {
+                const list = document.getElementById('user-list');
+                list.innerHTML = "";
+                snap.forEach(d => {
+                    if(d.id !== me.uid) {
+                        const u = d.data();
+                        const isFollowing = myFollowing.includes(d.id);
+                        list.innerHTML += `<div class="user-list-item">
+                            <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="viewUser('${d.id}')">
+                                <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                <div><b>${u.displayName}${u.isVerified?vB:''}</b><br><small style="color:gray;">${formatCount(u.followers?.length)} followers</small></div>
+                            </div>
+                            <button onclick="toggleFollow('${d.id}', ${isFollowing})" style="background:${isFollowing?'#262626':'#0095f6'}; color:white; border:none; padding:5px 12px; border-radius:5px; font-weight:bold;">${isFollowing?'Unfollow':'Follow'}</button>
+                        </div>`;
+                    }
+                });
+            });
+        });
+        onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "desc")), async (mSnap) => {
+            const chatList = document.getElementById('chat-list');
+            chatList.innerHTML = "";
+            let interactedUids = new Set();
+            mSnap.forEach(mDoc => {
+                const m = mDoc.data();
+                const otherUid = m.sender === me.uid ? m.receiver : m.sender;
+                interactedUids.add(otherUid);
+            });
+            for(let uid of interactedUids) {
+                const uSnap = await getDoc(doc(db, "users", uid));
+                if(uSnap.exists()){
+                    const u = uSnap.data();
+                    chatList.innerHTML += `<div class="post-user" onclick="openChat('${uid}', '${u.displayName}', '${u.photoURL}')">
+                        <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                        <div><b>${u.displayName}${u.isVerified?vB:''}</b></div>
+                    </div>`;
+                }
+            }
+        });
+    };
+
+    window.viewSinglePost = async (postId) => {
+        const snap = await getDoc(doc(db, "posts", postId));
+        if(!snap.exists()) return;
+        const postDiv = await createPostElement(snap.data(), postId);
+        document.getElementById('post-detail-content').innerHTML = "";
+        document.getElementById('post-detail-content').appendChild(postDiv);
+        document.getElementById('post-detail-view').style.display = 'flex';
+    };
+
+    window.saveProfile = async () => {
+        const data = {
+            displayName: document.getElementById('edit-name').value || me.displayName,
+            bio: document.getElementById('edit-bio').value || "",
+            dob: document.getElementById('edit-dob').value || "",
+            work: document.getElementById('edit-work').value || "",
+            org: document.getElementById('edit-org').value || "",
+            website: document.getElementById('edit-web').value || "",
+            social: document.getElementById('edit-social').value || ""
+        };
+        await updateDoc(doc(db, "users", me.uid), data);
+        await updateProfile(auth.currentUser, { displayName: data.displayName });
+        toggleEdit();
+        Swal.fire({icon: 'success', title: 'Profile Updated', timer: 1500, showConfirmButton: false, background: '#121212', color: '#fff'});
+    };
+
+    window.toggleEdit = async () => {
+        const e = document.getElementById('edit-form');
+        if(e.style.display === 'none') {
+            const snap = await getDoc(doc(db, "users", me.uid));
+            const d = snap.data();
+            ['name','bio','dob','work','org','web','social'].forEach(f => document.getElementById('edit-'+f).value = d[f==='name'?'displayName':(f==='web'?'website':f)] || "");
+            e.style.display = 'block';
+        } else { e.style.display = 'none'; }
+    };
+
+    async function toggleLike(id, liked) { 
+        await updateDoc(doc(db, "posts", id), { likes: liked ? arrayRemove(me.uid) : arrayUnion(me.uid) }); 
+    }
+
     window.openChat = async (uid, name, img) => {
         activeChatID = uid;
-        document.getElementById('chat-h-name').innerText = name;
+        const snap = await getDoc(doc(db, "users", uid));
+        document.getElementById('chat-h-name').innerHTML = name + (snap.data()?.isVerified ? vB : "");
         document.getElementById('chat-h-img').src = img;
         document.getElementById('chat-screen').style.display = 'flex';
         onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "asc")), (snap) => {
@@ -546,23 +689,44 @@
     };
 
     window.sendMsg = async () => {
-        const i = document.getElementById('chat-input'); if(!i.value.trim()) return;
+        const i = document.getElementById('chat-input');
+        if(!i.value.trim()) return;
         await addDoc(collection(db, "messages"), { sender: me.uid, receiver: activeChatID, text: i.value, timestamp: serverTimestamp() });
         i.value = "";
     };
 
-    window.saveProfile = async () => {
-        const name = document.getElementById('edit-name').value;
-        const bio = document.getElementById('edit-bio').value;
-        await updateDoc(doc(db, "users", me.uid), { displayName: name || me.displayName, bio: bio || "" });
-        if(name) await updateProfile(auth.currentUser, { displayName: name });
-        toggleEdit(); Swal.fire({icon: 'success', title: 'Updated!', timer: 1000, background: '#121212', color: '#fff'});
-    };
+    async function uploadToCloudinary(file) {
+        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Meetwoyou');
+        const res = await fetch(`https://api.cloudinary.com/v1_1/dpgawb5sl/image/upload`, { method: 'POST', body: fd });
+        const data = await res.json(); return data.secure_url;
+    }
 
-    window.toggleEdit = () => {
-        const e = document.getElementById('edit-form');
-        e.style.display = e.style.display === 'none' ? 'block' : 'none';
-    };
+    async function postMenu(postId, oldText) {
+        const { value: action } = await Swal.fire({
+            title: 'Manage Post', showDenyButton: true, confirmButtonText: 'Edit', denyButtonText: 'Delete',
+            background: '#121212', color: '#fff', confirmButtonColor: '#0095f6', denyButtonColor: '#ed4956'
+        });
+        if(action === true) { 
+            const { value: newText } = await Swal.fire({ input: 'textarea', inputValue: oldText, title: 'Edit Post', background: '#121212', color: '#fff' });
+            if(newText) await updateDoc(doc(db, "posts", postId), { text: newText });
+        } else if (action === false) { 
+            const res = await Swal.fire({ title: 'Delete Post?', icon: 'warning', showCancelButton: true, background: '#121212', color: '#fff' });
+            if(res.isConfirmed) await deleteDoc(doc(db, "posts", postId));
+        }
+    }
+
+    async function showComments(postId) {
+        const snap = await getDoc(doc(db, "posts", postId));
+        const comments = snap.data().comments || [];
+        let html = '<div style="max-height:200px; overflow-y:auto; text-align:left;">';
+        comments.forEach(c => html += `<p style="font-size:13px; margin:5px 0;"><b>${c.user}:</b> ${c.text}</p>`);
+        html += '</div>';
+        const { value: newComment } = await Swal.fire({
+            title: 'Comments', html: html, input: 'text', inputPlaceholder: 'Write a comment...',
+            showCancelButton: true, confirmButtonText: 'Post', background: '#121212', color: '#fff'
+        });
+        if(newComment) await updateDoc(doc(db, "posts", postId), { comments: arrayUnion({ user: me.displayName, text: newComment }) });
+    }
 
     function loadMyProfile() {
         onSnapshot(doc(db, "users", me.uid), (snap) => {
@@ -572,6 +736,10 @@
             document.getElementById('p-bio').innerText = d.bio || "";
             document.getElementById('count-followers').innerText = formatCount(d.followers?.length);
             document.getElementById('count-following').innerText = formatCount(d.following?.length);
+            let detBox = document.getElementById('p-details-box'); detBox.innerHTML = "";
+            if(d.dob) detBox.innerHTML += `<div><i class="fas fa-birthday-cake"></i> ${d.dob}</div>`;
+            if(d.work) detBox.innerHTML += `<div><i class="fas fa-briefcase"></i> ${d.work}</div>`;
+            if(d.org) detBox.innerHTML += `<div><i class="fas fa-university"></i> ${d.org}</div>`;
         });
     }
 
@@ -602,7 +770,19 @@
     };
     window.sharePost = (id) => { 
         navigator.clipboard.writeText(window.location.origin + "?post=" + id);
-        Swal.fire({ title: "Link Copied!", icon: "success", timer: 1000, background: '#121212', color: '#fff' });
+        Swal.fire({ title: "Link Copied!", icon: "success", timer: 1000, showConfirmButton: false, background: '#121212', color: '#fff' });
+    };
+    window.shareMyProfile = () => {
+        navigator.clipboard.writeText(window.location.origin + "?u=" + me.uid);
+        Swal.fire({ title: "Profile Link Copied!", icon: "success", timer: 1000, showConfirmButton: false, background: '#121212', color: '#fff' });
+    };
+    window.updateProfilePic = async (input) => {
+        if(!input.files[0]) return;
+        Swal.fire({title: 'Uploading...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
+        const url = await uploadToCloudinary(input.files[0]);
+        await updateDoc(doc(db, "users", me.uid), { photoURL: url });
+        await updateProfile(auth.currentUser, { photoURL: url });
+        location.reload();
     };
 </script>
 </body>
