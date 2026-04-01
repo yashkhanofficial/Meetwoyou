@@ -272,6 +272,18 @@
     let storyTimer = null;
     const vB = ` <i class="fas fa-check-circle v-badge"></i>`;
 
+    // Video Autoplay Logic (Intersection Observer)
+    const videoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const video = entry.target;
+            if (entry.isIntersecting) {
+                video.play().catch(e => { /* Autoplay blocked */ });
+            } else {
+                video.pause();
+            }
+        });
+    }, { threshold: 0.6 });
+
     function formatCount(num) {
         if (!num) return "0";
         if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + "M";
@@ -348,7 +360,7 @@
         
         let mediaHtml = "";
         if(p.video) {
-            mediaHtml = `<video src="${p.video}" class="post-img main-img" controls playsinline></video>`;
+            mediaHtml = `<video src="${p.video}" class="post-img main-img feed-video" muted loop playsinline></video>`;
         } else if(p.img) {
             mediaHtml = `<img src="${p.img}" class="post-img main-img">`;
         } else {
@@ -376,6 +388,16 @@
                 ${(p.img || p.video) ? `<b>${p.authorName}</b> ${p.text}` : ''}
             </div>
         `;
+
+        if(p.video) {
+            const videoEl = div.querySelector('.feed-video');
+            videoObserver.observe(videoEl);
+            videoEl.onclick = () => {
+                videoEl.muted = !videoEl.muted;
+                Swal.fire({ toast: true, position: 'top', showConfirmButton: false, timer: 1000, title: videoEl.muted ? 'Muted' : 'Unmuted', icon: 'info' });
+            };
+        }
+
         const imgContainer = div.querySelector('.post-img-container');
         const heart = div.querySelector('.like-animation');
         const likeBtn = div.querySelector('.like-btn');
@@ -692,7 +714,7 @@
                 item.className = "grid-item";
                 item.onclick = () => viewSinglePost(postDoc.id);
                 if(pd.video) {
-                    item.innerHTML = `<video src="${pd.video}#t=0.1"></video>`;
+                    item.innerHTML = `<video src="${pd.video}#t=0.1" muted playsinline></video>`;
                 } else {
                     item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
                 }
@@ -877,7 +899,7 @@
                 const item = document.createElement('div'); item.className = "grid-item";
                 item.onclick = () => viewSinglePost(d.id);
                 if(pd.video) {
-                    item.innerHTML = `<video src="${pd.video}#t=0.1"></video>`;
+                    item.innerHTML = `<video src="${pd.video}#t=0.1" muted playsinline></video>`;
                 } else {
                     item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
                 }
