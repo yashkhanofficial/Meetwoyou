@@ -36,7 +36,7 @@
         
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 15px; }
         .grid-item { aspect-ratio: 1/1; background: #121212; overflow: hidden; cursor: pointer; }
-        .grid-item img { width: 100%; height: 100%; object-fit: cover; }
+        .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
         
         .nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 1px solid #262626; display: flex; justify-content: space-around; padding: 15px 0; z-index: 1000; }
         .nav i { font-size: 24px; cursor: pointer; color: #fff; }
@@ -51,7 +51,6 @@
         .profile-details div { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
         .profile-details i { width: 18px; color: var(--gray); }
 
-        /* Story Styles */
         .story-container { display: flex; overflow-x: auto; padding: 10px; gap: 12px; border-bottom: 1px solid #262626; scrollbar-width: none; }
         .story-container::-webkit-scrollbar { display: none; }
         .story-circle { flex-shrink: 0; width: 64px; text-align: center; cursor: pointer; }
@@ -69,6 +68,9 @@
         .story-header { position: absolute; top: 25px; left: 15px; display: flex; align-items: center; gap: 10px; z-index: 10; width: calc(100% - 30px); }
         .story-media { width: 100%; max-height: 80vh; object-fit: contain; }
         .story-footer { position: absolute; bottom: 20px; left: 0; right: 0; display: flex; justify-content: space-around; align-items: center; padding: 0 20px; }
+
+        .upload-progress-container { width: 100%; background: #262626; border-radius: 5px; height: 5px; margin: 10px 0; display: none; }
+        .upload-progress-bar { height: 100%; width: 0%; background: var(--primary); border-radius: 5px; transition: width 0.3s; }
     </style>
 </head>
 <body>
@@ -97,9 +99,10 @@
 
     <div style="background: var(--card); padding: 15px; border-radius: 10px; margin: 10px; border: 1px solid #262626;">
         <textarea id="post-text" placeholder="What's on your mind?"></textarea>
-        <input type="file" id="post-file" accept="image/*" style="display:none" onchange="previewImg(this)">
-        <button id="add-photo-btn" onclick="document.getElementById('post-file').click()" style="background:#262626; color:white; border:none; padding:8px; border-radius:5px; margin-bottom:10px; cursor:pointer;">Add Photo</button>
+        <input type="file" id="post-file" accept="image/*,video/*" style="display:none" onchange="previewImg(this)">
+        <button id="add-photo-btn" onclick="document.getElementById('post-file').click()" style="background:#262626; color:white; border:none; padding:8px; border-radius:5px; margin-bottom:10px; cursor:pointer;">Add Media</button>
         <div id="img-preview-box"></div>
+        <div class="upload-progress-container" id="up-prog-cont"><div class="upload-progress-bar" id="up-prog-bar"></div></div>
         <button id="share-post-btn" class="btn-main" onclick="uploadPost()">Share Post</button>
     </div>
     <div id="feed-area"></div>
@@ -308,7 +311,16 @@
         const div = document.createElement('div');
         div.className = "post-card";
         div.setAttribute('data-id', id);
-        div.setAttribute('data-time', p.timestamp ? p.timestamp.toMillis() : Date.now());
+        
+        let mediaHtml = "";
+        if(p.video) {
+            mediaHtml = `<video src="${p.video}" class="post-img main-img" controls playsinline></video>`;
+        } else if(p.img) {
+            mediaHtml = `<img src="${p.img}" class="post-img main-img">`;
+        } else {
+            mediaHtml = `<div style="padding:20px; width:100%; border-top:1px solid #121212;">${p.text}</div>`;
+        }
+
         div.innerHTML = `
             <div class="post-user" onclick="viewUser('${p.uid}')">
                 <img src="${p.authorImg || 'https://via.placeholder.com/35'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
@@ -316,7 +328,7 @@
                 ${p.uid === me.uid ? `<i class="fas fa-ellipsis-v post-menu-trigger" style="margin-left:auto; padding:10px;"></i>` : ''}
             </div>
             <div class="post-img-container">
-                ${p.img ? `<img src="${p.img}" class="post-img main-img">` : '<div style="padding:20px; width:100%; border-top:1px solid #121212;">' + p.text + '</div>'}
+                ${mediaHtml}
                 <i class="fas fa-heart like-animation"></i>
             </div>
             <div style="padding:10px 15px; font-size:20px; display:flex; gap:15px; align-items:center;">
@@ -327,7 +339,7 @@
             <div class="post-time">${timeAgo(p.timestamp)}</div>
             <div style="padding:5px 15px; font-size:14px;">
                 <b class="likes-count">${formatCount(p.likes?.length)} likes</b><br>
-                ${p.img ? `<b>${p.authorName}</b> ${p.text}` : ''}
+                ${(p.img || p.video) ? `<b>${p.authorName}</b> ${p.text}` : ''}
             </div>
         `;
         const imgContainer = div.querySelector('.post-img-container');
@@ -346,7 +358,6 @@
         return div;
     }
 
-    /* STORY SYSTEM LOGIC */
     async function uploadStory(input) {
         if(!input.files[0]) return;
         const file = input.files[0];
@@ -387,7 +398,6 @@
                 groupedStories[s.uid].push({ ...s, id });
             });
 
-            // Update my own story circle
             document.getElementById('my-story-img').src = me.photoURL;
 
             for (let uid in groupedStories) {
@@ -406,7 +416,6 @@
                 otherStoriesArea.appendChild(storyDiv);
             }
             
-            // Handle clicking own stories
             if (groupedStories[me.uid]) {
                 document.getElementById('my-story-img').classList.remove('watched');
                 document.querySelector('.add-story').onclick = (e) => {
@@ -418,7 +427,7 @@
     }
 
     function openStoryViewer(stories) {
-        activeStories = stories.reverse(); // chronological
+        activeStories = stories.reverse();
         currentStoryIndex = 0;
         document.getElementById('story-viewer').style.display = 'flex';
         showStory(0);
@@ -432,7 +441,6 @@
         currentStoryIndex = index;
         const story = activeStories[index];
         
-        // UI Updates
         document.getElementById('s-user-img').src = story.authorImg;
         document.getElementById('s-user-name').innerText = story.authorName;
         document.getElementById('s-time').innerText = timeAgo(story.timestamp);
@@ -442,13 +450,11 @@
             ? `<video src="${story.mediaUrl}" class="story-media" autoplay muted></video>`
             : `<img src="${story.mediaUrl}" class="story-media">`;
             
-        // Progress bars
         const progContainer = document.getElementById('s-progress-container');
         progContainer.innerHTML = activeStories.map((_, i) => 
             `<div class="progress-bar ${i < index ? 'watched' : ''} ${i === index ? 'active' : ''}" style="transform: scaleX(${i < index ? 1 : 0})"></div>`
         ).join('');
 
-        // Likes & Views
         const isLiked = story.likes.includes(me.uid);
         document.getElementById('s-like-icon').className = isLiked ? 'fas fa-heart' : 'far fa-heart';
         document.getElementById('s-like-icon').style.color = isLiked ? 'red' : 'white';
@@ -459,7 +465,6 @@
         document.getElementById('s-view-count').innerText = story.views.length;
         document.getElementById('s-delete-box').style.display = isOwner ? 'block' : 'none';
 
-        // Mark as viewed
         if (!story.views.includes(me.uid)) {
             await updateDoc(doc(db, "stories", story.id), { views: arrayUnion(me.uid) });
         }
@@ -479,7 +484,6 @@
         await updateDoc(doc(db, "stories", story.id), {
             likes: isLiked ? arrayRemove(me.uid) : arrayUnion(me.uid)
         });
-        // Refresh local data
         if(isLiked) story.likes = story.likes.filter(id => id !== me.uid);
         else story.likes.push(me.uid);
         showStory(currentStoryIndex);
@@ -495,43 +499,95 @@
         }
     };
 
-    /* UPDATED POST SYSTEM */
+    const compressImage = (file) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const max = 1200;
+                    if (width > height && width > max) { height *= max / width; width = max; }
+                    else if (height > max) { width *= max / height; height = max; }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    canvas.toBlob((blob) => resolve(new File([blob], file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.7);
+                };
+            };
+        });
+    };
+
     window.uploadPost = async () => {
         const txt = document.getElementById('post-text').value;
         const file = document.getElementById('post-file').files[0];
         const shareBtn = document.getElementById('share-post-btn');
-        const addPhotoBtn = document.getElementById('add-photo-btn');
+        const progCont = document.getElementById('up-prog-cont');
+        const progBar = document.getElementById('up-prog-bar');
         
         if(!txt && !file) return;
 
-        // Modern UX: Disable UI
         shareBtn.disabled = true;
-        addPhotoBtn.style.pointerEvents = 'none';
-        shareBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sharing...`;
+        shareBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing...`;
 
         try {
-            let imgUrl = file ? await uploadToCloudinary(file) : null;
+            let uploadFile = file;
+            if(file) {
+                if(file.type.startsWith('image/')) {
+                    uploadFile = await compressImage(file);
+                } else if(file.type.startsWith('video/')) {
+                    if(file.size > 10 * 1024 * 1024) throw new Error("Video size must be less than 10MB");
+                }
+                
+                progCont.style.display = 'block';
+                progBar.style.width = '20%';
+            }
+
+            let mediaUrl = null;
+            let isVideo = false;
+            
+            if(uploadFile) {
+                mediaUrl = await uploadToCloudinary(uploadFile, (p) => {
+                    progBar.style.width = (20 + (p * 0.7)) + '%';
+                });
+                isVideo = uploadFile.type.startsWith('video/');
+            }
+            
+            progBar.style.width = '95%';
+
             await addDoc(collection(db, "posts"), {
-                uid: me.uid, text: txt, img: imgUrl, authorName: me.displayName, authorImg: me.photoURL,
-                timestamp: serverTimestamp(), likes: [], comments: []
+                uid: me.uid, 
+                text: txt, 
+                img: isVideo ? null : mediaUrl, 
+                video: isVideo ? mediaUrl : null,
+                authorName: me.displayName, 
+                authorImg: me.photoURL,
+                timestamp: serverTimestamp(), 
+                likes: [], 
+                comments: []
             });
             
-            // Reset UI
             document.getElementById('post-text').value = ""; 
             document.getElementById('img-preview-box').innerHTML = "";
             document.getElementById('post-file').value = "";
+            progCont.style.display = 'none';
+            progBar.style.width = '0%';
             
             Swal.fire({ icon: 'success', title: 'Posted Successfully', timer: 1500, showConfirmButton: false, background: '#121212', color: '#fff' });
         } catch (e) {
             Swal.fire({ icon: 'error', title: 'Post Failed', text: e.message, background: '#121212', color: '#fff' });
         } finally {
             shareBtn.disabled = false;
-            addPhotoBtn.style.pointerEvents = 'auto';
             shareBtn.innerHTML = `Share Post`;
+            progCont.style.display = 'none';
         }
     };
 
-    /* EXISTING FEATURES RETAINED */
     window.toggleFollow = async (targetUid, isFollowing) => {
         const myRef = doc(db, "users", me.uid);
         const targetRef = doc(db, "users", targetUid);
@@ -582,7 +638,11 @@
                 const item = document.createElement('div');
                 item.className = "grid-item";
                 item.onclick = () => viewSinglePost(postDoc.id);
-                item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
+                if(pd.video) {
+                    item.innerHTML = `<video src="${pd.video}#t=0.1"></video>`;
+                } else {
+                    item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
+                }
                 grid.appendChild(item);
             });
         });
@@ -695,10 +755,28 @@
         i.value = "";
     };
 
-    async function uploadToCloudinary(file) {
-        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Meetwoyou');
-        const res = await fetch(`https://api.cloudinary.com/v1_1/dpgawb5sl/image/upload`, { method: 'POST', body: fd });
-        const data = await res.json(); return data.secure_url;
+    async function uploadToCloudinary(file, onProg) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://api.cloudinary.com/v1_1/dpgawb5sl/auto/upload');
+            
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable && onProg) onProg((e.loaded / e.total) * 100);
+            };
+
+            xhr.onload = () => {
+                const resp = JSON.parse(xhr.responseText);
+                if(resp.secure_url) resolve(resp.secure_url);
+                else reject(new Error("Cloudinary Error"));
+            };
+
+            xhr.onerror = () => reject(new Error("Network Error"));
+
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('upload_preset', 'Meetwoyou');
+            xhr.send(fd);
+        });
     }
 
     async function postMenu(postId, oldText) {
@@ -748,9 +826,14 @@
             document.getElementById('count-posts').innerText = snap.size;
             const grid = document.getElementById('my-posts-grid'); grid.innerHTML = "";
             snap.forEach(d => {
+                const pd = d.data();
                 const item = document.createElement('div'); item.className = "grid-item";
                 item.onclick = () => viewSinglePost(d.id);
-                item.innerHTML = d.data().img ? `<img src="${d.data().img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${d.data().text}</div>`;
+                if(pd.video) {
+                    item.innerHTML = `<video src="${pd.video}#t=0.1"></video>`;
+                } else {
+                    item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
+                }
                 grid.appendChild(item);
             });
         });
@@ -764,9 +847,17 @@
     window.closeChat = () => document.getElementById('chat-screen').style.display = 'none';
     window.closeProfileView = () => document.getElementById('user-profile-view').style.display = 'none';
     window.previewImg = (i) => {
-        const r = new FileReader(); r.onload = (e) => {
-            document.getElementById('img-preview-box').innerHTML = `<img src="${e.target.result}" style="width:100%; border-radius:10px; margin-top:10px;">`;
-        }; r.readAsDataURL(i.files[0]);
+        const file = i.files[0];
+        if(!file) return;
+        const r = new FileReader(); 
+        r.onload = (e) => {
+            if(file.type.startsWith('video/')) {
+                document.getElementById('img-preview-box').innerHTML = `<video src="${e.target.result}" style="width:100%; border-radius:10px; margin-top:10px;" muted autoplay></video>`;
+            } else {
+                document.getElementById('img-preview-box').innerHTML = `<img src="${e.target.result}" style="width:100%; border-radius:10px; margin-top:10px;">`;
+            }
+        }; 
+        r.readAsDataURL(file);
     };
     window.sharePost = (id) => { 
         navigator.clipboard.writeText(window.location.origin + "?post=" + id);
