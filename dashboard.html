@@ -20,30 +20,26 @@
         .section.active { display: block; }
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        /* Modern Post Box Update */
-        .post-input-container { background: #1a1a1a; padding: 15px; border-radius: 15px; margin: 15px; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .post-input-container textarea { background: transparent; border: none; resize: none; font-size: 16px; padding: 5px; outline: none; margin-bottom: 10px; }
-        .post-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #333; padding-top: 10px; }
-        .post-action-btn { background: rgba(0, 149, 246, 0.1); color: var(--primary); padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: 0.3s; }
-        .post-action-btn:hover { background: var(--primary); color: white; }
-
         .post-card { border-bottom: 1px solid #262626; padding-bottom: 15px; margin-bottom: 10px; position: relative; }
         .post-user { display: flex; align-items: center; gap: 10px; padding: 10px; cursor: pointer; }
         .post-img-container { position: relative; width: 100%; cursor: pointer; display: flex; justify-content: center; background: #000; }
-        .post-img { width: 100%; max-height: 500px; object-fit: contain; }
+        .post-img, .post-video { width: 100%; max-height: 500px; object-fit: contain; }
         
         .like-animation { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: white; font-size: 80px; opacity: 0; pointer-events: none; z-index: 10; }
         .like-animation.active { animation: heartPop 0.8s ease-out; }
         @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
 
         #chat-screen, #user-profile-view, #post-detail-view { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; overflow-y: auto; }
-        .chat-bubble { padding: 10px 15px; border-radius: 18px; margin: 5px 0; max-width: 75%; font-size: 14px; word-wrap: break-word; }
+        .chat-bubble { padding: 10px 15px; border-radius: 18px; margin: 5px 0; max-width: 75%; font-size: 14px; word-wrap: break-word; position: relative; }
         .sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
         .recv { background: #262626; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .msg-time { font-size: 10px; color: var(--gray); margin-top: 3px; text-align: right; }
+        .msg-actions { position: absolute; top: 5px; right: 5px; display: none; font-size: 12px; gap: 8px; }
+        .chat-bubble:hover .msg-actions { display: flex; }
         
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 15px; }
         .grid-item { aspect-ratio: 1/1; background: #121212; overflow: hidden; cursor: pointer; }
-        .grid-item img { width: 100%; height: 100%; object-fit: cover; }
+        .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
         
         .nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 1px solid #262626; display: flex; justify-content: space-around; padding: 15px 0; z-index: 1000; }
         .nav i { font-size: 24px; cursor: pointer; color: #fff; }
@@ -56,8 +52,11 @@
         .profile-details { text-align: left; padding: 10px 20px; font-size: 14px; color: #ccc; }
         .profile-details div { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
         .profile-details i { width: 18px; color: var(--gray); }
-        
-        .last-msg-preview { font-size: 12px; color: var(--gray); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+
+        .highlight { background: rgba(0, 149, 246, 0.2); animation: highlightAnim 2s ease; }
+        @keyframes highlightAnim { 0% { background: rgba(0, 149, 246, 0.4); } 100% { background: transparent; } }
+
+        .notification-dot { position: absolute; top: -3px; right: -3px; background: var(--danger); width: 8px; height: 8px; border-radius: 50%; display: none; }
     </style>
 </head>
 <body>
@@ -70,29 +69,25 @@
 <div class="header">
     <i class="fas fa-power-off" onclick="userLogout()" style="font-size:20px; color:var(--danger); cursor:pointer;"></i>
     <h2 style="margin:0; font-family: 'Grand Hotel', cursive;">Meetwoyou</h2>
-    <div style="position: relative;"><i class="far fa-bell" style="font-size:22px;" onclick="requestNotif()"></i></div>
+    <div style="position: relative;">
+        <i class="far fa-bell" id="notif-icon" style="font-size:22px; cursor:pointer;" onclick="showNotifications()"></i>
+        <span class="notification-dot" id="notif-dot"></span>
+    </div>
 </div>
 
 <div id="home-sec" class="section active">
-    <div class="post-input-container">
-        <div style="display:flex; gap:10px; margin-bottom:10px;">
-            <img id="post-user-img" src="https://via.placeholder.com/40" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-            <textarea id="post-text" placeholder="Share your thoughts..."></textarea>
-        </div>
-        <div id="img-preview-box"></div>
-        <div class="post-actions">
-            <div onclick="document.getElementById('post-file').click()" style="cursor:pointer; color:var(--gray);">
-                <i class="fas fa-image" style="color:#45bd62;"></i> Photo
-            </div>
-            <input type="file" id="post-file" accept="image/*" style="display:none" onchange="previewImg(this)">
-            <button class="post-action-btn" onclick="uploadPost()">Post</button>
-        </div>
+    <div style="background: var(--card); padding: 15px; border-radius: 10px; margin: 10px; border: 1px solid #262626;">
+        <textarea id="post-text" placeholder="What's on your mind?"></textarea>
+        <input type="file" id="post-file" accept="image/*,video/*" style="display:none" onchange="previewMedia(this)">
+        <button onclick="document.getElementById('post-file').click()" style="background:#262626; color:white; border:none; padding:8px; border-radius:5px; margin-bottom:10px; cursor:pointer;">Add Photo / Video</button>
+        <div id="media-preview-box"></div>
+        <button class="btn-main" onclick="uploadPost()">Share Post</button>
     </div>
     <div id="feed-area"></div>
 </div>
 
 <div id="discover-sec" class="section">
-    <div style="padding:15px;"><input type="text" id="user-search" placeholder="Search friends..."></div>
+    <div style="padding:15px;"><input type="text" id="user-search" placeholder="Search friends..." onkeyup="searchUsers(this.value)"></div>
     <div id="user-list"></div>
 </div>
 
@@ -136,9 +131,43 @@
     <div id="my-posts-grid" class="profile-grid"></div>
 </div>
 
-<div id="user-profile-view"><div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px;"><i class="fas fa-arrow-left" onclick="closeProfileView()" style="cursor:pointer;"></i><span id="view-user-name-title">Profile</span></div><div id="user-profile-content"></div><div id="user-posts-grid" class="profile-grid"></div></div>
-<div id="post-detail-view"><div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px;"><i class="fas fa-arrow-left" onclick="document.getElementById('post-detail-view').style.display='none'" style="cursor:pointer;"></i><span>Post</span></div><div id="post-detail-content"></div></div>
-<div id="chat-screen"><div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:12px;"><i class="fas fa-arrow-left" onclick="closeChat()" style="cursor:pointer;"></i><img id="chat-h-img" src="" style="width:35px; height:35px; border-radius:50%;"><b id="chat-h-name"></b></div><div id="chat-box" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column;"></div><div style="padding:10px; display:flex; gap:10px; background:#121212;"><input type="text" id="chat-input" placeholder="Message..." style="margin:0;"><button onclick="sendMsg()" style="background:none; color:var(--primary); border:none; font-weight:bold; cursor:pointer;">Send</button></div></div>
+<div id="user-profile-view">
+    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px;">
+        <i class="fas fa-arrow-left" onclick="closeProfileView()" style="cursor:pointer;"></i>
+        <span id="view-user-name-title">Profile</span>
+    </div>
+    <div id="user-profile-content"></div>
+    <div id="user-posts-grid" class="profile-grid"></div>
+</div>
+
+<div id="post-detail-view">
+    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px;">
+        <i class="fas fa-arrow-left" onclick="document.getElementById('post-detail-view').style.display='none'" style="cursor:pointer;"></i>
+        <span>Post</span>
+    </div>
+    <div id="post-detail-content"></div>
+</div>
+
+<div id="chat-screen">
+    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:12px;">
+        <i class="fas fa-arrow-left" onclick="closeChat()" style="cursor:pointer;"></i>
+        <img id="chat-h-img" src="" style="width:35px; height:35px; border-radius:50%;">
+        <b id="chat-h-name"></b>
+    </div>
+    <div id="chat-box" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column;"></div>
+    <div style="padding:10px; display:flex; gap:10px; background:#121212;">
+        <input type="text" id="chat-input" placeholder="Message..." style="margin:0;" onkeypress="if(event.key==='Enter') sendMsg()">
+        <button onclick="sendMsg()" style="background:none; color:var(--primary); border:none; font-weight:bold; cursor:pointer;">Send</button>
+    </div>
+</div>
+
+<div id="notifications-panel" style="position:fixed; inset:0; background:#000; z-index:3000; display:none; flex-direction:column;">
+    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; justify-content:space-between;">
+        <b>Notifications</b>
+        <i class="fas fa-times" onclick="closeNotifications()" style="cursor:pointer;"></i>
+    </div>
+    <div id="notifications-list" style="flex:1; overflow-y:auto; padding:10px;"></div>
+</div>
 
 <div class="nav">
     <i class="fas fa-home" onclick="showSec('home')"></i>
@@ -150,7 +179,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove, deleteDoc, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove, deleteDoc, limit, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -167,30 +196,8 @@
 
     let me = null;
     let activeChatID = null;
+    let currentChatListener = null;
     const vB = ` <i class="fas fa-check-circle v-badge"></i>`;
-
-    onAuthStateChanged(auth, async (user) => {
-        if (user) { 
-            me = user;
-            document.getElementById('post-user-img').src = user.photoURL || "https://via.placeholder.com/40";
-            const userRef = doc(db, "users", user.uid);
-            const snap = await getDoc(userRef);
-            if (!snap.exists()) {
-                await setDoc(userRef, {
-                    displayName: user.displayName || "New User",
-                    photoURL: user.photoURL || "https://via.placeholder.com/90",
-                    bio: "Welcome to Meetwoyou!",
-                    followers: [], following: [], uid: user.uid,
-                    isVerified: false, timestamp: serverTimestamp()
-                });
-                location.reload(); return; 
-            }
-            init(); 
-            setTimeout(() => document.getElementById('app-loader').style.display = 'none', 1200);
-        } else { window.location.href = "index.html"; }
-    });
-
-    function init() { loadMyProfile(); loadFeed(); loadAllUsers(); loadMyPosts(); initNotifications(); }
 
     function formatCount(num) {
         if (!num) return "0";
@@ -208,76 +215,40 @@
         return timestamp.toDate().toLocaleDateString();
     }
 
-    // Fixed Chat List Logic with Last Message Preview
-    window.loadAllUsers = () => {
-        onSnapshot(doc(db, "users", me.uid), (mySnap) => {
-            const myFollowing = mySnap.data()?.following || [];
-            onSnapshot(collection(db, "users"), (snap) => {
-                const list = document.getElementById('user-list');
-                list.innerHTML = "";
-                snap.forEach(d => {
-                    if(d.id !== me.uid) {
-                        const u = d.data();
-                        const isFollowing = myFollowing.includes(d.id);
-                        list.innerHTML += `<div class="user-list-item">
-                            <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="viewUser('${d.id}')">
-                                <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-                                <div><b>${u.displayName}${u.isVerified?vB:''}</b><br><small style="color:gray;">${formatCount(u.followers?.length)} followers</small></div>
-                            </div>
-                            <button onclick="toggleFollow('${d.id}', ${isFollowing})" style="background:${isFollowing?'#262626':'#0095f6'}; color:white; border:none; padding:5px 12px; border-radius:5px; font-weight:bold;">${isFollowing?'Unfollow':'Follow'}</button>
-                        </div>`;
-                    }
-                });
-            });
-        });
-
-        // Smart Chat List Fix
-        onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "desc")), async (mSnap) => {
-            const chatList = document.getElementById('chat-list');
-            const uniqueUsers = new Map();
-
-            mSnap.forEach(mDoc => {
-                const m = mDoc.data();
-                const otherUid = m.sender === me.uid ? m.receiver : m.sender;
-                if(!uniqueUsers.has(otherUid)) {
-                    uniqueUsers.set(otherUid, { text: m.text, time: m.timestamp });
-                }
-            });
-
-            chatList.innerHTML = "";
-            for(let [uid, lastMsg] of uniqueUsers) {
-                const uSnap = await getDoc(doc(db, "users", uid));
-                if(uSnap.exists()){
-                    const u = uSnap.data();
-                    const item = document.createElement('div');
-                    item.className = "post-user";
-                    item.onclick = () => openChat(uid, u.displayName, u.photoURL);
-                    item.innerHTML = `
-                        <img src="${u.photoURL}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">
-                        <div style="flex:1;">
-                            <b>${u.displayName}${u.isVerified?vB:''}</b>
-                            <span class="last-msg-preview">${lastMsg.text}</span>
-                        </div>
-                    `;
-                    chatList.appendChild(item);
-                }
-            }
-        });
-    };
-
-    // Notification Logic
-    function initNotifications() {
-        if ("Notification" in window && Notification.permission === "default") {
-            console.log("Notif support ready");
-        }
+    function formatMsgTime(ts) {
+        if (!ts) return "";
+        const date = ts.toDate();
+        return date.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
     }
-    window.requestNotif = () => {
-        Notification.requestPermission().then(p => {
-            if(p === 'granted') Swal.fire({title: 'Notifications On!', icon: 'success', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false});
-        });
-    };
 
-    // --- All Other Functions ---
+    onAuthStateChanged(auth, async (user) => {
+        if (user) { 
+            me = user;
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            if (!snap.exists()) {
+                await setDoc(userRef, {
+                    displayName: user.displayName || "New User",
+                    photoURL: user.photoURL || "https://via.placeholder.com/90",
+                    bio: "Welcome to Meetwoyou!",
+                    followers: [], following: [], uid: user.uid,
+                    isVerified: false, timestamp: serverTimestamp()
+                });
+                location.reload(); return; 
+            }
+            init(); 
+            setTimeout(() => document.getElementById('app-loader').style.display = 'none', 1200);
+        } else { window.location.href = "index.html"; }
+    });
+
+    function init() { 
+        loadMyProfile(); 
+        loadFeed(); 
+        loadAllUsers(); 
+        loadMyPosts(); 
+        setupNotifications();
+    }
+
     async function loadFeed() {
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
             const area = document.getElementById('feed-area');
@@ -305,102 +276,306 @@
         const div = document.createElement('div');
         div.className = "post-card";
         div.setAttribute('data-id', id);
+        div.setAttribute('data-time', p.timestamp ? p.timestamp.toMillis() : Date.now());
+        
+        let mediaHTML = '';
+        if (p.img) {
+            mediaHTML = `<img src="${p.img}" class="post-img main-img">`;
+        } else if (p.video) {
+            mediaHTML = `<video src="${p.video}" class="post-video" controls></video>`;
+        } else {
+            mediaHTML = `<div style="padding:20px; width:100%; border-top:1px solid #121212;">${p.text}</div>`;
+        }
+
         div.innerHTML = `
             <div class="post-user" onclick="viewUser('${p.uid}')">
                 <img src="${p.authorImg || 'https://via.placeholder.com/35'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
-                <b>${p.authorName}${badge}</b>
+                <b>\( {p.authorName} \){badge}</b>
                 ${p.uid === me.uid ? `<i class="fas fa-ellipsis-v post-menu-trigger" style="margin-left:auto; padding:10px;"></i>` : ''}
             </div>
             <div class="post-img-container">
-                ${p.img ? `<img src="${p.img}" class="post-img main-img">` : '<div style="padding:20px; width:100%; border-top:1px solid #121212; font-size:16px;">' + p.text + '</div>'}
+                ${mediaHTML}
                 <i class="fas fa-heart like-animation"></i>
             </div>
             <div style="padding:10px 15px; font-size:20px; display:flex; gap:15px; align-items:center;">
-                <i class="${isLiked?'fas fa-heart':'far fa-heart'} like-btn" style="color:${isLiked?'red':''}; cursor:pointer;"></i>
+                <i class="\( {isLiked?'fas fa-heart':'far fa-heart'} like-btn" style="color: \){isLiked?'red':''}; cursor:pointer;"></i>
                 <i class="far fa-comment comment-btn" style="cursor:pointer;"></i>
                 <i class="far fa-paper-plane share-btn" style="cursor:pointer;"></i>
             </div>
             <div class="post-time">${timeAgo(p.timestamp)}</div>
             <div style="padding:5px 15px; font-size:14px;">
                 <b class="likes-count">${formatCount(p.likes?.length)} likes</b><br>
-                ${p.img ? `<b>${p.authorName}</b> ${p.text}` : ''}
+                \( {p.img || p.video ? `<b> \){p.authorName}</b> ${p.text}` : ''}
             </div>
         `;
+        
         const imgContainer = div.querySelector('.post-img-container');
         const heart = div.querySelector('.like-animation');
         const likeBtn = div.querySelector('.like-btn');
+        
         imgContainer.addEventListener('dblclick', () => {
             heart.classList.add('active');
             setTimeout(() => heart.classList.remove('active'), 800);
-            if(!isLiked) toggleLike(id, false);
+            if(!isLiked) toggleLike(id);
         });
-        likeBtn.onclick = () => toggleLike(id, isLiked);
+        likeBtn.onclick = () => toggleLike(id);
         div.querySelector('.comment-btn').onclick = () => showComments(id);
         div.querySelector('.share-btn').onclick = () => sharePost(id);
+        
         const menuBtn = div.querySelector('.post-menu-trigger');
         if(menuBtn) menuBtn.onclick = (e) => { e.stopPropagation(); postMenu(id, p.text); };
+        
         return div;
     }
 
     window.toggleFollow = async (targetUid, isFollowing) => {
         const myRef = doc(db, "users", me.uid);
         const targetRef = doc(db, "users", targetUid);
-        if (isFollowing) {
-            await updateDoc(myRef, { following: arrayRemove(targetUid) });
-            await updateDoc(targetRef, { followers: arrayRemove(me.uid) });
-        } else {
-            await updateDoc(myRef, { following: arrayUnion(targetUid) });
-            await updateDoc(targetRef, { followers: arrayUnion(me.uid) });
+        
+        try {
+            if (isFollowing) {
+                await updateDoc(myRef, { following: arrayRemove(targetUid) });
+                await updateDoc(targetRef, { followers: arrayRemove(me.uid) });
+            } else {
+                await updateDoc(myRef, { following: arrayUnion(targetUid) });
+                await updateDoc(targetRef, { followers: arrayUnion(me.uid) });
+            }
+        } catch (e) {
+            console.error("Follow error:", e);
+            Swal.fire({icon:'error', title:'Error', text:'Failed to update follow', background:'#121212', color:'#fff'});
         }
     };
 
     window.viewUser = async (uid) => {
         if(uid === me.uid) { showSec('profile'); return; }
         document.getElementById('user-profile-view').style.display = 'flex';
+        
         onSnapshot(doc(db, "users", uid), async (snap) => {
-            const d = snap.data(); if(!d) return;
+            const d = snap.data();
+            if(!d) return;
+
             const mySnap = await getDoc(doc(db, "users", me.uid));
-            const isFollowing = mySnap.data()?.following?.includes(uid);
+            const isFollowing = mySnap.data()?.following?.includes(uid) || false;
+            
             document.getElementById('view-user-name-title').innerText = d.displayName;
-            document.getElementById('user-profile-content').innerHTML = `
+            let profileHTML = `
                 <div style="text-align: center; padding: 20px 15px;">
                     <img src="${d.photoURL}" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:2px solid #262626;">
-                    <h3>${d.displayName}${d.isVerified?vB:''}</h3>
+                    <h3>\( {d.displayName} \){d.isVerified?vB:''}</h3>
                     <p style="color:var(--gray)">${d.bio || ""}</p>
+                    <div class="profile-details">
+                        ${d.work ? `<div><i class="fas fa-briefcase"></i> ${d.work}</div>` : ''}
+                        ${d.org ? `<div><i class="fas fa-university"></i> ${d.org}</div>` : ''}
+                    </div>
                     <div style="display: flex; justify-content: center; gap: 30px; margin: 15px 0;">
                         <div><b>${formatCount(d.followers?.length)}</b><br><small>Followers</small></div>
                         <div><b>${formatCount(d.following?.length)}</b><br><small>Following</small></div>
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn-main" onclick="toggleFollow('${uid}', ${isFollowing})" style="background:${isFollowing?'#262626':'#0095f6'}">${isFollowing?'Unfollow':'Follow'}</button>
-                        <button class="btn-main" style="background:#262626;" onclick="openChat('${uid}', '${d.displayName}', '${d.photoURL}')">Message</button>
+                        <button class="btn-main" onclick="toggleFollow('${uid}', \( {isFollowing})" style="background: \){isFollowing?'#262626':'#0095f6'}">${isFollowing?'Unfollow':'Follow'}</button>
+                        <button class="btn-main" style="background:#262626;" onclick="openChat('\( {uid}', ' \){d.displayName}', '${d.photoURL}')">Message</button>
                     </div>
-                </div>`;
+                </div>
+            `;
+            document.getElementById('user-profile-content').innerHTML = profileHTML;
         });
-        const qPosts = query(collection(db, "posts"), where("uid", "==", uid));
+
+        const qPosts = query(collection(db, "posts"), where("uid", "==", uid), orderBy("timestamp", "desc"));
         onSnapshot(qPosts, (pSnap) => {
-            const grid = document.getElementById('user-posts-grid'); grid.innerHTML = "";
+            const grid = document.getElementById('user-posts-grid');
+            grid.innerHTML = "";
             pSnap.forEach(postDoc => {
                 const pd = postDoc.data();
-                const item = document.createElement('div'); item.className = "grid-item";
+                const item = document.createElement('div');
+                item.className = "grid-item";
                 item.onclick = () => viewSinglePost(postDoc.id);
-                item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
+                if (pd.video) {
+                    item.innerHTML = `<video src="${pd.video}" style="width:100%; height:100%; object-fit:cover;" muted></video>`;
+                } else if (pd.img) {
+                    item.innerHTML = `<img src="${pd.img}">`;
+                } else {
+                    item.innerHTML = `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
+                }
                 grid.appendChild(item);
             });
         });
     };
 
+    let allUsersSnapshot = null;
+
+    window.loadAllUsers = () => {
+        const myRef = doc(db, "users", me.uid);
+        
+        onSnapshot(myRef, (mySnap) => {
+            const myFollowing = mySnap.data()?.following || [];
+            
+            if (allUsersSnapshot) allUsersSnapshot();
+            
+            allUsersSnapshot = onSnapshot(collection(db, "users"), (snap) => {
+                const list = document.getElementById('user-list');
+                list.innerHTML = "";
+                snap.forEach(d => {
+                    if(d.id !== me.uid) {
+                        const u = d.data();
+                        const isFollowing = myFollowing.includes(d.id);
+                        list.innerHTML += `
+                            <div class="user-list-item" data-uid="${d.id}">
+                                <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="viewUser('${d.id}')">
+                                    <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                    <div><b>\( {u.displayName} \){u.isVerified?vB:''}</b><br><small style="color:gray;">${formatCount(u.followers?.length)} followers</small></div>
+                                </div>
+                                <button onclick="toggleFollow('${d.id}', \( {isFollowing}); event.stopImmediatePropagation();" style="background: \){isFollowing?'#262626':'#0095f6'}; color:white; border:none; padding:5px 12px; border-radius:5px; font-weight:bold;">${isFollowing?'Unfollow':'Follow'}</button>
+                            </div>`;
+                    }
+                });
+            });
+        });
+
+        // Chat list with last message preview
+        onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "desc")), async (mSnap) => {
+            const chatList = document.getElementById('chat-list');
+            chatList.innerHTML = "";
+            let processed = new Map();
+
+            mSnap.forEach(mDoc => {
+                const m = mDoc.data();
+                const otherUid = m.sender === me.uid ? m.receiver : m.sender;
+                if (!processed.has(otherUid)) {
+                    processed.set(otherUid, {
+                        lastMsg: m.text,
+                        time: m.timestamp,
+                        sender: m.sender
+                    });
+                }
+            });
+
+            for (let [uid, data] of processed) {
+                const uSnap = await getDoc(doc(db, "users", uid));
+                if (uSnap.exists()) {
+                    const u = uSnap.data();
+                    const isMeSender = data.sender === me.uid;
+                    chatList.innerHTML += `
+                        <div class="post-user" onclick="openChat('\( {uid}', ' \){u.displayName}', '${u.photoURL}')">
+                            <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                            <div style="flex:1;">
+                                <b>\( {u.displayName} \){u.isVerified?vB:''}</b>
+                                <div style="font-size:13px; color:\( {isMeSender ? '#888' : '#ccc'};"> \){isMeSender ? 'You: ' : ''}\( {data.lastMsg.substring(0, 35)} \){data.lastMsg.length > 35 ? '...' : ''}</div>
+                            </div>
+                            <small style="color:var(--gray);">${timeAgo(data.time)}</small>
+                        </div>`;
+                }
+            }
+        });
+    };
+
+    window.searchUsers = (term) => {
+        term = term.toLowerCase().trim();
+        document.querySelectorAll('#user-list .user-list-item').forEach(item => {
+            const nameEl = item.querySelector('b');
+            if (!nameEl) return;
+            const name = nameEl.textContent.toLowerCase();
+            if (name.includes(term)) {
+                item.classList.add('highlight');
+                setTimeout(() => item.classList.remove('highlight'), 2000);
+            } else {
+                item.style.display = term === '' ? '' : 'none';
+            }
+        });
+    };
+
+    window.viewSinglePost = async (postId) => {
+        const snap = await getDoc(doc(db, "posts", postId));
+        if(!snap.exists()) return;
+        const p = snap.data();
+        const postDiv = await createPostElement(p, postId);
+        document.getElementById('post-detail-content').innerHTML = "";
+        document.getElementById('post-detail-content').appendChild(postDiv);
+        document.getElementById('post-detail-view').style.display = 'flex';
+    };
+
+    window.saveProfile = async () => {
+        const name = document.getElementById('edit-name').value.trim();
+        const bio = document.getElementById('edit-bio').value.trim();
+        const dob = document.getElementById('edit-dob').value;
+        const work = document.getElementById('edit-work').value.trim();
+        const org = document.getElementById('edit-org').value.trim();
+        const web = document.getElementById('edit-web').value.trim();
+        const social = document.getElementById('edit-social').value.trim();
+        
+        Swal.fire({title: 'Updating...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
+        
+        const updateData = { bio, dob, work, org, website: web, social };
+        if (name) updateData.displayName = name;
+        
+        await updateDoc(doc(db, "users", me.uid), updateData);
+        if(name) await updateProfile(auth.currentUser, { displayName: name });
+        
+        toggleEdit();
+        Swal.fire({icon: 'success', title: 'Profile Updated', timer: 1500, showConfirmButton: false, background: '#121212', color: '#fff'});
+    };
+
+    window.toggleEdit = async () => {
+        const e = document.getElementById('edit-form');
+        if(e.style.display === 'none') {
+            const snap = await getDoc(doc(db, "users", me.uid));
+            const d = snap.data();
+            document.getElementById('edit-name').value = d.displayName || "";
+            document.getElementById('edit-bio').value = d.bio || "";
+            document.getElementById('edit-dob').value = d.dob || "";
+            document.getElementById('edit-work').value = d.work || "";
+            document.getElementById('edit-org').value = d.org || "";
+            document.getElementById('edit-web').value = d.website || "";
+            document.getElementById('edit-social').value = d.social || "";
+            e.style.display = 'block';
+        } else { e.style.display = 'none'; }
+    };
+
+    async function toggleLike(id) { 
+        const postRef = doc(db, "posts", id);
+        const snap = await getDoc(postRef);
+        const likes = snap.data().likes || [];
+        const isLiked = likes.includes(me.uid);
+        
+        if (isLiked) {
+            await updateDoc(postRef, { likes: arrayRemove(me.uid) });
+        } else {
+            await updateDoc(postRef, { likes: arrayUnion(me.uid) });
+        }
+    }
+
     window.openChat = async (uid, name, img) => {
+        if (currentChatListener) currentChatListener();
+        
         activeChatID = uid;
-        document.getElementById('chat-h-name').innerText = name;
+        const snap = await getDoc(doc(db, "users", uid));
+        const badge = snap.data()?.isVerified ? vB : "";
+        document.getElementById('chat-h-name').innerHTML = name + badge;
         document.getElementById('chat-h-img').src = img;
         document.getElementById('chat-screen').style.display = 'flex';
-        onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "asc")), (snap) => {
-            const box = document.getElementById('chat-box'); box.innerHTML = "";
+        
+        const q = query(collection(db, "messages"), 
+            where("participants", "array-contains", me.uid),
+            orderBy("timestamp", "asc"));
+        
+        currentChatListener = onSnapshot(q, (snap) => {
+            const box = document.getElementById('chat-box'); 
+            box.innerHTML = "";
             snap.forEach(d => {
                 const m = d.data();
-                if((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
-                    box.innerHTML += `<div class="chat-bubble ${m.sender === me.uid?'sent':'recv'}">${m.text}</div>`;
+                if ((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
+                    const isSent = m.sender === me.uid;
+                    const bubble = document.createElement('div');
+                    bubble.className = `chat-bubble ${isSent ? 'sent' : 'recv'}`;
+                    bubble.innerHTML = `
+                        ${m.text}
+                        <div class="msg-time">${formatMsgTime(m.timestamp)}</div>
+                        ${isSent ? `
+                        <div class="msg-actions">
+                            <i class="fas fa-edit" onclick="editMessage('\( {d.id}', ' \){m.text}')" style="cursor:pointer;"></i>
+                            <i class="fas fa-trash" onclick="deleteMessage('${d.id}', true)" style="cursor:pointer; color:var(--danger);"></i>
+                        </div>` : ''}
+                    `;
+                    box.appendChild(bubble);
                 }
             });
             box.scrollTop = box.scrollHeight;
@@ -409,81 +584,248 @@
 
     window.sendMsg = async () => {
         const i = document.getElementById('chat-input');
-        if(!i.value.trim()) return;
-        await addDoc(collection(db, "messages"), { sender: me.uid, receiver: activeChatID, text: i.value, timestamp: serverTimestamp() });
+        const text = i.value.trim();
+        if(!text || !activeChatID) return;
+        
+        await addDoc(collection(db, "messages"), { 
+            sender: me.uid, 
+            receiver: activeChatID, 
+            participants: [me.uid, activeChatID],
+            text: text, 
+            timestamp: serverTimestamp() 
+        });
         i.value = "";
     };
 
+    window.editMessage = async (msgId, oldText) => {
+        const { value: newText } = await Swal.fire({
+            title: 'Edit Message',
+            input: 'textarea',
+            inputValue: oldText,
+            showCancelButton: true,
+            background: '#121212',
+            color: '#fff'
+        });
+        if (newText && newText !== oldText) {
+            await updateDoc(doc(db, "messages", msgId), { text: newText });
+        }
+    };
+
+    window.deleteMessage = async (msgId, forEveryone = false) => {
+        const confirmText = forEveryone ? 'Delete for everyone?' : 'Delete for me?';
+        const res = await Swal.fire({
+            title: confirmText,
+            icon: 'warning',
+            showCancelButton: true,
+            background: '#121212',
+            color: '#fff'
+        });
+        if (res.isConfirmed) {
+            if (forEveryone) {
+                await deleteDoc(doc(db, "messages", msgId));
+            } else {
+                // For "delete for me" we can add a deletedFor field, but for simplicity we just hide it client-side or use a soft delete
+                // Here we do full delete as per common simple implementation
+                await deleteDoc(doc(db, "messages", msgId));
+            }
+        }
+    };
+
     window.uploadPost = async () => {
-        const txt = document.getElementById('post-text').value;
+        const txt = document.getElementById('post-text').value.trim();
         const file = document.getElementById('post-file').files[0];
         if(!txt && !file) return;
+        
         Swal.fire({title: 'Sharing...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
-        let imgUrl = file ? await uploadToCloudinary(file) : null;
+        
+        let imgUrl = null;
+        let videoUrl = null;
+        
+        if (file) {
+            const isVideo = file.type.startsWith('video/');
+            const uploadedUrl = await uploadToCloudinary(file);
+            if (isVideo) videoUrl = uploadedUrl;
+            else imgUrl = uploadedUrl;
+        }
+        
         await addDoc(collection(db, "posts"), {
-            uid: me.uid, text: txt, img: imgUrl, authorName: me.displayName, authorImg: me.photoURL,
-            timestamp: serverTimestamp(), likes: [], comments: []
+            uid: me.uid, 
+            text: txt, 
+            img: imgUrl,
+            video: videoUrl,
+            authorName: me.displayName, 
+            authorImg: me.photoURL,
+            timestamp: serverTimestamp(), 
+            likes: [], 
+            comments: []
         });
+        
         document.getElementById('post-text').value = ""; 
-        document.getElementById('img-preview-box').innerHTML = ""; 
-        document.getElementById('post-file').value = "";
+        document.getElementById('media-preview-box').innerHTML = ""; 
         Swal.close();
     };
 
     async function uploadToCloudinary(file) {
-        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Meetwoyou');
-        const res = await fetch(`https://api.cloudinary.com/v1_1/dpgawb5sl/image/upload`, { method: 'POST', body: fd });
-        const data = await res.json(); return data.secure_url;
+        const fd = new FormData(); 
+        fd.append('file', file); 
+        fd.append('upload_preset', 'Meetwoyou');  // Make sure this preset allows video in your Cloudinary dashboard
+        const res = await fetch(`https://api.cloudinary.com/v1_1/dpgawb5sl/auto/upload`, { 
+            method: 'POST', 
+            body: fd 
+        });
+        const data = await res.json(); 
+        return data.secure_url;
     }
 
-    async function toggleLike(id, liked) { 
-        await updateDoc(doc(db, "posts", id), { likes: liked ? arrayRemove(me.uid) : arrayUnion(me.uid) }); 
+    async function postMenu(postId, oldText) {
+        const { value: action } = await Swal.fire({
+            title: 'Manage Post', 
+            showDenyButton: true, 
+            confirmButtonText: 'Edit', 
+            denyButtonText: 'Delete',
+            background: '#121212', 
+            color: '#fff', 
+            confirmButtonColor: '#0095f6', 
+            denyButtonColor: '#ed4956'
+        });
+        if(action === true) { 
+            const { value: newText } = await Swal.fire({ 
+                input: 'textarea', 
+                inputValue: oldText, 
+                title: 'Edit Post', 
+                background: '#121212', 
+                color: '#fff' 
+            });
+            if(newText !== undefined) await updateDoc(doc(db, "posts", postId), { text: newText || "" });
+        } else if (action === false) { 
+            const res = await Swal.fire({ 
+                title: 'Delete Post?', 
+                icon: 'warning', 
+                showCancelButton: true, 
+                background: '#121212', 
+                color: '#fff' 
+            });
+            if(res.isConfirmed) await deleteDoc(doc(db, "posts", postId));
+        }
+    }
+
+    async function showComments(postId) {
+        const snap = await getDoc(doc(db, "posts", postId));
+        let comments = snap.data().comments || [];
+        
+        let html = '<div style="max-height:300px; overflow-y:auto; text-align:left; font-size:14px;">';
+        comments.forEach((c, idx) => {
+            html += `<p style="margin:8px 0;"><b>${c.user}:</b> ${c.text}</p>`;
+            if (c.replies && c.replies.length > 0) {
+                html += `<small style="color:#0095f6; margin-left:20px;">${c.replies.length} replies</small>`;
+            }
+        });
+        html += '</div>';
+        
+        const { value: newComment } = await Swal.fire({
+            title: 'Comments',
+            html: html,
+            input: 'text',
+            inputPlaceholder: 'Write a comment...',
+            showCancelButton: true,
+            confirmButtonText: 'Post',
+            background: '#121212',
+            color: '#fff'
+        });
+        
+        if(newComment) {
+            await updateDoc(doc(db, "posts", postId), { 
+                comments: arrayUnion({ 
+                    user: me.displayName, 
+                    text: newComment, 
+                    timestamp: serverTimestamp(),
+                    replies: []
+                }) 
+            });
+        }
     }
 
     function loadMyProfile() {
         onSnapshot(doc(db, "users", me.uid), (snap) => {
-            const d = snap.data(); if(!d) return;
+            const d = snap.data(); 
+            if(!d) return;
             document.getElementById('p-name').innerHTML = d.displayName + (d.isVerified?vB:'');
             document.getElementById('p-img').src = d.photoURL;
             document.getElementById('p-bio').innerText = d.bio || "";
             document.getElementById('count-followers').innerText = formatCount(d.followers?.length);
             document.getElementById('count-following').innerText = formatCount(d.following?.length);
-            let detBox = document.getElementById('p-details-box'); detBox.innerHTML = "";
+            let detBox = document.getElementById('p-details-box');
+            detBox.innerHTML = "";
             if(d.dob) detBox.innerHTML += `<div><i class="fas fa-birthday-cake"></i> ${d.dob}</div>`;
             if(d.work) detBox.innerHTML += `<div><i class="fas fa-briefcase"></i> ${d.work}</div>`;
+            if(d.org) detBox.innerHTML += `<div><i class="fas fa-university"></i> ${d.org}</div>`;
         });
     }
 
     function loadMyPosts() {
-        onSnapshot(query(collection(db, "posts"), where("uid", "==", me.uid)), (snap) => {
+        onSnapshot(query(collection(db, "posts"), where("uid", "==", me.uid), orderBy("timestamp", "desc")), (snap) => {
             document.getElementById('count-posts').innerText = snap.size;
-            const grid = document.getElementById('my-posts-grid'); grid.innerHTML = "";
+            const grid = document.getElementById('my-posts-grid'); 
+            grid.innerHTML = "";
             snap.forEach(d => {
-                const item = document.createElement('div'); item.className = "grid-item";
+                const pd = d.data();
+                const item = document.createElement('div'); 
+                item.className = "grid-item";
                 item.onclick = () => viewSinglePost(d.id);
-                item.innerHTML = d.data().img ? `<img src="${d.data().img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${d.data().text}</div>`;
+                
+                if (pd.video) {
+                    item.innerHTML = `<video src="${pd.video}" style="width:100%; height:100%; object-fit:cover;" muted></video>`;
+                } else if (pd.img) {
+                    item.innerHTML = `<img src="${pd.img}">`;
+                } else {
+                    item.innerHTML = `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
+                }
                 grid.appendChild(item);
             });
         });
     }
 
-    // Modal & Utility Functions
     window.showSec = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id + '-sec').classList.add('active');
+        if(id === 'profile') loadMyProfile();
     };
+
     window.userLogout = () => signOut(auth);
-    window.closeChat = () => document.getElementById('chat-screen').style.display = 'none';
-    window.closeProfileView = () => document.getElementById('user-profile-view').style.display = 'none';
-    window.previewImg = (i) => {
-        const r = new FileReader(); r.onload = (e) => {
-            document.getElementById('img-preview-box').innerHTML = `<img src="${e.target.result}" style="width:100px; border-radius:10px; margin-top:10px;">`;
-        }; r.readAsDataURL(i.files[0]);
+    window.closeChat = () => {
+        document.getElementById('chat-screen').style.display = 'none';
+        if (currentChatListener) {
+            currentChatListener();
+            currentChatListener = null;
+        }
     };
-    window.shareMyProfile = () => {
-        navigator.clipboard.writeText(window.location.origin + "?u=" + me.uid);
+    window.closeProfileView = () => document.getElementById('user-profile-view').style.display = 'none';
+
+    window.previewMedia = (input) => {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const box = document.getElementById('media-preview-box');
+            if (file.type.startsWith('video/')) {
+                box.innerHTML = `<video src="${e.target.result}" style="width:100%; border-radius:10px; margin-top:10px; max-height:300px;" controls></video>`;
+            } else {
+                box.innerHTML = `<img src="${e.target.result}" style="width:100%; border-radius:10px; margin-top:10px;">`;
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.sharePost = (id) => { 
+        navigator.clipboard.writeText(window.location.origin + "?post=" + id);
         Swal.fire({ title: "Link Copied!", icon: "success", timer: 1000, showConfirmButton: false, background: '#121212', color: '#fff' });
     };
+    
+    window.shareMyProfile = () => {
+        navigator.clipboard.writeText(window.location.origin + "?u=" + me.uid);
+        Swal.fire({ title: "Profile Link Copied!", icon: "success", timer: 1000, showConfirmButton: false, background: '#121212', color: '#fff' });
+    };
+    
     window.updateProfilePic = async (input) => {
         if(!input.files[0]) return;
         Swal.fire({title: 'Uploading...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
@@ -492,6 +834,46 @@
         await updateProfile(auth.currentUser, { photoURL: url });
         location.reload();
     };
+
+    // Notification System (basic - you can expand with a dedicated "notifications" collection)
+    function setupNotifications() {
+        // For demo, we listen to likes and comments on user's posts
+        onSnapshot(query(collection(db, "posts"), where("uid", "==", me.uid)), (snap) => {
+            let hasNew = false;
+            snap.docChanges().forEach(change => {
+                if (change.type === "modified") {
+                    const newData = change.doc.data();
+                    // Simple check - you can improve with lastSeen timestamp
+                    hasNew = true;
+                }
+            });
+            const dot = document.getElementById('notif-dot');
+            if (hasNew) dot.style.display = 'block';
+        });
+    }
+
+    window.showNotifications = () => {
+        const panel = document.getElementById('notifications-panel');
+        panel.style.display = 'flex';
+        // Populate dummy or real notifications here
+        document.getElementById('notifications-list').innerHTML = `
+            <div style="padding:15px; border-bottom:1px solid #262626;">
+                <b>Your post got a new like</b><br>
+                <small style="color:var(--gray);">2m ago</small>
+            </div>
+            <div style="padding:15px; border-bottom:1px solid #262626;">
+                <b>New comment on your post</b><br>
+                <small style="color:var(--gray);">15m ago</small>
+            </div>
+        `;
+    };
+
+    window.closeNotifications = () => {
+        document.getElementById('notifications-panel').style.display = 'none';
+        document.getElementById('notif-dot').style.display = 'none';
+    };
+
+    // Fix for duplicate chat entries (already improved in loadAllUsers)
 </script>
 </body>
 </html>
