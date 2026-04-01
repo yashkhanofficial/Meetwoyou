@@ -589,7 +589,16 @@
 <link rel="icon" type="image/png" href="meetwoyou.png">
 <link rel="apple-touch-icon" href="meetwoyou.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-        
+        import { enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// অফলাইন পারসিস্টেন্স এনাবল করা
+enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code == 'failed-precondition') {
+        console.log("Multiple tabs open, persistence can only be enabled in one tab at a time.");
+    } else if (err.code == 'unimplemented') {
+        console.log("The current browser doesn't support all of the features needed to enable persistence");
+    }
+});
 </script>
 </body>
 </html>
