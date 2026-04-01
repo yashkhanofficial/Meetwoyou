@@ -3,144 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meetwoyou - Ultimate OS</title>
+    <title>Meetwoyou - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --primary: #0095f6; --bg: #000; --card: #121212; --text: #fff; --gray: #8e8e8e; --verified: #0095f6; --danger: #ed4956; --accent: #ffd700; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 75px; overflow-x: hidden; }
-        
-        /* Loader */
+        :root { --primary: #0095f6; --bg: #000; --card: #121212; --text: #fff; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px; }
         #app-loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .loader-circle { width: 50px; height: 50px; border: 3px solid #262626; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .loader-circle { width: 40px; height: 40px; border: 3px solid #262626; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .header { background: var(--bg); padding: 15px; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .section { display: none; max-width: 500px; margin: auto; animation: slideUp 0.3s ease; }
-        .section.active { display: block; }
-        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        /* Story Section */
-        .story-tray { display: flex; gap: 10px; padding: 15px; overflow-x: auto; border-bottom: 1px solid #262626; scrollbar-width: none; }
-        .story-circle { min-width: 65px; height: 65px; border-radius: 50%; border: 2px solid var(--primary); padding: 2px; cursor: pointer; position: relative; }
-        .story-circle img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-
-        /* Post Cards */
-        .post-card { border-bottom: 1px solid #262626; padding-bottom: 15px; margin-bottom: 10px; position: relative; }
-        .post-user { display: flex; align-items: center; gap: 10px; padding: 10px; cursor: pointer; }
-        .post-img-container { width: 100%; background: #000; min-height: 200px; display: flex; align-items: center; justify-content: center; }
-        .post-img { width: 100%; max-height: 600px; object-fit: contain; }
-
-        /* Chat System */
-        #chat-screen { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; }
-        .chat-bubble { padding: 10px 15px; border-radius: 18px; margin: 5px 0; max-width: 75%; font-size: 14px; position: relative; cursor: pointer; }
-        .sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
-        .recv { background: #262626; align-self: flex-start; border-bottom-left-radius: 2px; }
-        .chat-time { font-size: 9px; opacity: 0.6; display: block; margin-top: 4px; text-align: right; }
-
-        /* Navigation */
+        .header { background: #000; padding: 15px; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; align-items: center; sticky: top; z-index: 100; }
         .nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 1px solid #262626; display: flex; justify-content: space-around; padding: 15px 0; z-index: 1000; }
-        .nav i { font-size: 24px; cursor: pointer; color: #fff; transition: 0.2s; }
-        .nav i:active { transform: scale(0.8); color: var(--primary); }
-
-        .btn-main { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
-        input, textarea { width: 100%; padding: 12px; background: #121212; border: 1px solid #262626; color: white; border-radius: 8px; margin-bottom: 8px; box-sizing: border-box; }
-        
-        /* Highlighting Search */
-        .highlight { background: rgba(0, 149, 246, 0.2); border-left: 4px solid var(--primary); }
+        .section { display: none; max-width: 500px; margin: auto; padding: 10px; }
+        .section.active { display: block; }
+        .post-card { border-bottom: 1px solid #262626; padding: 15px 0; }
+        #chat-screen { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; }
     </style>
 </head>
 <body>
 
 <div id="app-loader">
     <div class="loader-circle"></div>
-    <h2 style="font-family: 'Grand Hotel', cursive; margin-top: 15px;">Meetwoyou</h2>
+    <p class="mt-4 text-gray-400">Loading Meetwoyou...</p>
 </div>
 
 <div class="header">
-    <i class="fas fa-power-off" onclick="userLogout()" style="font-size:20px; color:var(--danger); cursor:pointer;"></i>
-    <h2 style="margin:0; font-family: 'Grand Hotel', cursive;">Meetwoyou</h2>
-    <div style="position: relative;" onclick="requestNotifyPermission()"><i class="far fa-bell" style="font-size:22px;"></i></div>
+    <h2 class="text-2xl font-bold italic text-white">Meetwoyou</h2>
+    <i class="fas fa-sign-out-alt text-red-500" onclick="userLogout()"></i>
 </div>
 
 <div id="home-sec" class="section active">
-    <div class="story-tray" id="story-area">
-        <div class="story-circle" onclick="document.getElementById('story-upload').click()" style="border-style: dashed;">
-            <i class="fas fa-plus" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%)"></i>
-            <input type="file" id="story-upload" hidden accept="image/*,video/*" onchange="uploadStory(this)">
-        </div>
-    </div>
-
-    <div style="background: var(--card); padding: 15px; border-radius: 12px; margin: 10px; border: 1px solid #262626;">
-        <textarea id="post-text" placeholder="Share your thoughts or videos..."></textarea>
-        <div id="media-preview" style="margin-bottom:10px;"></div>
-        <div style="display:flex; gap:10px;">
-            <button onclick="document.getElementById('post-file').click()" style="flex:1; background:#262626; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer;"><i class="fas fa-photo-video"></i> Media</button>
-            <input type="file" id="post-file" accept="image/*,video/*" style="display:none" onchange="previewMedia(this)">
-            <button class="btn-main" style="flex:2;" onclick="uploadPost()">Post</button>
+    <div class="bg-gray-900 p-4 rounded-xl mb-4">
+        <textarea id="post-text" class="w-full bg-black border border-gray-800 p-3 rounded-lg text-white" placeholder="What's new?"></textarea>
+        <div id="preview-box" class="my-2"></div>
+        <div class="flex gap-2 mt-2">
+            <button onclick="document.getElementById('post-file').click()" class="bg-gray-800 px-4 py-2 rounded-lg text-sm">Media</button>
+            <input type="file" id="post-file" hidden accept="image/*,video/*" onchange="previewMedia(this)">
+            <button onclick="uploadPost()" class="bg-blue-600 flex-1 py-2 rounded-lg font-bold">Post</button>
         </div>
     </div>
     <div id="feed-area"></div>
 </div>
 
 <div id="discover-sec" class="section">
-    <div style="padding:15px;"><input type="text" id="user-search" placeholder="Search friends by name..." oninput="searchUsers(this.value)"></div>
+    <input type="text" id="user-search" oninput="searchUsers(this.value)" class="w-full bg-gray-900 p-3 rounded-lg mb-4" placeholder="Search friends...">
     <div id="user-list"></div>
 </div>
 
 <div id="msg-sec" class="section">
-    <h3 style="padding:10px 15px;">Messages</h3>
+    <h3 class="text-xl font-bold p-2">Messages</h3>
     <div id="chat-list"></div>
 </div>
 
-<div id="profile-sec" class="section">
-    <div id="my-profile-content"></div>
-    <div id="my-posts-grid" class="profile-grid"></div>
-</div>
-
 <div id="chat-screen">
-    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; justify-content:space-between;">
-        <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fas fa-arrow-left" onclick="closeChat()" style="cursor:pointer;"></i>
-            <img id="chat-h-img" src="" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
-            <b id="chat-h-name"></b>
-        </div>
-        <div style="display:flex; gap:18px; font-size:18px;">
-            <i class="fas fa-phone" onclick="callUser('audio')"></i>
-            <i class="fas fa-video" onclick="callUser('video')"></i>
-        </div>
+    <div class="p-4 border-b border-gray-800 flex items-center gap-4">
+        <i class="fas fa-arrow-left" onclick="closeChat()"></i>
+        <img id="chat-h-img" src="" class="w-10 h-10 rounded-full object-cover">
+        <b id="chat-h-name"></b>
     </div>
-    <div id="chat-box" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column;"></div>
-    <div style="padding:10px; background:#121212;">
-        <div id="chat-media-preview"></div>
-        <div style="display:flex; gap:10px; align-items:center;">
-            <i class="fas fa-camera" onclick="document.getElementById('chat-file').click()" style="font-size:20px; cursor:pointer;"></i>
-            <input type="file" id="chat-file" hidden onchange="previewChatMedia(this)">
-            <input type="text" id="chat-input" placeholder="Message..." style="margin:0;">
-            <button onclick="sendMsg()" style="background:none; color:var(--primary); border:none; font-weight:bold; cursor:pointer;">Send</button>
-        </div>
+    <div id="chat-box" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
+    <div class="p-4 bg-gray-900 flex gap-2">
+        <input type="text" id="chat-input" class="flex-1 bg-black p-2 rounded-lg" placeholder="Type a message...">
+        <button onclick="sendMsg()" class="text-blue-500 font-bold">Send</button>
     </div>
 </div>
 
-<div class="nav">
+<nav class="nav">
     <i class="fas fa-home" onclick="showSec('home')"></i>
     <i class="fas fa-search" onclick="showSec('discover')"></i>
-    <i class="fas fa-comment-dots" onclick="showSec('msg')"></i>
-    <i class="fas fa-user-circle" onclick="showSec('profile')"></i>
-</div>
+    <i class="fas fa-comment" onclick="showSec('msg')"></i>
+    <i class="fas fa-user" onclick="showSec('profile')"></i>
+</nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, query, orderBy, addDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
-      authDomain: "meetwoyou-436a2.firebaseapp.com",
-      projectId: "meetwoyou-436a2",
-      storageBucket: "meetwoyou-436a2.firebasestorage.app",
-      messagingSenderId: "612788132077",
-      appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+        apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
+        authDomain: "meetwoyou-436a2.firebaseapp.com",
+        projectId: "meetwoyou-436a2",
+        storageBucket: "meetwoyou-436a2.firebasestorage.app",
+        messagingSenderId: "612788132077",
+        appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -148,203 +95,152 @@
     const db = getFirestore(app);
 
     let me = null;
-    let activeChatID = null;
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) { me = user; init(); setTimeout(() => document.getElementById('app-loader').style.display = 'none', 1000); }
-        else { window.location.href = "index.html"; }
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            me = user;
+            // ইউজার ডাটাবেসে আছে কিনা চেক করা
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            if (!snap.exists()) {
+                await setDoc(userRef, {
+                    displayName: user.displayName || "User",
+                    photoURL: user.photoURL || "https://via.placeholder.com/100",
+                    uid: user.uid,
+                    timestamp: serverTimestamp()
+                });
+            }
+            init();
+            document.getElementById('app-loader').style.display = 'none';
+        } else {
+            window.location.href = "index.html";
+        }
     });
 
-    function init() { loadFeed(); loadAllUsers(); loadStories(); }
+    function init() {
+        loadFeed();
+        loadUsers();
+    }
 
-    // --- Media Optimization ---
-    async function compressMedia(file) {
-        if(file.type.startsWith('video/')) return file; // ভিডিওর জন্য সাইজ বড় হলে ক্লাউডিনারি অটো হ্যান্ডেল করবে
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (e) => {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if(w > 1080) { h *= 1080/w; w = 1080; }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    canvas.toBlob((b) => resolve(new File([b], file.name, {type:'image/jpeg'})), 'image/jpeg', 0.7);
-                };
-            };
+    // নিউজ ফিড লোড করা
+    function loadFeed() {
+        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snap) => {
+            const area = document.getElementById('feed-area');
+            area.innerHTML = "";
+            if(snap.empty) area.innerHTML = "<p class='text-center text-gray-500 mt-10'>No posts yet.</p>";
+            snap.forEach(d => {
+                const p = d.data();
+                area.innerHTML += `
+                    <div class="post-card">
+                        <div class="flex items-center gap-3 px-2 mb-2">
+                            <img src="${p.authorImg}" class="w-8 h-8 rounded-full">
+                            <b class="text-sm">${p.authorName}</b>
+                        </div>
+                        ${p.img ? (p.fileType === 'video' ? `<video src="${p.img}" controls class="w-full"></video>` : `<img src="${p.img}" class="w-full">`) : ''}
+                        <div class="p-2 text-sm text-gray-300">${p.text || ''}</div>
+                    </div>`;
+            });
         });
     }
 
-    // --- Post & Feed Logic ---
-    window.previewMedia = (i) => {
-        const file = i.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById('media-preview').innerHTML = file.type.startsWith('video') ? 
-                `<video src="${e.target.result}" style="width:100%; border-radius:10px;" autoplay muted loop></video>` :
-                `<img src="${e.target.result}" style="width:100%; border-radius:10px;">`;
-        };
-        reader.readAsDataURL(file);
-    };
-
-    window.uploadPost = async () => {
-        const txt = document.getElementById('post-text').value;
-        const file = document.getElementById('post-file').files[0];
-        if(!txt && !file) return;
-        
-        Swal.fire({title: 'Sharing...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
-        
-        let mediaUrl = null;
-        let type = 'text';
-        if(file) {
-            const optimized = await compressMedia(file);
-            mediaUrl = await uploadToCloudinary(optimized);
-            type = file.type.startsWith('video') ? 'video' : 'image';
-        }
-
-        await addDoc(collection(db, "posts"), {
-            uid: me.uid, text: txt, img: mediaUrl, fileType: type,
-            authorName: me.displayName, authorImg: me.photoURL,
-            timestamp: serverTimestamp(), likes: [], comments: []
+    // ইউজার লিস্ট লোড করা
+    function loadUsers() {
+        onSnapshot(collection(db, "users"), (snap) => {
+            const list = document.getElementById('user-list');
+            const cList = document.getElementById('chat-list');
+            list.innerHTML = ""; cList.innerHTML = "";
+            snap.forEach(d => {
+                const u = d.data();
+                if(u.uid !== me.uid) {
+                    const html = `
+                        <div class="flex items-center gap-4 p-3 border-b border-gray-900 cursor-pointer" onclick="openChat('${u.uid}', '${u.displayName}', '${u.photoURL}')">
+                            <img src="${u.photoURL}" class="w-12 h-12 rounded-full object-cover">
+                            <b>${u.displayName}</b>
+                        </div>`;
+                    list.innerHTML += html;
+                    cList.innerHTML += html;
+                }
+            });
         });
+    }
 
-        document.getElementById('post-text').value = "";
-        document.getElementById('media-preview').innerHTML = "";
-        Swal.close();
-    };
-
-    // --- Chat System (Fixed Duplicates & Features) ---
+    // চ্যাট সিস্টেম
     window.openChat = (uid, name, img) => {
-        activeChatID = uid;
+        window.activeChatID = uid;
         document.getElementById('chat-h-name').innerText = name;
         document.getElementById('chat-h-img').src = img;
         document.getElementById('chat-screen').style.display = 'flex';
-
+        
         const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
         onSnapshot(q, (snap) => {
             const box = document.getElementById('chat-box');
             box.innerHTML = "";
-            let processed = new Set(); // To prevent duplicates
-
             snap.forEach(d => {
                 const m = d.data();
-                const id = d.id;
-                if(!processed.has(id)) {
-                    if((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
-                        const time = m.timestamp ? new Date(m.timestamp.toMillis()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-                        const bubble = document.createElement('div');
-                        bubble.className = `chat-bubble ${m.sender === me.uid ? 'sent' : 'recv'}`;
-                        bubble.innerHTML = `${m.text} <span class="chat-time">${time}</span>`;
-                        
-                        // Long press to delete
-                        let timer;
-                        bubble.onmousedown = bubble.ontouchstart = () => {
-                            timer = setTimeout(() => confirmDeleteMsg(id, m.sender), 800);
-                        };
-                        bubble.onmouseup = bubble.ontouchend = () => clearTimeout(timer);
-
-                        box.appendChild(bubble);
-                        processed.add(id);
-                    }
+                if((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
+                    const side = m.sender === me.uid ? 'bg-blue-600 self-end' : 'bg-gray-800 self-start';
+                    box.innerHTML += `<div class="${side} px-3 py-2 rounded-xl max-w-[80%] text-sm">${m.text}</div>`;
                 }
             });
             box.scrollTop = box.scrollHeight;
         });
     };
 
-    async function confirmDeleteMsg(id, sender) {
-        if(sender !== me.uid) return;
-        const res = await Swal.fire({title: 'Delete message?', showCancelButton: true, background: '#121212', color: '#fff'});
-        if(res.isConfirmed) await deleteDoc(doc(db, "messages", id));
-    }
-
     window.sendMsg = async () => {
         const input = document.getElementById('chat-input');
         if(!input.value.trim()) return;
         await addDoc(collection(db, "messages"), {
-            sender: me.uid, receiver: activeChatID, text: input.value, timestamp: serverTimestamp()
+            sender: me.uid, receiver: window.activeChatID, text: input.value, timestamp: serverTimestamp()
         });
         input.value = "";
     };
 
-    // --- Search with Highlighting ---
-    window.searchUsers = (val) => {
-        const items = document.querySelectorAll('.user-list-item');
-        items.forEach(item => {
-            const name = item.querySelector('b').innerText.toLowerCase();
-            if(name.includes(val.toLowerCase())) {
-                item.style.display = 'flex';
-                item.classList.add('highlight');
-            } else {
-                item.style.display = 'none';
-                item.classList.remove('highlight');
-            }
+    // পোস্ট আপলোড
+    window.uploadPost = async () => {
+        const text = document.getElementById('post-text').value;
+        const file = document.getElementById('post-file').files[0];
+        if(!text && !file) return;
+
+        Swal.fire({title: 'Posting...', didOpen: () => Swal.showLoading()});
+        
+        let mediaUrl = null;
+        let type = 'text';
+
+        if(file) {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('upload_preset', 'Meetwoyou');
+            const res = await fetch('https://api.cloudinary.com/v1_1/dpgawb5sl/auto/upload', { method: 'POST', body: fd });
+            const data = await res.json();
+            mediaUrl = data.secure_url;
+            type = file.type.startsWith('video') ? 'video' : 'image';
+        }
+
+        await addDoc(collection(db, "posts"), {
+            uid: me.uid, text: text, img: mediaUrl, fileType: type,
+            authorName: me.displayName, authorImg: me.photoURL,
+            timestamp: serverTimestamp()
         });
+
+        document.getElementById('post-text').value = "";
+        document.getElementById('preview-box').innerHTML = "";
+        Swal.close();
     };
 
-    // --- Helpers ---
-    async function uploadToCloudinary(file) {
-        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Meetwoyou');
-        const res = await fetch(`https://api.cloudinary.com/v1_1/dpgawb5sl/auto/upload`, { method: 'POST', body: fd });
-        const data = await res.json(); return data.secure_url;
-    }
+    window.previewMedia = (input) => {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('preview-box').innerHTML = `<img src="${e.target.result}" class="w-20 rounded-lg">`;
+        };
+        reader.readAsDataURL(file);
+    };
 
     window.showSec = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id + '-sec').classList.add('active');
     };
-
-    // --- Call Simulation ---
-    window.callUser = (type) => {
-        Swal.fire({
-            title: `Calling...`,
-            text: `Starting ${type} call with ${document.getElementById('chat-h-name').innerText}`,
-            icon: 'info', background: '#121212', color: '#fff'
-        });
-    };
-
-    function loadFeed() {
-        onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
-            const area = document.getElementById('feed-area'); area.innerHTML = "";
-            snap.forEach(d => {
-                const p = d.data();
-                area.innerHTML += `
-                    <div class="post-card">
-                        <div class="post-user">
-                            <img src="${p.authorImg}" style="width:35px; height:35px; border-radius:50%;">
-                            <b>${p.authorName}</b>
-                        </div>
-                        <div class="post-img-container">
-                            ${p.fileType === 'video' ? `<video src="${p.img}" class="post-img" controls></video>` : `<img src="${p.img}" class="post-img">`}
-                        </div>
-                        <div style="padding:10px 15px;"><b>${p.authorName}</b> ${p.text}</div>
-                    </div>`;
-            });
-        });
-    }
-
-    function loadAllUsers() {
-        onSnapshot(collection(db, "users"), (snap) => {
-            const list = document.getElementById('user-list');
-            const chatList = document.getElementById('chat-list');
-            list.innerHTML = ""; chatList.innerHTML = "";
-            snap.forEach(d => {
-                if(d.id !== me.uid) {
-                    const u = d.data();
-                    const html = `
-                        <div class="user-list-item post-user" onclick="openChat('${d.id}', '${u.displayName}', '${u.photoURL}')">
-                            <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%;">
-                            <b>${u.displayName}</b>
-                        </div>`;
-                    list.innerHTML += html;
-                    chatList.innerHTML += html;
-                }
-            });
-        });
-    }
 
     window.closeChat = () => document.getElementById('chat-screen').style.display = 'none';
     window.userLogout = () => signOut(auth);
