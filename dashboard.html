@@ -71,66 +71,6 @@
 
         .upload-progress-container { width: 100%; background: #262626; border-radius: 5px; height: 5px; margin: 10px 0; display: none; }
         .upload-progress-bar { height: 100%; width: 0%; background: var(--primary); border-radius: 5px; transition: width 0.3s; }
-
-        /* Modern Post Upload UI */
-        .create-post-card {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 20px;
-            margin: 12px;
-            border: 1px solid #262626;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-            transition: all 0.3s ease;
-        }
-        .create-post-card:hover {
-            box-shadow: 0 12px 40px rgba(0, 149, 246, 0.15);
-        }
-        .create-post-textarea {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 16px;
-            padding: 16px 18px;
-            font-size: 16px;
-            resize: none;
-            min-height: 52px;
-            transition: all 0.3s ease;
-        }
-        .create-post-textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.2);
-        }
-        .post-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 12px;
-        }
-        .media-btn {
-            background: #262626;
-            color: #fff;
-            border: none;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .media-btn:hover {
-            background: var(--primary);
-            transform: scale(1.08);
-        }
-        .preview-container {
-            margin-top: 12px;
-            border-radius: 16px;
-            overflow: hidden;
-            background: #000;
-            position: relative;
-        }
     </style>
 </head>
 <body>
@@ -157,25 +97,14 @@
         <div id="other-stories" style="display: flex; gap: 12px;"></div>
     </div>
 
-    <!-- Modern Post Upload UI -->
-    <div class="create-post-card">
-        <textarea id="post-text" class="create-post-textarea" placeholder="What's on your mind?"></textarea>
+    <div style="background: var(--card); padding: 15px; border-radius: 10px; margin: 10px; border: 1px solid #262626;">
+        <textarea id="post-text" placeholder="What's on your mind?"></textarea>
         <input type="file" id="post-file" accept="image/*,video/*" style="display:none" onchange="previewImg(this)">
-        
-        <div class="post-actions">
-            <button id="add-photo-btn" onclick="document.getElementById('post-file').click()" class="media-btn">
-                <i class="fas fa-camera"></i>
-            </button>
-            <div style="flex: 1;"></div>
-            <button id="share-post-btn" class="btn-main" onclick="uploadPost()" style="width: auto; padding: 12px 28px; border-radius: 30px; font-size: 15px;">
-                Share
-            </button>
-        </div>
-        
-        <div id="img-preview-box" class="preview-container"></div>
+        <button id="add-photo-btn" onclick="document.getElementById('post-file').click()" style="background:#262626; color:white; border:none; padding:8px; border-radius:5px; margin-bottom:10px; cursor:pointer;">Add Media</button>
+        <div id="img-preview-box"></div>
         <div class="upload-progress-container" id="up-prog-cont"><div class="upload-progress-bar" id="up-prog-bar"></div></div>
+        <button id="share-post-btn" class="btn-main" onclick="uploadPost()">Share Post</button>
     </div>
-
     <div id="feed-area"></div>
 </div>
 
@@ -310,7 +239,6 @@
     let activeStories = [];
     let storyTimer = null;
     const vB = ` <i class="fas fa-check-circle v-badge"></i>`;
-    let currentlyPlayingVideo = null;
 
     function formatCount(num) {
         if (!num) return "0";
@@ -356,43 +284,6 @@
         return timestamp.toDate().toLocaleDateString();
     }
 
-    // Smart Video Autoplay with IntersectionObserver
-    function setupVideoAutoplay() {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                const video = entry.target;
-                if (entry.isIntersecting) {
-                    if (currentlyPlayingVideo && currentlyPlayingVideo !== video) {
-                        currentlyPlayingVideo.pause();
-                    }
-                    video.play().catch(() => {});
-                    currentlyPlayingVideo = video;
-                } else {
-                    if (video === currentlyPlayingVideo) {
-                        video.pause();
-                        currentlyPlayingVideo = null;
-                    }
-                }
-            });
-        }, { threshold: 0.6 });
-
-        // Observe all videos in feed
-        const observeVideos = () => {
-            document.querySelectorAll('.post-card video').forEach(video => {
-                observer.observe(video);
-                video.muted = true;
-                video.loop = true;
-                video.playsInline = true;
-            });
-        };
-
-        // Re-observe when feed updates
-        const feedObserver = new MutationObserver(observeVideos);
-        feedObserver.observe(document.getElementById('feed-area'), { childList: true, subtree: true });
-
-        observeVideos();
-    }
-
     async function loadFeed() {
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snap) => {
             const area = document.getElementById('feed-area');
@@ -410,8 +301,6 @@
                     existingPost.remove();
                 }
             });
-            // Setup video autoplay after feed updates
-            setTimeout(setupVideoAutoplay, 300);
         });
     }
 
@@ -425,7 +314,7 @@
         
         let mediaHtml = "";
         if(p.video) {
-            mediaHtml = `<video src="${p.video}" class="post-img main-img" controls playsinline muted loop></video>`;
+            mediaHtml = `<video src="${p.video}" class="post-img main-img" controls playsinline></video>`;
         } else if(p.img) {
             mediaHtml = `<img src="${p.img}" class="post-img main-img">`;
         } else {
@@ -435,7 +324,7 @@
         div.innerHTML = `
             <div class="post-user" onclick="viewUser('${p.uid}')">
                 <img src="${p.authorImg || 'https://via.placeholder.com/35'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
-                <b>\( {p.authorName} \){badge}</b>
+                <b>${p.authorName}${badge}</b>
                 ${p.uid === me.uid ? `<i class="fas fa-ellipsis-v post-menu-trigger" style="margin-left:auto; padding:10px;"></i>` : ''}
             </div>
             <div class="post-img-container">
@@ -443,14 +332,14 @@
                 <i class="fas fa-heart like-animation"></i>
             </div>
             <div style="padding:10px 15px; font-size:20px; display:flex; gap:15px; align-items:center;">
-                <i class="\( {isLiked?'fas fa-heart':'far fa-heart'} like-btn" style="color: \){isLiked?'red':''}; cursor:pointer;"></i>
+                <i class="${isLiked?'fas fa-heart':'far fa-heart'} like-btn" style="color:${isLiked?'red':''}; cursor:pointer;"></i>
                 <i class="far fa-comment comment-btn" style="cursor:pointer;"></i>
                 <i class="far fa-paper-plane share-btn" style="cursor:pointer;"></i>
             </div>
             <div class="post-time">${timeAgo(p.timestamp)}</div>
             <div style="padding:5px 15px; font-size:14px;">
                 <b class="likes-count">${formatCount(p.likes?.length)} likes</b><br>
-                \( {(p.img || p.video) ? `<b> \){p.authorName}</b> ${p.text}` : ''}
+                ${(p.img || p.video) ? `<b>${p.authorName}</b> ${p.text}` : ''}
             </div>
         `;
         const imgContainer = div.querySelector('.post-img-container');
@@ -563,7 +452,7 @@
             
         const progContainer = document.getElementById('s-progress-container');
         progContainer.innerHTML = activeStories.map((_, i) => 
-            `<div class="progress-bar ${i < index ? 'watched' : ''} \( {i === index ? 'active' : ''}" style="transform: scaleX( \){i < index ? 1 : 0})"></div>`
+            `<div class="progress-bar ${i < index ? 'watched' : ''} ${i === index ? 'active' : ''}" style="transform: scaleX(${i < index ? 1 : 0})"></div>`
         ).join('');
 
         const isLiked = story.likes.includes(me.uid);
@@ -644,7 +533,7 @@
         if(!txt && !file) return;
 
         shareBtn.disabled = true;
-        shareBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sharing...`;
+        shareBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing...`;
 
         try {
             let uploadFile = file;
@@ -694,7 +583,7 @@
             Swal.fire({ icon: 'error', title: 'Post Failed', text: e.message, background: '#121212', color: '#fff' });
         } finally {
             shareBtn.disabled = false;
-            shareBtn.innerHTML = `Share`;
+            shareBtn.innerHTML = `Share Post`;
             progCont.style.display = 'none';
         }
     };
@@ -725,7 +614,7 @@
             document.getElementById('user-profile-content').innerHTML = `
                 <div style="text-align: center; padding: 20px 15px;">
                     <img src="${d.photoURL}" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:2px solid #262626;">
-                    <h3>\( {d.displayName} \){d.isVerified?vB:''}</h3>
+                    <h3>${d.displayName}${d.isVerified?vB:''}</h3>
                     <p style="color:var(--gray)">${d.bio || ""}</p>
                     <div class="profile-details">
                         ${d.work ? `<div><i class="fas fa-briefcase"></i> ${d.work}</div>` : ''}
@@ -736,8 +625,8 @@
                         <div><b>${formatCount(d.following?.length)}</b><br><small>Following</small></div>
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn-main" onclick="toggleFollow('${uid}', \( {isFollowing})" style="background: \){isFollowing?'#262626':'#0095f6'}">${isFollowing?'Unfollow':'Follow'}</button>
-                        <button class="btn-main" style="background:#262626;" onclick="openChat('\( {uid}', ' \){d.displayName}', '${d.photoURL}')">Message</button>
+                        <button class="btn-main" onclick="toggleFollow('${uid}', ${isFollowing})" style="background:${isFollowing?'#262626':'#0095f6'}">${isFollowing?'Unfollow':'Follow'}</button>
+                        <button class="btn-main" style="background:#262626;" onclick="openChat('${uid}', '${d.displayName}', '${d.photoURL}')">Message</button>
                     </div>
                 </div>`;
         });
@@ -752,7 +641,7 @@
                 if(pd.video) {
                     item.innerHTML = `<video src="${pd.video}#t=0.1"></video>`;
                 } else {
-                    item.innerHTML = pd.img ? `<img src="\( {pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;"> \){pd.text}</div>`;
+                    item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
                 }
                 grid.appendChild(item);
             });
@@ -772,9 +661,9 @@
                         list.innerHTML += `<div class="user-list-item">
                             <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="viewUser('${d.id}')">
                                 <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-                                <div><b>\( {u.displayName} \){u.isVerified?vB:''}</b><br><small style="color:gray;">${formatCount(u.followers?.length)} followers</small></div>
+                                <div><b>${u.displayName}${u.isVerified?vB:''}</b><br><small style="color:gray;">${formatCount(u.followers?.length)} followers</small></div>
                             </div>
-                            <button onclick="toggleFollow('${d.id}', \( {isFollowing})" style="background: \){isFollowing?'#262626':'#0095f6'}; color:white; border:none; padding:5px 12px; border-radius:5px; font-weight:bold;">${isFollowing?'Unfollow':'Follow'}</button>
+                            <button onclick="toggleFollow('${d.id}', ${isFollowing})" style="background:${isFollowing?'#262626':'#0095f6'}; color:white; border:none; padding:5px 12px; border-radius:5px; font-weight:bold;">${isFollowing?'Unfollow':'Follow'}</button>
                         </div>`;
                     }
                 });
@@ -793,9 +682,9 @@
                 const uSnap = await getDoc(doc(db, "users", uid));
                 if(uSnap.exists()){
                     const u = uSnap.data();
-                    chatList.innerHTML += `<div class="post-user" onclick="openChat('\( {uid}', ' \){u.displayName}', '${u.photoURL}')">
+                    chatList.innerHTML += `<div class="post-user" onclick="openChat('${uid}', '${u.displayName}', '${u.photoURL}')">
                         <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-                        <div><b>\( {u.displayName} \){u.isVerified?vB:''}</b></div>
+                        <div><b>${u.displayName}${u.isVerified?vB:''}</b></div>
                     </div>`;
                 }
             }
@@ -852,7 +741,7 @@
             snap.forEach(d => {
                 const m = d.data();
                 if((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
-                    box.innerHTML += `<div class="chat-bubble \( {m.sender === me.uid?'sent':'recv'}"> \){m.text}</div>`;
+                    box.innerHTML += `<div class="chat-bubble ${m.sender === me.uid?'sent':'recv'}">${m.text}</div>`;
                 }
             });
             box.scrollTop = box.scrollHeight;
@@ -943,7 +832,7 @@
                 if(pd.video) {
                     item.innerHTML = `<video src="${pd.video}#t=0.1"></video>`;
                 } else {
-                    item.innerHTML = pd.img ? `<img src="\( {pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;"> \){pd.text}</div>`;
+                    item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
                 }
                 grid.appendChild(item);
             });
@@ -962,11 +851,10 @@
         if(!file) return;
         const r = new FileReader(); 
         r.onload = (e) => {
-            const box = document.getElementById('img-preview-box');
             if(file.type.startsWith('video/')) {
-                box.innerHTML = `<video src="${e.target.result}" style="width:100%; border-radius:16px; margin-top:10px;" muted autoplay loop></video>`;
+                document.getElementById('img-preview-box').innerHTML = `<video src="${e.target.result}" style="width:100%; border-radius:10px; margin-top:10px;" muted autoplay></video>`;
             } else {
-                box.innerHTML = `<img src="${e.target.result}" style="width:100%; border-radius:16px; margin-top:10px;">`;
+                document.getElementById('img-preview-box').innerHTML = `<img src="${e.target.result}" style="width:100%; border-radius:10px; margin-top:10px;">`;
             }
         }; 
         r.readAsDataURL(file);
@@ -989,4 +877,4 @@
     };
 </script>
 </body>
-</html>
+            </html>
