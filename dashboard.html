@@ -20,7 +20,6 @@
         .section.active { display: block; }
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        /* Modern Post Composer */
         .composer-card { background: var(--card); margin: 12px; border-radius: 16px; border: 1px solid #262626; overflow: hidden; }
         .composer-header { display: flex; align-items: center; gap: 12px; padding: 15px; }
         .composer-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
@@ -45,7 +44,6 @@
         .like-animation.active { animation: heartPop 0.8s ease-out; }
         @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
 
-        /* CHAT UPDATE START - CSS */
         #chat-screen, #user-profile-view, #post-detail-view, #story-viewer { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; overflow-y: auto; }
         .chat-bubble { padding: 10px 14px; border-radius: 18px; margin: 4px 0; max-width: 75%; font-size: 14px; position: relative; cursor: pointer; transition: background 0.2s; }
         .chat-bubble:active { opacity: 0.8; }
@@ -55,7 +53,6 @@
         .online-dot { width: 10px; height: 10px; background: #4cd137; border-radius: 50%; border: 2px solid #000; }
         .unread-badge { background: var(--primary); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; min-width: 15px; text-align: center; }
         .msg-nav-badge { position: absolute; top: -5px; right: -8px; background: var(--danger); font-size: 9px; padding: 2px 5px; border-radius: 10px; }
-        /* CHAT UPDATE END - CSS */
         
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 15px; }
         .grid-item { aspect-ratio: 1/1; background: #121212; overflow: hidden; cursor: pointer; }
@@ -148,7 +145,7 @@
 </div>
 
 <div id="discover-sec" class="section">
-    <div style="padding:15px;"><input type="text" id="user-search" placeholder="Search friends..."></div>
+    <div style="padding:15px;"><input type="text" id="user-search" placeholder="Search friends by name or ID..."></div>
     <div id="user-list"></div>
 </div>
 
@@ -174,9 +171,12 @@
             <div><b id="count-followers">0</b><br><small>Followers</small></div>
             <div><b id="count-following">0</b><br><small>Following</small></div>
         </div>
-        <div style="display:flex; gap:10px;">
-            <button class="btn-main" style="background:#262626;" onclick="toggleEdit()">Edit Profile</button>
-            <button class="btn-main" style="background:#262626; width:50px;" onclick="shareMyProfile()"><i class="fas fa-share-alt"></i></button>
+        <div style="display:flex; flex-direction: column; gap:10px;">
+            <div style="display:flex; gap:10px;">
+                <button class="btn-main" style="background:#262626;" onclick="toggleEdit()">Edit Profile</button>
+                <button class="btn-main" style="background:#262626; width:50px;" onclick="shareMyProfile()"><i class="fas fa-share-alt"></i></button>
+            </div>
+            <button class="btn-main" style="background:#262626;" onclick="window.location.href='settings.html'">Settings</button>
         </div>
         <div id="edit-form" style="display:none; margin-top:15px; text-align:left;">
             <input type="text" id="edit-name" placeholder="Full Name">
@@ -233,6 +233,7 @@
         <i class="far fa-paper-plane" onclick="sendMsg()" style="color:var(--primary); font-size:20px; cursor:pointer;"></i>
     </div>
 </div>
+
 <div class="nav">
     <i class="fas fa-home" onclick="showSec('home')"></i>
     <i class="fas fa-search" onclick="showSec('discover')"></i>
@@ -245,7 +246,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove, deleteDoc, limit, Timestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove, deleteDoc, limit, Timestamp, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -267,12 +268,11 @@
     let storyTimer = null;
     const vB = ` <i class="fas fa-check-circle v-badge"></i>`;
 
-    // Video Autoplay Logic (Intersection Observer)
     const videoObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             const video = entry.target;
             if (entry.isIntersecting) {
-                video.play().catch(e => { /* Autoplay blocked */ });
+                video.play().catch(e => { });
             } else {
                 video.pause();
             }
@@ -298,11 +298,10 @@
                     bio: "Welcome to Meetwoyou!",
                     followers: [], following: [], uid: user.uid,
                     isVerified: false, timestamp: serverTimestamp(),
-                    lastActive: serverTimestamp() // CHAT UPDATE: Status track
+                    lastActive: serverTimestamp()
                 });
                 location.reload(); return; 
             }
-            // CHAT UPDATE: Mark online
             updateDoc(userRef, { lastActive: serverTimestamp() });
             setInterval(() => updateDoc(userRef, { lastActive: serverTimestamp() }), 180000);
 
@@ -319,6 +318,48 @@
         loadAllUsers(); 
         loadMyPosts(); 
         loadStories();
+        setupSearch();
+    }
+
+    // --- 1. SEARCH SYSTEM ---
+    function setupSearch() {
+        const searchInput = document.getElementById('user-search');
+        searchInput.addEventListener('input', async (e) => {
+            const term = e.target.value.toLowerCase().trim();
+            const list = document.getElementById('user-list');
+            
+            const mySnap = await getDoc(doc(db, "users", me.uid));
+            const myFollowing = mySnap.data()?.following || [];
+            
+            const snap = await getDocs(collection(db, "users"));
+            let html = "";
+            let found = false;
+
+            snap.forEach(d => {
+                if(d.id === me.uid) return;
+                const u = d.data();
+                const nameMatch = u.displayName?.toLowerCase().includes(term);
+                const uidMatch = d.id.toLowerCase().includes(term);
+
+                if (term === "" || nameMatch || uidMatch) {
+                    found = true;
+                    const isFollowing = myFollowing.includes(d.id);
+                    html += `<div class="user-list-item">
+                        <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="viewUser('${d.id}')">
+                            <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                            <div><b>${u.displayName}${u.isVerified?vB:''}</b><br><small style="color:gray;">${formatCount(u.followers?.length)} followers</small></div>
+                        </div>
+                        <button onclick="toggleFollow('${d.id}', ${isFollowing})" style="background:${isFollowing?'#262626':'#0095f6'}; color:white; border:none; padding:5px 12px; border-radius:5px; font-weight:bold;">${isFollowing?'Unfollow':'Follow'}</button>
+                    </div>`;
+                }
+            });
+
+            if(!found) {
+                list.innerHTML = `<p style="text-align:center; color:gray; padding:20px;">No users found</p>`;
+            } else {
+                list.innerHTML = html;
+            }
+        });
     }
 
     function timeAgo(timestamp) {
@@ -724,7 +765,6 @@
         });
     };
 
-    // CHAT UPDATE START - LOGIC
     let chatUnsubscribe = null;
     let statusUnsubscribe = null;
 
@@ -733,6 +773,9 @@
             const myFollowing = mySnap.data()?.following || [];
             onSnapshot(collection(db, "users"), (snap) => {
                 const list = document.getElementById('user-list');
+                // Don't override if user is typing
+                if(document.getElementById('user-search').value.trim() !== "") return;
+                
                 list.innerHTML = "";
                 snap.forEach(d => {
                     if(d.id !== me.uid) {
@@ -750,7 +793,6 @@
             });
         });
 
-        // Chat List with deduplication and metadata
         onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "desc")), async (mSnap) => {
             const chatList = document.getElementById('chat-list');
             const navBadge = document.getElementById('msg-nav-badge');
@@ -815,11 +857,9 @@
         headerImg.src = img;
         document.getElementById('chat-screen').style.display = 'flex';
 
-        // Clear previous listeners
         if(chatUnsubscribe) chatUnsubscribe();
         if(statusUnsubscribe) statusUnsubscribe();
 
-        // Status Listener
         statusUnsubscribe = onSnapshot(doc(db, "users", uid), (snap) => {
             const data = snap.data();
             if(data?.isVerified) headerName.innerHTML = name + vB;
@@ -829,7 +869,6 @@
             onlineIndicator.style.display = isOnline ? 'block' : 'none';
         });
 
-        // Messages Listener
         chatUnsubscribe = onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "asc")), (snap) => {
             const box = document.getElementById('chat-box');
             box.innerHTML = "";
@@ -897,13 +936,9 @@
             icon: 'warning', showCancelButton: true, background: '#121212', color: '#fff' 
         });
         if(res.isConfirmed) {
-            const q = query(collection(db, "messages"));
-            const snap = await getDoc(q); // Simplified for logic; ideally query specifically sender/receiver
-            Swal.fire('Deleted', '', 'success');
             closeChat();
         }
     };
-    // CHAT UPDATE END - LOGIC
 
     window.viewSinglePost = async (postId) => {
         const snap = await getDoc(doc(db, "posts", postId));
