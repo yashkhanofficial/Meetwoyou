@@ -7,85 +7,57 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --primary: #8e44ad; --bg: #0d0d0d; --card: #1a1a1b; --text: #ffffff; --gray: #b0b3b8; --danger: #e74c3c; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
-
-        .header { background: var(--card); padding: 15px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #333; }
-        
-        .settings-container { padding: 15px; max-width: 500px; margin: auto; }
-        .setting-item { background: var(--card); padding: 18px; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border: 1px solid #222; cursor: pointer; transition: 0.2s; }
-        .setting-item:active { transform: scale(0.98); background: #222; }
-        
-        .item-info { display: flex; align-items: center; gap: 15px; }
-        .item-info i { width: 35px; height: 35px; background: #222; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary); }
-        .item-info b { font-size: 15px; }
-
-        .danger-text { color: var(--danger); }
-        .danger-text i { color: var(--danger); }
-
-        /* Bottom Nav */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; }
-        .nav-item { color: var(--gray); font-size: 20px; text-align: center; flex: 1; text-decoration: none; }
-        .nav-item.active { color: var(--primary); }
-        .nav-item span { display: block; font-size: 10px; margin-top: 4px; }
+        :root { --primary: #0095f6; --bg: #000; --card: #121212; --text: #fff; --gray: #8e8e8e; --danger: #ed4956; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        .header { background: var(--bg); padding: 15px; border-bottom: 1px solid #262626; display: flex; align-items: center; gap: 20px; sticky: top; z-index: 1000; }
+        .container { max-width: 500px; margin: auto; padding: 20px; }
+        .setting-item { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #262626; }
+        .setting-item h4 { margin: 0 0 10px 0; color: var(--gray); font-size: 12px; text-transform: uppercase; }
+        input { width: 100%; padding: 12px; background: #1c1c1c; border: 1px solid #262626; color: white; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; }
+        .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { background: transparent; border: 1px solid #262626; color: white; }
+        .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+        .back-btn { font-size: 20px; cursor: pointer; color: white; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <a href="home.html" style="color:white; text-decoration:none;"><i class="fas fa-arrow-left"></i></a>
-    <h3 style="margin:0;">Settings</h3>
+    <i class="fas fa-arrow-left back-btn" onclick="window.location.href='dashboard.html'"></i>
+    <h2 style="margin:0;">Settings</h2>
 </div>
 
-<div class="settings-container">
-    <p style="color:var(--gray); font-size:12px; margin-left:10px; margin-bottom:10px;">Account Management</p>
-    
-    <div class="setting-item" onclick="addAccount()">
-        <div class="item-info">
-            <i class="fas fa-user-plus"></i>
-            <b>Add Another Account</b>
-        </div>
-        <i class="fas fa-chevron-right" style="font-size:12px; color:gray;"></i>
+<div class="container">
+    <div class="setting-item">
+        <h4>Display Name</h4>
+        <input type="text" id="set-name" placeholder="Enter new name">
+        <button class="btn btn-primary" onclick="updateName()">Update Name</button>
     </div>
 
-    <div class="setting-item" onclick="window.location.href='profile.html'">
-        <div class="item-info">
-            <i class="fas fa-user-edit"></i>
-            <b>Edit Profile Details</b>
-        </div>
-        <i class="fas fa-chevron-right" style="font-size:12px; color:gray;"></i>
+    <div class="setting-item">
+        <h4>Account Security</h4>
+        <input type="password" id="set-pass" placeholder="New Password">
+        <button class="btn btn-outline" onclick="changePass()">Change Password</button>
     </div>
 
-    <p style="color:var(--gray); font-size:12px; margin:20px 0 10px 10px;">Security & Privacy</p>
-
-    <div class="setting-item" onclick="logout()">
-        <div class="item-info">
-            <i class="fas fa-sign-out-alt"></i>
-            <b>Logout</b>
-        </div>
+    <div class="setting-item">
+        <h4>Verification</h4>
+        <p style="font-size: 13px; color: var(--gray);">Get a blue checkmark next to your name.</p>
+        <button class="btn btn-outline" onclick="applyVerification()">Apply for Verification</button>
     </div>
 
-    <div class="setting-item danger-text" onclick="deleteAccount()">
-        <div class="item-info">
-            <i class="fas fa-trash-alt"></i>
-            <b>Delete Account Permanently</b>
-        </div>
+    <div class="setting-item" style="border-color: #331111;">
+        <h4>Danger Zone</h4>
+        <button class="btn btn-danger" onclick="deleteAccount()">Delete My Account</button>
+        <button class="btn btn-outline" style="margin-top: 15px;" onclick="logout()">Logout</button>
     </div>
-
-    <div style="text-align:center; margin-top:50px; opacity:0.3;">
-        <p style="font-size:12px;">Meetwoyou v2.0.1<br>Created by Writarion</p>
-    </div>
-</div>
-
-<div class="nav-bar">
-    <a href="home.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
-    <a href="friends.html" class="nav-item"><i class="fas fa-users"></i><span>Friends</span></a>
-    <a href="settings.html" class="nav-item active"><i class="fas fa-cog"></i><span>Settings</span></a>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signOut, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, updateProfile, updatePassword, deleteUser, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, updateDoc, deleteDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -98,65 +70,66 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
+    let user = null;
 
-    onAuthStateChanged(auth, (user) => {
-        if (!user) window.location.href = "index.html";
+    onAuthStateChanged(auth, (u) => {
+        if (u) { 
+            user = u;
+            document.getElementById('set-name').value = u.displayName || "";
+        } else { window.location.href = "index.html"; }
     });
 
-    // ১. লগআউট ফাংশন
-    window.logout = async () => {
-        Swal.fire({
+    window.updateName = async () => {
+        const newName = document.getElementById('set-name').value.trim();
+        if(!newName) return;
+        try {
+            await updateProfile(user, { displayName: newName });
+            await updateDoc(doc(db, "users", user.uid), { displayName: newName });
+            Swal.fire({ icon: 'success', title: 'Name Updated', background: '#121212', color: '#fff' });
+        } catch (e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message }); }
+    };
+
+    window.changePass = async () => {
+        const newPass = document.getElementById('set-pass').value;
+        if(newPass.length < 6) return Swal.fire('Password too short');
+        try {
+            await updatePassword(user, newPass);
+            Swal.fire({ icon: 'success', title: 'Password Changed', background: '#121212', color: '#fff' });
+            document.getElementById('set-pass').value = "";
+        } catch (e) { Swal.fire('Error', 'Please logout and login again to change password.', 'error'); }
+    };
+
+    window.applyVerification = async () => {
+        try {
+            await addDoc(collection(db, "verification_requests"), {
+                uid: user.uid,
+                name: user.displayName,
+                timestamp: serverTimestamp()
+            });
+            Swal.fire({ icon: 'success', title: 'Request Sent', text: 'Our team will review your profile.', background: '#121212', color: '#fff' });
+        } catch (e) { Swal.fire('Error sending request'); }
+    };
+
+    window.deleteAccount = async () => {
+        const res = await Swal.fire({
             title: 'Are you sure?',
-            text: "You will be logged out of your session.",
+            text: "This will permanently delete your posts and account.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#8e44ad',
-            confirmButtonText: 'Yes, Logout'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                await signOut(auth);
-                window.location.href = "index.html";
-            }
+            confirmButtonColor: '#ed4956',
+            background: '#121212', color: '#fff'
         });
+        if(res.isConfirmed) {
+            try {
+                await deleteDoc(doc(db, "users", user.uid));
+                await deleteUser(user);
+                window.location.href = "index.html";
+            } catch (e) { Swal.fire('Error', 'Please re-authenticate to delete account.', 'error'); }
+        }
     };
 
-    // ২. অ্যাকাউন্ট অ্যাড করা (রিমুভ না করে নতুন সাইন-ইন পেজে নিয়ে যাবে)
-    window.addAccount = () => {
-        Swal.fire({
-            title: 'Add Account?',
-            text: "You will be redirected to the login page to add another profile.",
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonText: 'Continue'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = "index.html";
-            }
-        });
-    };
-
-    // ৩. অ্যাকাউন্ট ডিলিট করা
-    window.deleteAccount = async () => {
-        const user = auth.currentUser;
-        Swal.fire({
-            title: 'CRITICAL ACTION!',
-            text: "Your account and data will be permanently deleted. This cannot be undone!",
-            icon: 'error',
-            showCancelButton: true,
-            confirmButtonColor: '#e74c3c',
-            confirmButtonText: 'DELETE EVERYTHING'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    await deleteUser(user);
-                    Swal.fire('Deleted!', 'Account removed successfully.', 'success');
-                    window.location.href = "index.html";
-                } catch (err) {
-                    Swal.fire('Error', 'Please log in again before deleting your account for security.', 'error');
-                }
-            }
-        });
-    };
+    window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
 </script>
 </body>
 </html>
