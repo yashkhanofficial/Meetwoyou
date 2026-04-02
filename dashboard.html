@@ -95,6 +95,7 @@
         .settings-item i { font-size: 18px; width: 25px; color: var(--gray); }
         .settings-item.danger { color: var(--danger); }
         .settings-item.danger i { color: var(--danger); }
+        .settings-item.verified i { color: var(--verified); }
     </style>
 </head>
 <body>
@@ -223,6 +224,10 @@
         <b style="font-size: 18px;">Settings</b>
     </div>
     <div style="flex: 1;">
+        <div class="settings-item" onclick="toggleEdit(); closeSettings();">
+            <i class="fas fa-user-edit"></i>
+            <span>Edit Profile</span>
+        </div>
         <div class="settings-item" onclick="changePassword()">
             <i class="fas fa-key"></i>
             <span>Change Password</span>
@@ -230,6 +235,10 @@
         <div class="settings-item" onclick="changeEmail()">
             <i class="fas fa-envelope"></i>
             <span>Change Email</span>
+        </div>
+        <div class="settings-item verified" onclick="window.open('https://meetwoyou.github.io/V-bage-Application/', '_blank')">
+            <i class="fas fa-check-circle"></i>
+            <span>V-Badge Application</span>
         </div>
         <div class="settings-item danger" onclick="deleteAccount()">
             <i class="fas fa-user-slash"></i>
