@@ -847,7 +847,7 @@
     let chatUnsubscribe = null;
     let statusUnsubscribe = null;
 
-    // --- UPDATED CHAT & PRIVATE MESSAGING LOGIC ---
+    // --- FIX START: CHAT & PRIVATE MESSAGING LOGIC ---
     window.loadAllUsers = () => {
         onSnapshot(doc(db, "users", me.uid), (mySnap) => {
             const myFollowing = mySnap.data()?.following || [];
@@ -872,10 +872,9 @@
             });
         });
 
-        // Private Chat List Filter
+        // Inbox List: Filter messages where user is sender OR receiver
         const msgQuery = query(
             collection(db, "messages"),
-            or(where("sender", "==", me.uid), where("receiver", "==", me.uid)),
             orderBy("timestamp", "desc")
         );
 
@@ -887,10 +886,13 @@
 
             mSnap.forEach(mDoc => {
                 const m = mDoc.data();
+                // Filter only my messages
+                if(m.sender !== me.uid && m.receiver !== me.uid) return;
+
                 const otherUid = m.sender === me.uid ? m.receiver : m.sender;
                 if(!interactedMap.has(otherUid)) {
                     interactedMap.set(otherUid, {
-                        lastMsg: m.mediaType ? `Sent a ${m.mediaType}` : m.text,
+                        lastMsg: m.mediaType ? `Sent a ${m.mediaType}` : (m.text || "Media"),
                         time: m.timestamp,
                         unread: (m.receiver === me.uid && !m.seen) ? 1 : 0
                     });
@@ -955,13 +957,9 @@
             onlineIndicator.style.display = isOnline ? 'block' : 'none';
         });
 
-        // Private message retrieval (Strictly between 2 users)
+        // Chat Retrieval - Corrected query for private messaging
         const qChat = query(
             collection(db, "messages"),
-            or(
-                and(where("sender", "==", me.uid), where("receiver", "==", uid)),
-                and(where("sender", "==", uid), where("receiver", "==", me.uid))
-            ),
             orderBy("timestamp", "asc")
         );
 
@@ -973,6 +971,10 @@
 
             snap.forEach(d => {
                 const m = d.data();
+                // Filter only messages between me and activeChatID
+                const betweenUs = (m.sender === me.uid && m.receiver === activeChatID) || (m.sender === activeChatID && m.receiver === me.uid);
+                if(!betweenUs) return;
+
                 const isMe = m.sender === me.uid;
                 const statusIcon = m.seen ? '<i class="fas fa-check-double" style="color:#0095f6;"></i>' : '<i class="fas fa-check"></i>';
                 
@@ -1016,14 +1018,11 @@
         });
     };
 
-    // Chat Photo/Video Sender
     window.sendChatMedia = async (input) => {
         if(!input.files[0] || !activeChatID) return;
         const file = input.files[0];
         const type = file.type.startsWith('video') ? 'video' : 'image';
-        
         Swal.fire({title: 'Sending...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff', toast: true, position: 'top'});
-        
         try {
             const url = await uploadToCloudinary(file);
             await addDoc(collection(db, "messages"), {
@@ -1040,6 +1039,7 @@
         }
         input.value = "";
     };
+    // --- FIX END ---
 
     window.manageMessage = async (mid, text, isMe) => {
         const actions = isMe ? ['Edit', 'Delete for me', 'Cancel'] : ['Delete for me', 'Cancel'];
