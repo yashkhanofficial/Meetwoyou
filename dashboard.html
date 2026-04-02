@@ -201,6 +201,33 @@
     <div id="my-posts-grid" class="profile-grid"></div>
 </div>
 
+<div id="story-viewer">
+    <div class="story-progress" id="s-progress-container"></div>
+    <div class="story-header">
+        <img id="s-user-img" src="" style="width:35px; height:35px; border-radius:50%; border:1px solid #fff;">
+        <div style="flex:1;">
+            <b id="s-user-name" style="font-size:14px; text-shadow: 1px 1px 2px #000;"></b><br>
+            <small id="s-time" style="font-size:10px; opacity:0.8;"></small>
+        </div>
+        <i class="fas fa-times" onclick="closeStory()" style="font-size:22px; cursor:pointer; padding:10px;"></i>
+    </div>
+    <div id="s-media-container" style="width:100%; height:80vh; display:flex; align-items:center; justify-content:center;"></div>
+    <div class="story-footer">
+        <div style="text-align:center;" onclick="toggleStoryLike()">
+            <i id="s-like-icon" class="far fa-heart" style="font-size:24px;"></i><br>
+            <small id="s-like-count">0</small>
+        </div>
+        <div id="s-views-box" style="text-align:center; display:none;">
+            <i class="far fa-eye" style="font-size:24px;"></i><br>
+            <small id="s-view-count">0</small>
+        </div>
+        <div id="s-delete-box" style="text-align:center; display:none;" onclick="deleteCurrentStory()">
+            <i class="far fa-trash-alt" style="font-size:24px; color:var(--danger);"></i><br>
+            <small style="color:var(--danger);">Delete</small>
+        </div>
+    </div>
+</div>
+
 <div id="user-profile-view">
     <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px;">
         <i class="fas fa-arrow-left" onclick="closeProfileView()" style="cursor:pointer;"></i>
@@ -527,7 +554,7 @@
 
     function loadStories() {
         const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        const q = query(collection(db, "stories"), where("timestamp", ">", yesterday), orderBy("timestamp", "desc"));
+        const q = query(collection(db, "stories"), where("timestamp", ">", yesterday), orderBy("timestamp", "asc"));
         
         onSnapshot(q, (snap) => {
             const otherStoriesArea = document.getElementById('other-stories');
@@ -544,11 +571,19 @@
             document.getElementById('my-story-img').src = me.photoURL;
 
             for (let uid in groupedStories) {
-                if (uid === me.uid) continue;
                 const userStories = groupedStories[uid];
-                const lastStory = userStories[0];
+                const lastStory = userStories[userStories.length - 1];
                 const hasUnwatched = userStories.some(s => !s.views.includes(me.uid));
                 
+                if (uid === me.uid) {
+                    document.getElementById('my-story-img').classList.toggle('watched', !hasUnwatched);
+                    document.querySelector('.add-story').onclick = (e) => {
+                        if(e.target.closest('.add-story-btn')) return;
+                        openStoryViewer(userStories);
+                    };
+                    continue;
+                }
+
                 const storyDiv = document.createElement('div');
                 storyDiv.className = "story-circle";
                 storyDiv.onclick = () => openStoryViewer(userStories);
@@ -558,19 +593,11 @@
                 `;
                 otherStoriesArea.appendChild(storyDiv);
             }
-            
-            if (groupedStories[me.uid]) {
-                document.getElementById('my-story-img').classList.remove('watched');
-                document.querySelector('.add-story').onclick = (e) => {
-                    if(e.target.closest('.add-story-btn')) return;
-                    openStoryViewer(groupedStories[me.uid]);
-                };
-            }
         });
     }
 
     function openStoryViewer(stories) {
-        activeStories = stories.reverse();
+        activeStories = stories;
         currentStoryIndex = 0;
         document.getElementById('story-viewer').style.display = 'flex';
         showStory(0);
@@ -590,7 +617,7 @@
         
         const mediaContainer = document.getElementById('s-media-container');
         mediaContainer.innerHTML = story.type === 'video' 
-            ? `<video src="${story.mediaUrl}" class="story-media" autoplay muted></video>`
+            ? `<video src="${story.mediaUrl}" class="story-media" autoplay playsinline></video>`
             : `<img src="${story.mediaUrl}" class="story-media">`;
             
         const progContainer = document.getElementById('s-progress-container');
@@ -608,7 +635,7 @@
         document.getElementById('s-view-count').innerText = story.views.length;
         document.getElementById('s-delete-box').style.display = isOwner ? 'block' : 'none';
 
-        if (!story.views.includes(me.uid)) {
+        if (story.uid !== me.uid && !story.views.includes(me.uid)) {
             await updateDoc(doc(db, "stories", story.id), { views: arrayUnion(me.uid) });
         }
 
@@ -638,7 +665,8 @@
         if(res.isConfirmed) {
             await deleteDoc(doc(db, "stories", story.id));
             activeStories.splice(currentStoryIndex, 1);
-            showStory(currentStoryIndex);
+            if(activeStories.length === 0) closeStory();
+            else showStory(currentStoryIndex);
         }
     };
 
@@ -999,7 +1027,7 @@
             bio: document.getElementById('edit-bio').value || "",
             dob: document.getElementById('edit-dob').value || "",
             work: document.getElementById('edit-work').value || "",
-            org: document.getElementById('edit-org').value || "",
+            org: document.getElementById('edit-work').value || "",
             website: document.getElementById('edit-web').value || "",
             social: document.getElementById('edit-social').value || ""
         };
