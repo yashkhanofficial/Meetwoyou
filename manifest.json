@@ -1,23 +1,20 @@
 {
+  "name": "Meetwoyou",
   "short_name": "Meetwoyou",
-  "name": "Meetwoyou - Ultimate OS",
-  "icons": [
-    {
-      "src": "meetwoyou.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "meetwoyou.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
   "start_url": "/index.html",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#000000",
-  "orientation": "portrait"
+  "background_color": "#ffffff",
+  "theme_color": "#1d4ed8",
+  "icons": [
+    {
+      "src": "https://meetwoyou.github.io/favicon-192x192.png?v=20260402",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://meetwoyou.github.io/favicon-512x512.png?v=20260402",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
