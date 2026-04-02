@@ -6,6 +6,22 @@
     <title>Meetwoyou - Premium Experience</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="manifest" href="https://meetwoyou.github.io/site.webmanifest?v=20260402">
+<meta name="theme-color" content="#1d4ed8">
+    <!-- Favicon PNG -->
+<link rel="icon" type="image/png" sizes="32x32" href="https://meetwoyou.github.io/favicon-32x32.png?v=20260402">
+
+<!-- Favicon SVG (modern browsers) -->
+<link rel="icon" type="image/svg+xml" href="https://meetwoyou.github.io/favicon.svg?v=20260402">
+
+<!-- Classic ICO fallback -->
+<link rel="shortcut icon" href="https://meetwoyou.github.io/favicon.ico?v=20260402">
+
+<!-- Apple Touch Icon (iOS Home Screen) -->
+<link rel="apple-touch-icon" sizes="180x180" href="https://meetwoyou.github.io/apple-touch-icon.png?v=20260402">
+
+<!-- Apple Web App Title -->
+<meta name="apple-mobile-web-app-title" content="Meetwoyou">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -244,6 +260,36 @@
                 showSection('login-section');
             } catch (error) { notify(error.message, "error"); }
         };
+    </script>
+
+    <script>
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent automatic prompt
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // Show your custom install notification
+    const installBanner = document.createElement('div');
+    installBanner.innerHTML = `
+        <div style="position:fixed;top:10px;left:50%;transform:translateX(-50%);
+                    background:#1d4ed8;color:white;padding:12px 20px;
+                    border-radius:8px;cursor:pointer;z-index:9999;">
+            Click here to install Meetwoyou App
+        </div>`;
+    document.body.appendChild(installBanner);
+
+    installBanner.addEventListener('click', async () => {
+        installBanner.remove();
+        if(deferredPrompt){
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            console.log("User response to install: ", outcome);
+        }
+    });
+});
     </script>
 </body>
               </html>
