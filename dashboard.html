@@ -96,6 +96,9 @@
         .settings-item.danger { color: var(--danger); }
         .settings-item.danger i { color: var(--danger); }
         .settings-item.verified i { color: var(--verified); }
+
+        /* Chat Media CSS */
+        .chat-media { max-width: 100%; border-radius: 12px; margin-top: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -301,7 +304,10 @@
     </div>
     <div id="chat-box" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; background: radial-gradient(circle at top right, #0a0a0a, #000);"></div>
     <div style="padding:12px; display:flex; align-items:center; gap:10px; background:#121212; border-top:1px solid #262626;">
-        <i class="fas fa-microphone" style="color:var(--primary); font-size:18px;"></i>
+        <label for="chat-file-input">
+            <i class="fas fa-camera" style="color:var(--primary); font-size:18px; cursor:pointer;"></i>
+        </label>
+        <input type="file" id="chat-file-input" style="display:none;" accept="image/*,video/*" onchange="sendChatMedia(this)">
         <input type="text" id="chat-input" placeholder="Message..." style="margin:0; border-radius:25px; padding-left:15px; height:40px;">
         <i class="far fa-paper-plane" onclick="sendMsg()" style="color:var(--primary); font-size:20px; cursor:pointer;"></i>
     </div>
@@ -319,7 +325,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, updateProfile, signOut, updatePassword, updateEmail, deleteUser, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove, deleteDoc, limit, Timestamp, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove, deleteDoc, limit, Timestamp, writeBatch, getDocs, or, and } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -841,6 +847,7 @@
     let chatUnsubscribe = null;
     let statusUnsubscribe = null;
 
+    // --- UPDATED CHAT & PRIVATE MESSAGING LOGIC ---
     window.loadAllUsers = () => {
         onSnapshot(doc(db, "users", me.uid), (mySnap) => {
             const myFollowing = mySnap.data()?.following || [];
@@ -865,7 +872,14 @@
             });
         });
 
-        onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "desc")), async (mSnap) => {
+        // Private Chat List Filter
+        const msgQuery = query(
+            collection(db, "messages"),
+            or(where("sender", "==", me.uid), where("receiver", "==", me.uid)),
+            orderBy("timestamp", "desc")
+        );
+
+        onSnapshot(msgQuery, async (mSnap) => {
             const chatList = document.getElementById('chat-list');
             const navBadge = document.getElementById('msg-nav-badge');
             let totalUnread = 0;
@@ -876,7 +890,7 @@
                 const otherUid = m.sender === me.uid ? m.receiver : m.sender;
                 if(!interactedMap.has(otherUid)) {
                     interactedMap.set(otherUid, {
-                        lastMsg: m.text,
+                        lastMsg: m.mediaType ? `Sent a ${m.mediaType}` : m.text,
                         time: m.timestamp,
                         unread: (m.receiver === me.uid && !m.seen) ? 1 : 0
                     });
@@ -941,7 +955,17 @@
             onlineIndicator.style.display = isOnline ? 'block' : 'none';
         });
 
-        chatUnsubscribe = onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "asc")), (snap) => {
+        // Private message retrieval (Strictly between 2 users)
+        const qChat = query(
+            collection(db, "messages"),
+            or(
+                and(where("sender", "==", me.uid), where("receiver", "==", uid)),
+                and(where("sender", "==", uid), where("receiver", "==", me.uid))
+            ),
+            orderBy("timestamp", "asc")
+        );
+
+        chatUnsubscribe = onSnapshot(qChat, (snap) => {
             const box = document.getElementById('chat-box');
             box.innerHTML = "";
             let batch = writeBatch(db);
@@ -949,20 +973,28 @@
 
             snap.forEach(d => {
                 const m = d.data();
-                if((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
-                    const isMe = m.sender === me.uid;
-                    const statusIcon = m.seen ? '<i class="fas fa-check-double" style="color:#0095f6;"></i>' : '<i class="fas fa-check"></i>';
-                    
-                    box.innerHTML += `
-                        <div class="chat-bubble ${isMe?'sent':'recv'}" onclick="manageMessage('${d.id}', '${m.text}', ${isMe})">
-                            ${m.text}
-                            <span class="chat-status">${timeAgo(m.timestamp)} ${isMe ? statusIcon : ''}</span>
-                        </div>`;
-                    
-                    if(!isMe && !m.seen) {
-                        batch.update(doc(db, "messages", d.id), { seen: true });
-                        hasUnseen = true;
+                const isMe = m.sender === me.uid;
+                const statusIcon = m.seen ? '<i class="fas fa-check-double" style="color:#0095f6;"></i>' : '<i class="fas fa-check"></i>';
+                
+                let mediaContent = "";
+                if(m.mediaUrl) {
+                    if(m.mediaType === 'video') {
+                        mediaContent = `<video src="${m.mediaUrl}" class="chat-media" controls></video>`;
+                    } else {
+                        mediaContent = `<img src="${m.mediaUrl}" class="chat-media" onclick="window.open('${m.mediaUrl}', '_blank')">`;
                     }
+                }
+
+                box.innerHTML += `
+                    <div class="chat-bubble ${isMe?'sent':'recv'}" onclick="manageMessage('${d.id}', '${m.text}', ${isMe})">
+                        ${m.text ? `<div>${m.text}</div>` : ''}
+                        ${mediaContent}
+                        <span class="chat-status">${timeAgo(m.timestamp)} ${isMe ? statusIcon : ''}</span>
+                    </div>`;
+                
+                if(!isMe && !m.seen) {
+                    batch.update(doc(db, "messages", d.id), { seen: true });
+                    hasUnseen = true;
                 }
             });
             if(hasUnseen) batch.commit();
@@ -982,6 +1014,31 @@
             seen: false,
             timestamp: serverTimestamp() 
         });
+    };
+
+    // Chat Photo/Video Sender
+    window.sendChatMedia = async (input) => {
+        if(!input.files[0] || !activeChatID) return;
+        const file = input.files[0];
+        const type = file.type.startsWith('video') ? 'video' : 'image';
+        
+        Swal.fire({title: 'Sending...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff', toast: true, position: 'top'});
+        
+        try {
+            const url = await uploadToCloudinary(file);
+            await addDoc(collection(db, "messages"), {
+                sender: me.uid,
+                receiver: activeChatID,
+                mediaUrl: url,
+                mediaType: type,
+                seen: false,
+                timestamp: serverTimestamp()
+            });
+            Swal.close();
+        } catch (e) {
+            Swal.fire({icon: 'error', title: 'Failed to send media', background: '#121212', color: '#fff'});
+        }
+        input.value = "";
     };
 
     window.manageMessage = async (mid, text, isMe) => {
@@ -1004,7 +1061,7 @@
     window.deleteChatConversation = async () => {
         const res = await Swal.fire({ 
             title: 'Delete Chat?', 
-            text: "This will remove the conversation for you.",
+            text: "This will remove the conversation record.",
             icon: 'warning', showCancelButton: true, background: '#121212', color: '#fff' 
         });
         if(res.isConfirmed) {
