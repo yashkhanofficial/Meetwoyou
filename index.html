@@ -63,11 +63,26 @@
         }
         /* Install Banner Animation */
         #pwa-install-banner {
-            animation: slideUp 0.5s ease-out;
+            animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #7c3aed, #4f46e5);
+            color: white;
+            padding: 16px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            z-index: 10000;
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.5);
+            font-weight: 800;
+            border: 2px solid rgba(255,255,255,0.3);
+            text-align: center;
+            white-space: nowrap;
         }
         @keyframes slideUp {
-            from { transform: translate(-50%, 100%); opacity: 0; }
-            to { transform: translate(-50%, 0); opacity: 1; }
+            from { bottom: -100px; opacity: 0; }
+            to { bottom: 30px; opacity: 1; }
         }
     </style>
 
@@ -76,6 +91,7 @@
     <link rel="manifest" href="./site.webmanifest">
     <meta name="theme-color" content="#1d4ed8">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body class="min-h-screen flex items-center justify-center p-6">
     <div class="bg-animate"></div>
@@ -192,6 +208,7 @@
             document.getElementById(id).classList.remove('hidden');
         };
 
+        // Firebase Events
         document.getElementById('signup-btn').onclick = async () => {
             const fName = document.getElementById('signup-first-name').value;
             const email = document.getElementById('signup-email').value;
@@ -225,33 +242,29 @@
     </script>
 
     <script>
+    // 1. Service Worker Registration with Force Update
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('SW Registered'))
-          .catch(err => console.log('SW Error:', err));
-      });
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                reg.update();
+                console.log('Service Worker Registered');
+            });
+        });
     }
 
+    // 2. Install Prompt Logic
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent default browser prompt
         e.preventDefault();
         deferredPrompt = e;
         
-        // ৩ সেকেন্ড পরে অটোমেটিক বাটনটি দেখাবে
+        // Show custom banner after 2 seconds
         setTimeout(() => {
             if (!document.getElementById('pwa-install-banner')) {
                 const btn = document.createElement('div');
                 btn.id = 'pwa-install-banner';
-                btn.innerHTML = `
-                    <div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-                                background:linear-gradient(45deg, #7c3aed, #4f46e5);color:white;
-                                padding:16px 28px;border-radius:50px;cursor:pointer;z-index:10000;
-                                box-shadow:0 10px 40px rgba(124, 58, 237, 0.6);font-weight:bold;
-                                border:1px solid rgba(255,255,255,0.3);text-align:center;
-                                font-size:15px;white-space:nowrap;">
-                        🚀 Install Meetwoyou App
-                    </div>`;
+                btn.innerHTML = `🚀 Install Meetwoyou App`;
                 document.body.appendChild(btn);
 
                 btn.addEventListener('click', async () => {
@@ -264,7 +277,15 @@
                     }
                 });
             }
-        }, 3000);
+        }, 2500);
+    });
+
+    // Handle app installed event
+    window.addEventListener('appinstalled', () => {
+        console.log('App Installed Successfully');
+        if(document.getElementById('pwa-install-banner')) {
+            document.getElementById('pwa-install-banner').remove();
+        }
     });
     </script>
 </body>
