@@ -25,7 +25,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
-        /* Loader styles to prevent flickering */
+        /* Loader covering full screen until auth check is done */
         #auth-loader {
             position: fixed; inset: 0; background: #0f172a; z-index: 9999;
             display: flex; justify-content: center; align-items: center;
@@ -99,23 +99,24 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        const handleRedirection = (user) => {
-            if(user) {
-                window.location.replace("dashboard.html"); // replace simplifies back-button issues
-            }
-        };
-
-        // CRITICAL: First set persistence, then observe state
-        setPersistence(auth, browserLocalPersistence).then(() => {
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    handleRedirection(user);
-                } else {
-                    document.getElementById('auth-loader').classList.add('hidden');
-                    document.getElementById('main-content').classList.remove('hidden');
-                }
+        // persistence set করার পরে onAuthStateChanged রান হবে
+        setPersistence(auth, browserLocalPersistence)
+            .then(() => {
+                // সেশন চেক শুরু
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        // ইউজার লগইন থাকলে সরাসরি ড্যাশবোর্ডে চলে যাবে
+                        window.location.replace("dashboard.html");
+                    } else {
+                        // ইউজার লগইন না থাকলে লোডার সরিয়ে লগইন ফর্ম দেখাবে
+                        document.getElementById('auth-loader').style.display = 'none';
+                        document.getElementById('main-content').classList.remove('hidden');
+                    }
+                });
+            })
+            .catch((error) => {
+                console.error("Persistence Error: ", error);
             });
-        });
 
         window.togglePass = (id, icon) => {
             const el = document.getElementById(id);
@@ -134,25 +135,22 @@
             Swal.fire({ toast: true, position: 'top-end', icon: type, title: msg, showConfirmButton: false, timer: 3000, background: '#1e293b', color: '#fff' });
         };
 
-        // Login Logic
         document.getElementById('login-btn').onclick = async () => {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             if(!email || !password) return notify("Fill all fields", "error");
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                notify("Success!");
+                // Redirect onAuthStateChanged হ্যান্ডেল করবে
             } catch (e) { notify("Invalid credentials", "error"); }
         };
 
-        // Google Logic
         document.getElementById('google-login').onclick = async () => {
             try {
                 await signInWithPopup(auth, provider);
             } catch (e) { notify("Google sign-in failed", "error"); }
         };
 
-        // Signup Logic
         document.getElementById('signup-btn').onclick = async () => {
             const name = document.getElementById('signup-name').value;
             const email = document.getElementById('signup-email').value;
@@ -160,7 +158,6 @@
             try {
                 const res = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(res.user, { displayName: name });
-                notify("Welcome!");
             } catch (e) { notify(e.message, "error"); }
         };
     </script>
