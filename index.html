@@ -170,7 +170,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
@@ -201,6 +201,13 @@
         const handleRedirection = (userEmail) => {
             window.location.href = userEmail.toLowerCase() === adminEmail.toLowerCase() ? "admin.html" : "dashboard.html";
         };
+
+        // Auth State Observer - অটো লগইন সেশন হ্যান্ডেল করার জন্য
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                handleRedirection(user.email);
+            }
+        });
 
         window.togglePass = (id, icon) => {
             const el = document.getElementById(id);
@@ -236,6 +243,7 @@
             const password = document.getElementById('signup-password').value;
             if(!email || !password || !fName) return notify("All fields required!", "error");
             try {
+                await setPersistence(auth, browserLocalPersistence); // Persistence set
                 const res = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(res.user, { displayName: `${fName} ${lName}` });
                 notify(`Account created! Welcome ${fName}`);
@@ -249,6 +257,7 @@
             const password = document.getElementById('login-password').value;
             if(!email || !password) return notify("Please fill all fields!", "error");
             try {
+                await setPersistence(auth, browserLocalPersistence); // Persistence set
                 await signInWithEmailAndPassword(auth, email, password);
                 notify("Login Successful!");
                 setTimeout(() => handleRedirection(email), 1500); 
@@ -258,6 +267,7 @@
         // Firebase - Google Login
         document.getElementById('google-login').onclick = async () => {
             try {
+                await setPersistence(auth, browserLocalPersistence); // Persistence set
                 const res = await signInWithPopup(auth, provider);
                 notify("Welcome " + res.user.displayName);
                 setTimeout(() => handleRedirection(res.user.email), 1500); 
