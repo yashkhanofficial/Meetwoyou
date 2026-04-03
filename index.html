@@ -61,18 +61,21 @@
             color: #94a3b8;
             cursor: pointer;
         }
+        /* Install Banner Animation */
+        #pwa-install-banner {
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translate(-50%, 100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
     </style>
 
     <link rel="icon" type="image/png" sizes="32x32" href="https://meetwoyou.github.io/favicon-32x32.png">
-    <link rel="icon" type="image/svg+xml" href="https://meetwoyou.github.io/favicon.svg">
-    <link rel="shortcut icon" href="https://meetwoyou.github.io/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="https://meetwoyou.github.io/apple-touch-icon.png">
-
     <link rel="manifest" href="./site.webmanifest">
     <meta name="theme-color" content="#1d4ed8">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Meetwoyou">
 </head>
 <body class="min-h-screen flex items-center justify-center p-6">
     <div class="bg-animate"></div>
@@ -182,7 +185,10 @@
         };
 
         window.showSection = (id) => {
-            ['login-section', 'signup-section', 'forgot-section'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            ['login-section', 'signup-section', 'forgot-section'].forEach(s => {
+                const el = document.getElementById(s);
+                if(el) el.classList.add('hidden');
+            });
             document.getElementById(id).classList.remove('hidden');
         };
 
@@ -232,28 +238,32 @@
         e.preventDefault();
         deferredPrompt = e;
         
-        // Show install button after 3 seconds
+        // ৩ সেকেন্ড পরে অটোমেটিক বাটনটি দেখাবে
         setTimeout(() => {
-            const btn = document.createElement('div');
-            btn.id = 'pwa-install-banner';
-            btn.innerHTML = `
-                <div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-                            background:linear-gradient(45deg, #7c3aed, #4f46e5);color:white;
-                            padding:15px 25px;border-radius:50px;cursor:pointer;z-index:10000;
-                            box-shadow:0 10px 30px rgba(0,0,0,0.5);font-weight:800;border:1px solid rgba(255,255,255,0.2);">
-                    ✨ Install Meetwoyou App
-                </div>`;
-            document.body.appendChild(btn);
+            if (!document.getElementById('pwa-install-banner')) {
+                const btn = document.createElement('div');
+                btn.id = 'pwa-install-banner';
+                btn.innerHTML = `
+                    <div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+                                background:linear-gradient(45deg, #7c3aed, #4f46e5);color:white;
+                                padding:16px 28px;border-radius:50px;cursor:pointer;z-index:10000;
+                                box-shadow:0 10px 40px rgba(124, 58, 237, 0.6);font-weight:bold;
+                                border:1px solid rgba(255,255,255,0.3);text-align:center;
+                                font-size:15px;white-space:nowrap;">
+                        🚀 Install Meetwoyou App
+                    </div>`;
+                document.body.appendChild(btn);
 
-            btn.addEventListener('click', async () => {
-                btn.remove();
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`User response: ${outcome}`);
-                    deferredPrompt = null;
-                }
-            });
+                btn.addEventListener('click', async () => {
+                    btn.remove();
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        console.log(`User Choice: ${outcome}`);
+                        deferredPrompt = null;
+                    }
+                });
+            }
         }, 3000);
     });
     </script>
