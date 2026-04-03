@@ -63,13 +63,15 @@
         }
     </style>
 
-    <link rel="icon" type="image/png" sizes="32x32" href="https://meetwoyou.github.io/favicon-32x32.png?v=20260402">
-    <link rel="icon" type="image/svg+xml" href="https://meetwoyou.github.io/favicon.svg?v=20260402">
-    <link rel="shortcut icon" href="https://meetwoyou.github.io/favicon.ico?v=20260402">
-    <link rel="apple-touch-icon" sizes="180x180" href="https://meetwoyou.github.io/apple-touch-icon.png?v=20260402">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://meetwoyou.github.io/favicon-32x32.png">
+    <link rel="icon" type="image/svg+xml" href="https://meetwoyou.github.io/favicon.svg">
+    <link rel="shortcut icon" href="https://meetwoyou.github.io/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://meetwoyou.github.io/apple-touch-icon.png">
 
-    <link rel="manifest" href="https://meetwoyou.github.io/site.webmanifest?v=20260402">
+    <link rel="manifest" href="./site.webmanifest">
     <meta name="theme-color" content="#1d4ed8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Meetwoyou">
 </head>
 <body class="min-h-screen flex items-center justify-center p-6">
@@ -85,24 +87,19 @@
 
         <div id="login-section" class="space-y-5">
             <input type="email" id="login-email" placeholder="Email Address" class="input-field w-full px-5 py-4 rounded-2xl">
-            
             <div class="pass-container">
                 <input type="password" id="login-password" placeholder="Password" class="input-field w-full px-5 py-4 rounded-2xl">
                 <i class="fas fa-eye toggle-password" onclick="togglePass('login-password', this)"></i>
             </div>
-            
             <div class="flex justify-end">
                 <button onclick="showSection('forgot-section')" class="text-xs text-purple-400 hover:text-purple-300 transition font-medium">Forgot Password?</button>
             </div>
-
             <button id="login-btn" class="btn-primary w-full text-white font-bold py-4 rounded-2xl">Sign In</button>
-            
             <div class="flex items-center my-6 opacity-30">
                 <hr class="w-full border-gray-500">
                 <span class="px-3 text-[10px] text-white font-black uppercase tracking-widest">OR</span>
                 <hr class="w-full border-gray-500">
             </div>
-
            <button id="google-login" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-4 rounded-2xl flex items-center justify-center transition-all">
                 <svg class="w-5 h-5 mr-3" viewBox="0 0 48 48">
                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
@@ -112,7 +109,6 @@
                 </svg>
                 Continue with Google
            </button>
-
             <p class="text-center text-gray-400 text-sm mt-8">
                 Don't have an account? 
                 <button onclick="showSection('signup-section')" class="text-purple-400 font-bold hover:underline ml-1">Create Account</button>
@@ -129,7 +125,6 @@
                 <input type="password" id="signup-password" placeholder="Create Password" class="input-field w-full px-5 py-4 rounded-2xl">
                 <i class="fas fa-eye toggle-password" onclick="togglePass('signup-password', this)"></i>
             </div>
-            
             <button id="signup-btn" class="btn-primary w-full text-white font-bold py-4 rounded-2xl mt-4">Join Now</button>
             <button onclick="showSection('login-section')" class="w-full text-gray-400 text-sm hover:text-white transition mt-4 font-medium text-center">Back to Login</button>
         </div>
@@ -161,12 +156,10 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
-
-        // --- ADMIN EMAIL CONFIG ---
         const adminEmail = "admin@meetwoyou.com";
 
         const notify = (msg, type = 'success') => {
-            const Toast = Swal.mixin({
+            Swal.mixin({
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,
@@ -174,67 +167,48 @@
                 timerProgressBar: true,
                 background: '#1e293b',
                 color: '#fff'
-            });
-            Toast.fire({ icon: type, title: msg });
+            }).fire({ icon: type, title: msg });
         };
 
-        // Function to handle redirection
         const handleRedirection = (userEmail) => {
-            if (userEmail.toLowerCase() === adminEmail.toLowerCase()) {
-                window.location.href = "admin.html";
-            } else {
-                window.location.href = "dashboard.html";
-            }
+            window.location.href = userEmail.toLowerCase() === adminEmail.toLowerCase() ? "admin.html" : "dashboard.html";
         };
 
         window.togglePass = (id, icon) => {
             const el = document.getElementById(id);
-            if (el.type === "password") {
-                el.type = "text";
-                icon.classList.replace("fa-eye", "fa-eye-slash");
-            } else {
-                el.type = "password";
-                icon.classList.replace("fa-eye-slash", "fa-eye");
-            }
+            el.type = el.type === "password" ? "text" : "password";
+            icon.classList.toggle("fa-eye");
+            icon.classList.toggle("fa-eye-slash");
         };
 
         window.showSection = (id) => {
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('signup-section').classList.add('hidden');
-            document.getElementById('forgot-section').classList.add('hidden');
+            ['login-section', 'signup-section', 'forgot-section'].forEach(s => document.getElementById(s).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
         };
 
-        // SIGNUP
         document.getElementById('signup-btn').onclick = async () => {
             const fName = document.getElementById('signup-first-name').value;
-            const lName = document.getElementById('signup-last-name').value;
             const email = document.getElementById('signup-email').value;
             const password = document.getElementById('signup-password').value;
-
-            if(!fName || !lName || !email || !password) return notify("All fields required!", "error");
-            
+            if(!email || !password) return notify("Fields required!", "error");
             try {
                 const res = await createUserWithEmailAndPassword(auth, email, password);
-                await updateProfile(res.user, { displayName: `${fName} ${lName}` });
-                notify(`Welcome, ${fName}! Redirecting...`);
+                await updateProfile(res.user, { displayName: fName });
+                notify(`Welcome, ${fName}!`);
                 setTimeout(() => handleRedirection(email), 1500); 
             } catch (error) { notify(error.message, "error"); }
         };
 
-        // LOGIN
         document.getElementById('login-btn').onclick = async () => {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-            if(!email || !password) return notify("Fill all fields!", "warning");
             try {
-                const res = await signInWithEmailAndPassword(auth, email, password);
-                notify("Login Successful! Redirecting...");
+                await signInWithEmailAndPassword(auth, email, password);
+                notify("Login Successful!");
                 setTimeout(() => handleRedirection(email), 1500); 
             } catch (error) { notify("Invalid Credentials!", "error"); }
         };
 
-        // GOOGLE LOGIN
         document.getElementById('google-login').onclick = async () => {
             try {
                 const res = await signInWithPopup(auth, provider);
@@ -242,50 +216,45 @@
                 setTimeout(() => handleRedirection(res.user.email), 1500); 
             } catch (error) { notify(error.message, "error"); }
         };
-
-        // RESET PASSWORD
-        document.getElementById('reset-btn').onclick = async () => {
-            const email = document.getElementById('forgot-email').value;
-            if(!email) return notify("Enter email!", "warning");
-            try {
-                await sendPasswordResetEmail(auth, email);
-                notify("Check your email inbox!");
-                showSection('login-section');
-            } catch (error) { notify(error.message, "error"); }
-        };
     </script>
 
     <script>
-    // Register Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .then(() => console.log('Service Worker Registered'));
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW Registered'))
+          .catch(err => console.log('SW Error:', err));
+      });
     }
 
-    // Install Prompt
     let deferredPrompt;
-
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
+        
+        // Show install button after 3 seconds
+        setTimeout(() => {
+            const btn = document.createElement('div');
+            btn.id = 'pwa-install-banner';
+            btn.innerHTML = `
+                <div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+                            background:linear-gradient(45deg, #7c3aed, #4f46e5);color:white;
+                            padding:15px 25px;border-radius:50px;cursor:pointer;z-index:10000;
+                            box-shadow:0 10px 30px rgba(0,0,0,0.5);font-weight:800;border:1px solid rgba(255,255,255,0.2);">
+                    ✨ Install Meetwoyou App
+                </div>`;
+            document.body.appendChild(btn);
 
-        const installBanner = document.createElement('div');
-        installBanner.innerHTML = `
-            <div style="position:fixed;top:15px;left:50%;transform:translateX(-50%);
-                        background:#1d4ed8;color:white;padding:12px 20px;
-                        border-radius:10px;cursor:pointer;z-index:9999;
-                        font-weight:bold;">
-                Install Meetwoyou App
-            </div>`;
-        document.body.appendChild(installBanner);
-
-        installBanner.addEventListener('click', async () => {
-            installBanner.remove();
-            if(deferredPrompt){
-                deferredPrompt.prompt();
-                deferredPrompt = null;
-            }
-        });
+            btn.addEventListener('click', async () => {
+                btn.remove();
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User response: ${outcome}`);
+                    deferredPrompt = null;
+                }
+            });
+        }, 3000);
     });
     </script>
 </body>
