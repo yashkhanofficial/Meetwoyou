@@ -49,3 +49,11 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+// ADDED: Service Worker
+self.addEventListener('install', event => {
+  console.log('Service Worker Installed');
+});
+
+self.addEventListener('fetch', event => {
+  // basic fetch handling
+});
