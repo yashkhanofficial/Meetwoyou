@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; }
+        .header { padding: 15px; border-bottom: 1px solid #262626; display: flex; align-items: center; gap: 15px; }
+        .chat-list { padding: 10px; }
+        .user-item { display: flex; align-items: center; gap: 15px; padding: 10px; cursor: pointer; }
+        #chat-screen { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; }
+        .chat-bubble { padding: 10px; border-radius: 18px; margin: 5px; max-width: 75%; }
+        .sent { background: #0095f6; align-self: flex-end; }
+        .recv { background: #262626; align-self: flex-start; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <i class="fas fa-arrow-left" onclick="window.location.href='dashboard.html'"></i>
+    <b>Messages</b>
+</div>
+<div class="chat-list" id="chat-list"></div>
+
+<div id="chat-screen">
+    <div class="header"><i class="fas fa-arrow-left" onclick="document.getElementById('chat-screen').style.display='none'"></i><b id="chat-h-name"></b></div>
+    <div id="chat-box" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column;"></div>
+    <div style="padding:10px; display:flex; gap:10px;"><input type="text" id="chat-input" style="flex:1; padding:10px; border-radius:20px; border:none;"><button onclick="sendMsg()">Send</button></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const app = initializeApp({ apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY", projectId: "meetwoyou-436a2", storageBucket: "meetwoyou-436a2.firebasestorage.app", appId: "1:612788132077:web:0a8b92edf26778efd4d4e4" });
+    const auth = getAuth(app), db = getFirestore(app);
+    let me = null, activeChatID = null;
+
+    onAuthStateChanged(auth, (user) => { if(user) { me = user; loadInbox(); } });
+
+    function loadInbox() {
+        onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "desc")), (snap) => {
+            const list = document.getElementById('chat-list'); list.innerHTML = "";
+            snap.forEach(d => {
+                const m = d.data();
+                if(m.sender === me.uid || m.receiver === me.uid) {
+                    list.innerHTML += `<div class="user-item" onclick="openChat('${m.sender === me.uid ? m.receiver : m.sender}')">Chat with ${m.sender === me.uid ? 'Receiver' : 'Sender'}</div>`;
+                }
+            });
+        });
+    }
+
+    window.openChat = (uid) => {
+        activeChatID = uid;
+        document.getElementById('chat-screen').style.display = 'flex';
+        onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "asc")), (snap) => {
+            const box = document.getElementById('chat-box'); box.innerHTML = "";
+            snap.forEach(d => {
+                const m = d.data();
+                if((m.sender === me.uid && m.receiver === uid) || (m.sender === uid && m.receiver === me.uid)) {
+                    box.innerHTML += `<div class="chat-bubble ${m.sender === me.uid ? 'sent' : 'recv'}">${m.text}</div>`;
+                }
+            });
+        });
+    };
+
+    window.sendMsg = async () => {
+        const i = document.getElementById('chat-input');
+        await addDoc(collection(db, "messages"), { sender: me.uid, receiver: activeChatID, text: i.value, timestamp: serverTimestamp() });
+        i.value = "";
+    };
+</script>
+</body>
+</html>
