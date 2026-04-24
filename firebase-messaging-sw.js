@@ -14,19 +14,17 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Background message received ', payload);
-
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/logo.png'
+    icon: 'https://via.placeholder.com/128', // Replace with your actual logo
+    data: payload.data
   };
-
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-
   const data = event.notification.data;
   let url = "/dashboard.html";
 
@@ -40,7 +38,6 @@ self.addEventListener('notificationclick', function(event) {
     clients.matchAll({ type: "window", includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
         if (client.url.includes("dashboard.html") && 'focus' in client) {
-          client.postMessage(data);
           return client.focus();
         }
       }
