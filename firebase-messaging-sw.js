@@ -12,23 +12,36 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Handle Background Messages
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: payload.notification.image || '/logo.png',
-    vibrate: [200, 100, 200],
+    icon: payload.data.icon || '/logo.png', // Replace with your app logo
     data: payload.data
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
+// Handle Notification Clicks
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const urlToOpen = self.location.origin + "/dashboard.html";
+  
+  const targetUrl = '/dashboard.html'; // Adjust if your file structure is different
+
   event.waitUntil(
-    clients.openWindow(urlToOpen)
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (let client of windowClients) {
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
   );
 });
