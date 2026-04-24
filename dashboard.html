@@ -97,19 +97,7 @@
         .settings-item.danger i { color: var(--danger); }
         .settings-item.verified i { color: var(--verified); }
 
-        /* Chat Media CSS */
         .chat-media { max-width: 100%; border-radius: 12px; margin-top: 5px; cursor: pointer; }
-
-        /* NOTIFICATION UI */
-        #notification-sec { display: none; max-width: 500px; margin: auto; animation: slideUp 0.3s ease; }
-        #notification-sec.active { display: block; }
-        .notif-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-bottom: 1px solid #121212; cursor: pointer; position: relative; transition: background 0.2s; }
-        .notif-item.unread { background: rgba(0, 149, 246, 0.05); }
-        .notif-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
-        .notif-content { flex: 1; font-size: 14px; }
-        .notif-time { font-size: 11px; color: var(--gray); display: block; margin-top: 2px; }
-        .notif-media { width: 44px; height: 44px; border-radius: 4px; object-fit: cover; }
-        #notif-nav-badge { position: absolute; top: -5px; right: -8px; background: var(--danger); font-size: 9px; padding: 2px 5px; border-radius: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -122,10 +110,7 @@
 <div class="header">
     <i class="fas fa-power-off" onclick="userLogout()" style="font-size:20px; color:var(--danger); cursor:pointer;"></i>
     <h2 style="margin:0; font-family: 'Grand Hotel', cursive;">Meetwoyou</h2>
-    <div style="position: relative;" onclick="showSec('notification')">
-        <i class="far fa-bell" style="font-size:22px;"></i>
-        <span id="notif-nav-badge">0</span>
-    </div>
+    <div style="position: relative;"><i class="far fa-bell" style="font-size:22px;"></i></div>
 </div>
 
 <div id="home-sec" class="section active">
@@ -164,7 +149,6 @@
             <button id="share-post-btn" class="share-btn-modern" onclick="uploadPost()">Post</button>
         </div>
     </div>
-
     <div id="feed-area"></div>
 </div>
 
@@ -176,14 +160,6 @@
 <div id="msg-sec" class="section">
     <h3 style="padding:10px 15px;">Messages</h3>
     <div id="chat-list"></div>
-</div>
-
-<div id="notification-sec" class="section">
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:15px;">
-        <h3 style="margin:0;">Notifications</h3>
-        <small style="color:var(--primary); cursor:pointer;" onclick="markAllNotificationsRead()">Mark all as read</small>
-    </div>
-    <div id="notif-list"></div>
 </div>
 
 <div id="profile-sec" class="section">
@@ -348,16 +324,21 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, updateProfile, signOut, updatePassword, updateEmail, deleteUser, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, where, addDoc, serverTimestamp, arrayUnion, arrayRemove, deleteDoc, limit, Timestamp, writeBatch, getDocs, or, and } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // FCM Imports
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBn3x2qSo8k6a9wrxNfLmVliWMmsUk8wfY",
       authDomain: "meetwoyou-436a2.firebaseapp.com",
+      databaseURL: "https://meetwoyou-436a2-default-rtdb.firebaseio.com",
       projectId: "meetwoyou-436a2",
       storageBucket: "meetwoyou-436a2.firebasestorage.app",
       messagingSenderId: "612788132077",
-      appId: "1:612788132077:web:0a8b92edf26778efd4d4e4"
+      appId: "1:612788132077:web:0a8b92edf26778efd4d4e4",
+      measurementId: "G-LF9FLW7Y7E"
     };
+
+    const vapidKey = "BACoJ-l3z872JhrtTUZHEVPw5RA7OPieKjcDfKAgXM900xd6A69DMXZnO92Gj7HId6iByi7Pfd5tLD9eTjfwHKA";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -370,16 +351,52 @@
     let activeStories = [];
     let storyTimer = null;
     const vB = ` <i class="fas fa-check-circle v-badge"></i>`;
-    const VAPID_KEY = "BACoJ-l3z872JhrtTUZHEVPw5RA7OPieKjcDfKAgXM900xd6A69DMXZnO92Gj7HId6iByi7Pfd5tLD9eTjfwHKA";
+
+    // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then(registration => console.log("SW Registered"))
+        .catch(error => console.error("SW Registration failed:", error));
+    }
+
+    // FCM Initialization
+    async function initFCM(user) {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") return;
+        const token = await getToken(messaging, { vapidKey });
+        if (token) {
+          await setDoc(doc(db, "users", user.uid), { fcmToken: token }, { merge: true });
+        }
+      } catch (e) { console.error("FCM error:", e); }
+    }
+
+    // Trigger Notification
+    window.triggerNotification = async function(type, data) {
+      try {
+        const notification = {
+          toUserId: data.toUserId,
+          fromUserId: me.uid,
+          type: type,
+          message: data.message,
+          postId: data.postId || null,
+          chatId: data.chatId || null,
+          read: false,
+          createdAt: Date.now()
+        };
+        await addDoc(collection(db, "notifications"), notification);
+      } catch (e) { console.error("Notification error:", e); }
+    };
+
+    onMessage(messaging, (payload) => {
+        const { title, body } = payload.notification;
+        Swal.fire({ title: title, text: body, icon: 'info', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
+    });
 
     const videoObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             const video = entry.target;
-            if (entry.isIntersecting) {
-                video.play().catch(e => { });
-            } else {
-                video.pause();
-            }
+            if (entry.isIntersecting) { video.play().catch(e => { }); } else { video.pause(); }
         });
     }, { threshold: 0.6 });
 
@@ -393,6 +410,7 @@
     onAuthStateChanged(auth, async (user) => {
         if (user) { 
             me = user;
+            initFCM(user);
             const userRef = doc(db, "users", user.uid);
             const snap = await getDoc(userRef);
             if (!snap.exists()) {
@@ -412,17 +430,9 @@
             document.getElementById('composer-user-img').src = user.photoURL || "https://via.placeholder.com/40";
             document.getElementById('composer-user-name').innerText = user.displayName;
             init(); 
-            
-            // Notification System Init
-            initNotifications();
-            
             setTimeout(() => document.getElementById('app-loader').style.display = 'none', 1200);
         } else { window.location.href = "index.html"; }
     });
-
-    // --- LOADER FALLBACK ---
-    window.onerror = () => { document.getElementById('app-loader').style.display = 'none'; };
-    setTimeout(() => { if(document.getElementById('app-loader').style.display !== 'none') document.getElementById('app-loader').style.display = 'none'; }, 8000);
 
     function init() { 
         loadMyProfile(); 
@@ -433,107 +443,21 @@
         setupSearch();
     }
 
-    // --- NOTIFICATION SYSTEM LOGIC ---
-    async function initNotifications() {
-        try {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted') {
-                const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-                if (token) {
-                    await updateDoc(doc(db, "users", me.uid), { fcmToken: token });
-                }
-            }
-        } catch (err) { console.error("FCM Token failed", err); }
-
-        onMessage(messaging, (payload) => {
-            const { title, body } = payload.notification;
-            Swal.fire({
-                toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
-                title: title, text: body, icon: 'info', background: '#121212', color: '#fff'
-            });
-        });
-
-        const qNotif = query(collection(db, "notifications"), where("targetUid", "==", me.uid), orderBy("timestamp", "desc"), limit(30));
-        onSnapshot(qNotif, (snap) => {
-            const list = document.getElementById('notif-list');
-            const badge = document.getElementById('notif-nav-badge');
-            let unreadCount = 0;
-            list.innerHTML = snap.empty ? '<p style="text-align:center; color:gray; padding:20px;">No notifications yet.</p>' : "";
-            
-            snap.forEach(d => {
-                const n = d.data();
-                if (!n.read) unreadCount++;
-                const item = document.createElement('div');
-                item.className = `notif-item ${n.read ? '' : 'unread'}`;
-                item.onclick = () => handleNotifClick(d.id, n);
-                item.innerHTML = `
-                    <img src="${n.senderImg}" class="notif-avatar">
-                    <div class="notif-content">
-                        <b>${n.senderName}</b> ${n.message}
-                        <span class="notif-time">${timeAgo(n.timestamp)}</span>
-                    </div>
-                    ${n.postImg ? `<img src="${n.postImg}" class="notif-media">` : ''}
-                `;
-                list.appendChild(item);
-            });
-            badge.innerText = unreadCount;
-            badge.style.display = unreadCount > 0 ? 'block' : 'none';
-        });
-    }
-
-    async function triggerNotification(type, targetUid, data = {}) {
-        if (targetUid === me.uid) return;
-        try {
-            let message = "";
-            switch (type) {
-                case 'like': message = "liked your post"; break;
-                case 'comment': message = `commented: "${data.text}"`; break;
-                case 'follow': message = "started following you"; break;
-                case 'message': message = "sent you a message"; break;
-                case 'share': message = "shared your post"; break;
-            }
-            await addDoc(collection(db, "notifications"), {
-                targetUid, senderUid: me.uid, senderName: me.displayName,
-                senderImg: me.photoURL, type, message, read: false,
-                timestamp: serverTimestamp(), ...data
-            });
-        } catch (e) { console.error("Notif trigger failed", e); }
-    }
-
-    async function handleNotifClick(notifId, n) {
-        await updateDoc(doc(db, "notifications", notifId), { read: true });
-        if (n.postId) viewSinglePost(n.postId);
-        else if (n.type === 'follow' || n.type === 'message') viewUser(n.senderUid);
-        showSec('home'); // or keep in current section
-    }
-
-    window.markAllNotificationsRead = async () => {
-        const q = query(collection(db, "notifications"), where("targetUid", "==", me.uid), where("read", "==", false));
-        const snap = await getDocs(q);
-        const batch = writeBatch(db);
-        snap.forEach(d => batch.update(d.ref, { read: true }));
-        await batch.commit();
-    };
-
     function setupSearch() {
         const searchInput = document.getElementById('user-search');
         searchInput.addEventListener('input', async (e) => {
             const term = e.target.value.toLowerCase().trim();
             const list = document.getElementById('user-list');
-            
             const mySnap = await getDoc(doc(db, "users", me.uid));
             const myFollowing = mySnap.data()?.following || [];
-            
             const snap = await getDocs(collection(db, "users"));
             let html = "";
             let found = false;
-
             snap.forEach(d => {
                 if(d.id === me.uid) return;
                 const u = d.data();
                 const nameMatch = u.displayName?.toLowerCase().includes(term);
                 const uidMatch = d.id.toLowerCase().includes(term);
-
                 if (term === "" || nameMatch || uidMatch) {
                     found = true;
                     const isFollowing = myFollowing.includes(d.id);
@@ -546,12 +470,7 @@
                     </div>`;
                 }
             });
-
-            if(!found) {
-                list.innerHTML = `<p style="text-align:center; color:gray; padding:20px;">No users found</p>`;
-            } else {
-                list.innerHTML = html;
-            }
+            if(!found) { list.innerHTML = `<p style="text-align:center; color:gray; padding:20px;">No users found</p>`; } else { list.innerHTML = html; }
         });
     }
 
@@ -573,14 +492,10 @@
                 const id = change.doc.id;
                 const existingPost = document.querySelector(`.post-card[data-id="${id}"]`);
                 if (change.type === "added" && !existingPost) {
-                    const postDiv = await createPostElement(p, id);
-                    area.appendChild(postDiv);
+                    const postDiv = await createPostElement(p, id); area.appendChild(postDiv);
                 } else if (change.type === "modified" && existingPost) {
-                    const newPostDiv = await createPostElement(p, id);
-                    existingPost.replaceWith(newPostDiv);
-                } else if (change.type === "removed" && existingPost) {
-                    existingPost.remove();
-                }
+                    const newPostDiv = await createPostElement(p, id); existingPost.replaceWith(newPostDiv);
+                } else if (change.type === "removed" && existingPost) { existingPost.remove(); }
             });
         });
     }
@@ -592,16 +507,10 @@
         const div = document.createElement('div');
         div.className = "post-card";
         div.setAttribute('data-id', id);
-        
         let mediaHtml = "";
-        if(p.video) {
-            mediaHtml = `<video src="${p.video}" class="post-img main-img feed-video" muted loop playsinline></video>`;
-        } else if(p.img) {
-            mediaHtml = `<img src="${p.img}" class="post-img main-img">`;
-        } else {
-            mediaHtml = `<div style="padding:20px; width:100%; border-top:1px solid #121212; font-size: 16px;">${p.text}</div>`;
-        }
-
+        if(p.video) { mediaHtml = `<video src="${p.video}" class="post-img main-img feed-video" muted loop playsinline></video>`; } 
+        else if(p.img) { mediaHtml = `<img src="${p.img}" class="post-img main-img">`; } 
+        else { mediaHtml = `<div style="padding:20px; width:100%; border-top:1px solid #121212; font-size: 16px;">${p.text}</div>`; }
         div.innerHTML = `
             <div class="post-user" onclick="viewUser('${p.uid}')">
                 <img src="${p.authorImg || 'https://via.placeholder.com/35'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
@@ -623,7 +532,6 @@
                 ${(p.img || p.video) ? `<b>${p.authorName}</b> ${p.text}` : ''}
             </div>
         `;
-
         if(p.video) {
             const videoEl = div.querySelector('.feed-video');
             videoObserver.observe(videoEl);
@@ -632,18 +540,17 @@
                 Swal.fire({ toast: true, position: 'top', showConfirmButton: false, timer: 1000, title: videoEl.muted ? 'Muted' : 'Unmuted', icon: 'info' });
             };
         }
-
         const imgContainer = div.querySelector('.post-img-container');
         const heart = div.querySelector('.like-animation');
         const likeBtn = div.querySelector('.like-btn');
         imgContainer.addEventListener('dblclick', () => {
             heart.classList.add('active');
             setTimeout(() => heart.classList.remove('active'), 800);
-            if(!isLiked) toggleLike(id, false, p);
+            if(!isLiked) toggleLike(id, false);
         });
-        likeBtn.onclick = () => toggleLike(id, isLiked, p);
-        div.querySelector('.comment-btn').onclick = () => showComments(id, p);
-        div.querySelector('.share-btn').onclick = () => sharePost(id, p);
+        likeBtn.onclick = () => toggleLike(id, isLiked);
+        div.querySelector('.comment-btn').onclick = () => showComments(id);
+        div.querySelector('.share-btn').onclick = () => sharePost(id);
         const menuBtn = div.querySelector('.post-menu-trigger');
         if(menuBtn) menuBtn.onclick = (e) => { e.stopPropagation(); postMenu(id, p.text); };
         return div;
@@ -653,162 +560,101 @@
         if(!input.files[0]) return;
         const file = input.files[0];
         Swal.fire({title: 'Uploading Story...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
-        
         try {
             const url = await uploadToCloudinary(file);
             await addDoc(collection(db, "stories"), {
-                uid: me.uid,
-                mediaUrl: url,
+                uid: me.uid, mediaUrl: url,
                 type: file.type.startsWith('video') ? 'video' : 'image',
-                timestamp: serverTimestamp(),
-                views: [],
-                likes: [],
-                authorName: me.displayName,
-                authorImg: me.photoURL
+                timestamp: serverTimestamp(), views: [], likes: [], authorName: me.displayName, authorImg: me.photoURL
             });
             Swal.fire({icon: 'success', title: 'Story Uploaded', timer: 1500, showConfirmButton: false, background: '#121212', color: '#fff'});
-        } catch (e) {
-            Swal.fire({icon: 'error', title: 'Upload Failed', background: '#121212', color: '#fff'});
-        }
+        } catch (e) { Swal.fire({icon: 'error', title: 'Upload Failed', background: '#121212', color: '#fff'}); }
     }
     window.uploadStory = uploadStory;
 
     function loadStories() {
         const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const q = query(collection(db, "stories"), where("timestamp", ">", yesterday), orderBy("timestamp", "asc"));
-        
         onSnapshot(q, (snap) => {
             const otherStoriesArea = document.getElementById('other-stories');
             otherStoriesArea.innerHTML = "";
             const groupedStories = {};
-            
             snap.forEach(doc => {
-                const s = doc.data();
-                const id = doc.id;
+                const s = doc.data(); const id = doc.id;
                 if (!groupedStories[s.uid]) groupedStories[s.uid] = [];
                 groupedStories[s.uid].push({ ...s, id });
             });
-
             document.getElementById('my-story-img').src = me.photoURL;
-
             for (let uid in groupedStories) {
                 const userStories = groupedStories[uid];
                 const lastStory = userStories[userStories.length - 1];
                 const hasUnwatched = userStories.some(s => !s.views.includes(me.uid));
-                
                 if (uid === me.uid) {
                     document.getElementById('my-story-img').classList.toggle('watched', !hasUnwatched);
-                    document.querySelector('.add-story').onclick = (e) => {
-                        if(e.target.closest('.add-story-btn')) return;
-                        openStoryViewer(userStories);
-                    };
+                    document.querySelector('.add-story').onclick = (e) => { if(e.target.closest('.add-story-btn')) return; openStoryViewer(userStories); };
                     continue;
                 }
-
                 const storyDiv = document.createElement('div');
                 storyDiv.className = "story-circle";
                 storyDiv.onclick = () => openStoryViewer(userStories);
-                storyDiv.innerHTML = `
-                    <img src="${lastStory.authorImg}" class="story-ring ${hasUnwatched ? '' : 'watched'}">
-                    <div class="story-name">${lastStory.authorName}</div>
-                `;
+                storyDiv.innerHTML = `<img src="${lastStory.authorImg}" class="story-ring ${hasUnwatched ? '' : 'watched'}"><div class="story-name">${lastStory.authorName}</div>`;
                 otherStoriesArea.appendChild(storyDiv);
             }
         });
     }
 
-    function openStoryViewer(stories) {
-        activeStories = stories;
-        currentStoryIndex = 0;
-        document.getElementById('story-viewer').style.display = 'flex';
-        showStory(0);
-    }
+    function openStoryViewer(stories) { activeStories = stories; currentStoryIndex = 0; document.getElementById('story-viewer').style.display = 'flex'; showStory(0); }
     window.openStoryViewer = openStoryViewer;
 
     async function showStory(index) {
         clearTimeout(storyTimer);
         if (index >= activeStories.length) { closeStory(); return; }
-        
         currentStoryIndex = index;
         const story = activeStories[index];
-        
         document.getElementById('s-user-img').src = story.authorImg;
         document.getElementById('s-user-name').innerText = story.authorName;
         document.getElementById('s-time').innerText = timeAgo(story.timestamp);
-        
         const mediaContainer = document.getElementById('s-media-container');
-        mediaContainer.innerHTML = story.type === 'video' 
-            ? `<video src="${story.mediaUrl}" class="story-media" autoplay playsinline></video>`
-            : `<img src="${story.mediaUrl}" class="story-media">`;
-            
+        mediaContainer.innerHTML = story.type === 'video' ? `<video src="${story.mediaUrl}" class="story-media" autoplay playsinline></video>` : `<img src="${story.mediaUrl}" class="story-media">`;
         const progContainer = document.getElementById('s-progress-container');
-        progContainer.innerHTML = activeStories.map((_, i) => 
-            `<div class="progress-bar ${i < index ? 'watched' : ''} ${i === index ? 'active' : ''}" style="transform: scaleX(${i < index ? 1 : 0})"></div>`
-        ).join('');
-
+        progContainer.innerHTML = activeStories.map((_, i) => `<div class="progress-bar ${i < index ? 'watched' : ''} ${i === index ? 'active' : ''}" style="transform: scaleX(${i < index ? 1 : 0})"></div>`).join('');
         const isLiked = story.likes.includes(me.uid);
         document.getElementById('s-like-icon').className = isLiked ? 'fas fa-heart' : 'far fa-heart';
         document.getElementById('s-like-icon').style.color = isLiked ? 'red' : 'white';
         document.getElementById('s-like-count').innerText = story.likes.length;
-
         const isOwner = story.uid === me.uid;
         document.getElementById('s-views-box').style.display = isOwner ? 'block' : 'none';
         document.getElementById('s-view-count').innerText = story.views.length;
         document.getElementById('s-delete-box').style.display = isOwner ? 'block' : 'none';
-
-        if (story.uid !== me.uid && !story.views.includes(me.uid)) {
-            await updateDoc(doc(db, "stories", story.id), { views: arrayUnion(me.uid) });
-        }
-
+        if (story.uid !== me.uid && !story.views.includes(me.uid)) { await updateDoc(doc(db, "stories", story.id), { views: arrayUnion(me.uid) }); }
         storyTimer = setTimeout(() => showStory(index + 1), 5000);
     }
 
-    window.closeStory = () => {
-        clearTimeout(storyTimer);
-        document.getElementById('story-viewer').style.display = 'none';
-        document.getElementById('s-media-container').innerHTML = "";
-    };
+    window.closeStory = () => { clearTimeout(storyTimer); document.getElementById('story-viewer').style.display = 'none'; document.getElementById('s-media-container').innerHTML = ""; };
 
     window.toggleStoryLike = async () => {
         const story = activeStories[currentStoryIndex];
         const isLiked = story.likes.includes(me.uid);
-        await updateDoc(doc(db, "stories", story.id), {
-            likes: isLiked ? arrayRemove(me.uid) : arrayUnion(me.uid)
-        });
-        if(isLiked) story.likes = story.likes.filter(id => id !== me.uid);
-        else story.likes.push(me.uid);
+        await updateDoc(doc(db, "stories", story.id), { likes: isLiked ? arrayRemove(me.uid) : arrayUnion(me.uid) });
+        if(isLiked) story.likes = story.likes.filter(id => id !== me.uid); else story.likes.push(me.uid);
         showStory(currentStoryIndex);
     };
 
     window.deleteCurrentStory = async () => {
         const story = activeStories[currentStoryIndex];
         const res = await Swal.fire({ title: 'Delete Story?', background: '#121212', color: '#fff', showCancelButton: true });
-        if(res.isConfirmed) {
-            await deleteDoc(doc(db, "stories", story.id));
-            activeStories.splice(currentStoryIndex, 1);
-            if(activeStories.length === 0) closeStory();
-            else showStory(currentStoryIndex);
-        }
+        if(res.isConfirmed) { await deleteDoc(doc(db, "stories", story.id)); activeStories.splice(currentStoryIndex, 1); if(activeStories.length === 0) closeStory(); else showStory(currentStoryIndex); }
     };
 
     const compressImage = (file) => {
         return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
+            const reader = new FileReader(); reader.readAsDataURL(file);
             reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
+                const img = new Image(); img.src = event.target.result;
                 img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const max = 1200;
-                    if (width > height && width > max) { height *= max / width; width = max; }
-                    else if (height > max) { width *= max / height; height = max; }
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
+                    const canvas = document.createElement('canvas'); let width = img.width; let height = img.height;
+                    const max = 1200; if (width > height && width > max) { height *= max / width; width = max; } else if (height > max) { width *= max / height; height = max; }
+                    canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
                     canvas.toBlob((blob) => resolve(new File([blob], file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.7);
                 };
             };
@@ -816,100 +662,39 @@
     };
 
     window.previewMedia = (i) => {
-        const file = i.files[0];
-        if(!file) return;
-        const box = document.getElementById('preview-box');
-        const render = document.getElementById('media-render');
-        box.style.display = 'block';
-        
-        const r = new FileReader(); 
-        r.onload = (e) => {
-            if(file.type.startsWith('video/')) {
-                render.innerHTML = `<video src="${e.target.result}" muted autoplay loop></video>`;
-            } else {
-                render.innerHTML = `<img src="${e.target.result}">`;
-            }
-        }; 
-        r.readAsDataURL(file);
+        const file = i.files[0]; if(!file) return;
+        const box = document.getElementById('preview-box'); const render = document.getElementById('media-render'); box.style.display = 'block';
+        const r = new FileReader(); r.onload = (e) => { if(file.type.startsWith('video/')) { render.innerHTML = `<video src="${e.target.result}" muted autoplay loop></video>`; } else { render.innerHTML = `<img src="${e.target.result}">`; } }; r.readAsDataURL(file);
     };
 
-    window.clearPreview = () => {
-        document.getElementById('post-file').value = "";
-        document.getElementById('preview-box').style.display = 'none';
-        document.getElementById('media-render').innerHTML = "";
-    };
+    window.clearPreview = () => { document.getElementById('post-file').value = ""; document.getElementById('preview-box').style.display = 'none'; document.getElementById('media-render').innerHTML = ""; };
 
     window.uploadPost = async () => {
-        const txt = document.getElementById('post-text').value;
-        const file = document.getElementById('post-file').files[0];
-        const shareBtn = document.getElementById('share-post-btn');
-        const progCont = document.getElementById('up-prog-cont');
-        const progBar = document.getElementById('up-prog-bar');
-        
+        const txt = document.getElementById('post-text').value; const file = document.getElementById('post-file').files[0];
+        const shareBtn = document.getElementById('share-post-btn'); const progCont = document.getElementById('up-prog-cont'); const progBar = document.getElementById('up-prog-bar');
         if(!txt && !file) return;
-
-        shareBtn.disabled = true;
-        shareBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
-
+        shareBtn.disabled = true; shareBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
         try {
-            let uploadFile = file;
-            if(file) {
-                if(file.type.startsWith('image/')) {
-                    uploadFile = await compressImage(file);
-                }
-                progCont.style.display = 'block';
-                progBar.style.width = '20%';
-            }
-
-            let mediaUrl = null;
-            let isVideo = false;
-            
-            if(uploadFile) {
-                mediaUrl = await uploadToCloudinary(uploadFile, (p) => {
-                    progBar.style.width = (20 + (p * 0.7)) + '%';
-                });
-                isVideo = uploadFile.type.startsWith('video/');
-            }
-            
+            let uploadFile = file; if(file) { if(file.type.startsWith('image/')) { uploadFile = await compressImage(file); } progCont.style.display = 'block'; progBar.style.width = '20%'; }
+            let mediaUrl = null; let isVideo = false;
+            if(uploadFile) { mediaUrl = await uploadToCloudinary(uploadFile, (p) => { progBar.style.width = (20 + (p * 0.7)) + '%'; }); isVideo = uploadFile.type.startsWith('video/'); }
             progBar.style.width = '100%';
-
             await addDoc(collection(db, "posts"), {
-                uid: me.uid, 
-                text: txt, 
-                img: isVideo ? null : mediaUrl, 
-                video: isVideo ? mediaUrl : null,
-                authorName: me.displayName, 
-                authorImg: me.photoURL,
-                timestamp: serverTimestamp(), 
-                likes: [], 
-                comments: []
+                uid: me.uid, text: txt, img: isVideo ? null : mediaUrl, video: isVideo ? mediaUrl : null,
+                authorName: me.displayName, authorImg: me.photoURL, timestamp: serverTimestamp(), likes: [], comments: []
             });
-            
-            document.getElementById('post-text').value = ""; 
-            clearPreview();
-            
+            document.getElementById('post-text').value = ""; clearPreview();
             Swal.fire({ icon: 'success', title: 'Posted Successfully', timer: 1500, showConfirmButton: false, background: '#121212', color: '#fff' });
-        } catch (e) {
-            Swal.fire({ icon: 'error', title: 'Post Failed', text: e.message, background: '#121212', color: '#fff' });
-        } finally {
-            shareBtn.disabled = false;
-            shareBtn.innerHTML = `Post`;
-            progCont.style.display = 'none';
-            progBar.style.width = '0%';
-        }
+        } catch (e) { Swal.fire({ icon: 'error', title: 'Post Failed', text: e.message, background: '#121212', color: '#fff' }); } finally { shareBtn.disabled = false; shareBtn.innerHTML = `Post`; progCont.style.display = 'none'; progBar.style.width = '0%'; }
     };
 
     window.toggleFollow = async (targetUid, isFollowing) => {
-        const myRef = doc(db, "users", me.uid);
-        const targetRef = doc(db, "users", targetUid);
+        const myRef = doc(db, "users", me.uid); const targetRef = doc(db, "users", targetUid);
         try {
-            if (isFollowing) {
-                await updateDoc(myRef, { following: arrayRemove(targetUid) });
-                await updateDoc(targetRef, { followers: arrayRemove(me.uid) });
-            } else {
-                await updateDoc(myRef, { following: arrayUnion(targetUid) });
-                await updateDoc(targetRef, { followers: arrayUnion(me.uid) });
-                triggerNotification('follow', targetUid);
+            if (isFollowing) { await updateDoc(myRef, { following: arrayRemove(targetUid) }); await updateDoc(targetRef, { followers: arrayRemove(me.uid) }); } 
+            else { 
+                await updateDoc(myRef, { following: arrayUnion(targetUid) }); await updateDoc(targetRef, { followers: arrayUnion(me.uid) }); 
+                triggerNotification('follow', { toUserId: targetUid, message: `${me.displayName} started following you.` });
             }
         } catch (e) { console.error(e); }
     };
@@ -918,10 +703,8 @@
         if(uid === me.uid) { showSec('profile'); return; }
         document.getElementById('user-profile-view').style.display = 'flex';
         onSnapshot(doc(db, "users", uid), async (snap) => {
-            const d = snap.data();
-            if(!d) return;
-            const mySnap = await getDoc(doc(db, "users", me.uid));
-            const isFollowing = mySnap.data()?.following?.includes(uid);
+            const d = snap.data(); if(!d) return;
+            const mySnap = await getDoc(doc(db, "users", me.uid)); const isFollowing = mySnap.data()?.following?.includes(uid);
             document.getElementById('view-user-name-title').innerText = d.displayName;
             document.getElementById('user-profile-content').innerHTML = `
                 <div style="text-align: center; padding: 20px 15px;">
@@ -943,18 +726,12 @@
                 </div>`;
         });
         onSnapshot(query(collection(db, "posts"), where("uid", "==", uid)), (pSnap) => {
-            const grid = document.getElementById('user-posts-grid');
-            grid.innerHTML = "";
+            const grid = document.getElementById('user-posts-grid'); grid.innerHTML = "";
             pSnap.forEach(postDoc => {
-                const pd = postDoc.data();
-                const item = document.createElement('div');
-                item.className = "grid-item";
+                const pd = postDoc.data(); const item = document.createElement('div'); item.className = "grid-item";
                 item.onclick = () => viewSinglePost(postDoc.id);
-                if(pd.video) {
-                    item.innerHTML = `<video src="${pd.video}#t=0.1" muted playsinline></video>`;
-                } else {
-                    item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
-                }
+                if(pd.video) { item.innerHTML = `<video src="${pd.video}#t=0.1" muted playsinline></video>`; } 
+                else { item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`; }
                 grid.appendChild(item);
             });
         });
@@ -969,12 +746,10 @@
             onSnapshot(collection(db, "users"), (snap) => {
                 const list = document.getElementById('user-list');
                 if(document.getElementById('user-search').value.trim() !== "") return;
-                
                 list.innerHTML = "";
                 snap.forEach(d => {
                     if(d.id !== me.uid) {
-                        const u = d.data();
-                        const isFollowing = myFollowing.includes(d.id);
+                        const u = d.data(); const isFollowing = myFollowing.includes(d.id);
                         list.innerHTML += `<div class="user-list-item">
                             <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="viewUser('${d.id}')">
                                 <img src="${u.photoURL}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
@@ -986,134 +761,79 @@
                 });
             });
         });
-
         const msgQuery = query(collection(db, "messages"), orderBy("timestamp", "desc"));
         onSnapshot(msgQuery, async (mSnap) => {
-            const chatList = document.getElementById('chat-list');
-            const navBadge = document.getElementById('msg-nav-badge');
-            let totalUnread = 0;
-            let interactedMap = new Map();
-
+            const chatList = document.getElementById('chat-list'); const navBadge = document.getElementById('msg-nav-badge');
+            let totalUnread = 0; let interactedMap = new Map();
             mSnap.forEach(mDoc => {
-                const m = mDoc.data();
-                if(m.sender !== me.uid && m.receiver !== me.uid) return;
+                const m = mDoc.data(); if(m.sender !== me.uid && m.receiver !== me.uid) return;
                 const otherUid = m.sender === me.uid ? m.receiver : m.sender;
-                if(!interactedMap.has(otherUid)) {
-                    interactedMap.set(otherUid, {
-                        lastMsg: m.mediaType ? `Sent a ${m.mediaType}` : (m.text || "Media"),
-                        time: m.timestamp,
-                        unread: (m.receiver === me.uid && !m.seen) ? 1 : 0
-                    });
-                } else if(m.receiver === me.uid && !m.seen) {
-                    interactedMap.get(otherUid).unread++;
-                }
+                if(!interactedMap.has(otherUid)) { interactedMap.set(otherUid, { lastMsg: m.mediaType ? `Sent a ${m.mediaType}` : (m.text || "Media"), time: m.timestamp, unread: (m.receiver === me.uid && !m.seen) ? 1 : 0 }); } 
+                else if(m.receiver === me.uid && !m.seen) { interactedMap.get(otherUid).unread++; }
             });
-
             chatList.innerHTML = interactedMap.size === 0 ? '<p style="text-align:center; color:gray; padding:20px;">No messages yet.</p>' : "";
             for(let [uid, data] of interactedMap) {
-                totalUnread += data.unread;
-                const uSnap = await getDoc(doc(db, "users", uid));
+                totalUnread += data.unread; const uSnap = await getDoc(doc(db, "users", uid));
                 if(uSnap.exists()){
-                    const u = uSnap.data();
-                    const badgeHtml = data.unread > 0 ? `<span class="unread-badge">${data.unread}</span>` : "";
+                    const u = uSnap.data(); const badgeHtml = data.unread > 0 ? `<span class="unread-badge">${data.unread}</span>` : "";
                     chatList.innerHTML += `
                         <div class="user-list-item" style="cursor:pointer;" onclick="openChat('${uid}', '${u.displayName}', '${u.photoURL}')">
                             <div style="display:flex; align-items:center; gap:12px; flex:1;">
                                 <img src="${u.photoURL}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
                                 <div style="flex:1;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                                        <b>${u.displayName}${u.isVerified?vB:''}</b>
-                                        <small style="color:var(--gray); font-size:10px;">${timeAgo(data.time)}</small>
-                                    </div>
-                                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                                        <small style="color:${data.unread>0?'#fff':'var(--gray)'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">
-                                            ${data.lastMsg}
-                                        </small>
-                                        ${badgeHtml}
-                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;"><b>${u.displayName}${u.isVerified?vB:''}</b><small style="color:var(--gray); font-size:10px;">${timeAgo(data.time)}</small></div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;"><small style="color:${data.unread>0?'#fff':'var(--gray)'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">${data.lastMsg}</small>${badgeHtml}</div>
                                 </div>
                             </div>
                         </div>`;
                 }
             }
-            navBadge.innerText = totalUnread;
-            navBadge.style.display = totalUnread > 0 ? 'block' : 'none';
+            navBadge.innerText = totalUnread; navBadge.style.display = totalUnread > 0 ? 'block' : 'none';
         });
     };
 
     window.openChat = async (uid, name, img) => {
         activeChatID = uid;
-        const headerName = document.getElementById('chat-h-name');
-        const headerImg = document.getElementById('chat-h-img');
-        const headerStatus = document.getElementById('chat-h-status');
-        const onlineIndicator = document.getElementById('chat-online-indicator');
-        headerName.innerHTML = name;
-        headerImg.src = img;
-        document.getElementById('chat-screen').style.display = 'flex';
-        if(chatUnsubscribe) chatUnsubscribe();
-        if(statusUnsubscribe) statusUnsubscribe();
+        const headerName = document.getElementById('chat-h-name'); const headerImg = document.getElementById('chat-h-img');
+        const headerStatus = document.getElementById('chat-h-status'); const onlineIndicator = document.getElementById('chat-online-indicator');
+        headerName.innerHTML = name; headerImg.src = img; document.getElementById('chat-screen').style.display = 'flex';
+        if(chatUnsubscribe) chatUnsubscribe(); if(statusUnsubscribe) statusUnsubscribe();
         statusUnsubscribe = onSnapshot(doc(db, "users", uid), (snap) => {
-            const data = snap.data();
-            if(data?.isVerified) headerName.innerHTML = name + vB;
-            const lastActive = data?.lastActive?.toDate();
-            const isOnline = lastActive && (new Date() - lastActive < 300000);
-            headerStatus.innerText = isOnline ? 'Active now' : `Last seen: ${timeAgo(data?.lastActive)}`;
-            onlineIndicator.style.display = isOnline ? 'block' : 'none';
+            const data = snap.data(); if(data?.isVerified) headerName.innerHTML = name + vB;
+            const lastActive = data?.lastActive?.toDate(); const isOnline = lastActive && (new Date() - lastActive < 300000);
+            headerStatus.innerText = isOnline ? 'Active now' : `Last seen: ${timeAgo(data?.lastActive)}`; onlineIndicator.style.display = isOnline ? 'block' : 'none';
         });
         const qChat = query(collection(db, "messages"), orderBy("timestamp", "asc"));
         chatUnsubscribe = onSnapshot(qChat, (snap) => {
-            const box = document.getElementById('chat-box');
-            box.innerHTML = "";
-            let batch = writeBatch(db);
-            let hasUnseen = false;
+            const box = document.getElementById('chat-box'); box.innerHTML = ""; let batch = writeBatch(db); let hasUnseen = false;
             snap.forEach(d => {
-                const m = d.data();
-                const betweenUs = (m.sender === me.uid && m.receiver === activeChatID) || (m.sender === activeChatID && m.receiver === me.uid);
+                const m = d.data(); const betweenUs = (m.sender === me.uid && m.receiver === activeChatID) || (m.sender === activeChatID && m.receiver === me.uid);
                 if(!betweenUs) return;
-                const isMe = m.sender === me.uid;
-                const statusIcon = m.seen ? '<i class="fas fa-check-double" style="color:#0095f6;"></i>' : '<i class="fas fa-check"></i>';
+                const isMe = m.sender === me.uid; const statusIcon = m.seen ? '<i class="fas fa-check-double" style="color:#0095f6;"></i>' : '<i class="fas fa-check"></i>';
                 let mediaContent = "";
-                if(m.mediaUrl) {
-                    if(m.mediaType === 'video') mediaContent = `<video src="${m.mediaUrl}" class="chat-media" controls></video>`;
-                    else mediaContent = `<img src="${m.mediaUrl}" class="chat-media" onclick="window.open('${m.mediaUrl}', '_blank')">`;
-                }
-                box.innerHTML += `
-                    <div class="chat-bubble ${isMe?'sent':'recv'}" onclick="manageMessage('${d.id}', '${m.text}', ${isMe})">
-                        ${m.text ? `<div>${m.text}</div>` : ''}
-                        ${mediaContent}
-                        <span class="chat-status">${timeAgo(m.timestamp)} ${isMe ? statusIcon : ''}</span>
-                    </div>`;
+                if(m.mediaUrl) { mediaContent = m.mediaType === 'video' ? `<video src="${m.mediaUrl}" class="chat-media" controls></video>` : `<img src="${m.mediaUrl}" class="chat-media" onclick="window.open('${m.mediaUrl}', '_blank')">`; }
+                box.innerHTML += `<div class="chat-bubble ${isMe?'sent':'recv'}" onclick="manageMessage('${d.id}', '${m.text}', ${isMe})">${m.text ? `<div>${m.text}</div>` : ''}${mediaContent}<span class="chat-status">${timeAgo(m.timestamp)} ${isMe ? statusIcon : ''}</span></div>`;
                 if(!isMe && !m.seen) { batch.update(doc(db, "messages", d.id), { seen: true }); hasUnseen = true; }
             });
-            if(hasUnseen) batch.commit();
-            box.scrollTop = box.scrollHeight;
+            if(hasUnseen) batch.commit(); box.scrollTop = box.scrollHeight;
         });
     };
 
     window.sendMsg = async () => {
-        const i = document.getElementById('chat-input');
-        const text = i.value.trim();
-        if(!text || !activeChatID) return;
+        const i = document.getElementById('chat-input'); const text = i.value.trim(); if(!text || !activeChatID) return;
         i.value = "";
-        await addDoc(collection(db, "messages"), { 
-            sender: me.uid, receiver: activeChatID, text: text, 
-            seen: false, timestamp: serverTimestamp() 
-        });
-        triggerNotification('message', activeChatID);
+        await addDoc(collection(db, "messages"), { sender: me.uid, receiver: activeChatID, text: text, seen: false, timestamp: serverTimestamp() });
+        triggerNotification('message', { toUserId: activeChatID, chatId: me.uid, message: `New message: ${text.substring(0, 20)}...` });
     };
 
     window.sendChatMedia = async (input) => {
         if(!input.files[0] || !activeChatID) return;
-        const file = input.files[0];
-        const type = file.type.startsWith('video') ? 'video' : 'image';
+        const file = input.files[0]; const type = file.type.startsWith('video') ? 'video' : 'image';
         Swal.fire({title: 'Sending...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff', toast: true, position: 'top'});
         try {
             const url = await uploadToCloudinary(file);
-            await addDoc(collection(db, "messages"), {
-                sender: me.uid, receiver: activeChatID, mediaUrl: url,
-                mediaType: type, seen: false, timestamp: serverTimestamp()
-            });
-            triggerNotification('message', activeChatID);
+            await addDoc(collection(db, "messages"), { sender: me.uid, receiver: activeChatID, mediaUrl: url, mediaType: type, seen: false, timestamp: serverTimestamp() });
+            triggerNotification('message', { toUserId: activeChatID, chatId: me.uid, message: `Sent a ${type}.` });
             Swal.close();
         } catch (e) { Swal.fire({icon: 'error', title: 'Failed to send media', background: '#121212', color: '#fff'}); }
         input.value = "";
@@ -1121,11 +841,7 @@
 
     window.manageMessage = async (mid, text, isMe) => {
         const actions = isMe ? ['Edit', 'Delete for me', 'Cancel'] : ['Delete for me', 'Cancel'];
-        const { value: choice } = await Swal.fire({
-            title: 'Message Options', input: 'radio',
-            inputOptions: actions.reduce((acc, curr) => ({...acc, [curr]: curr}), {}),
-            background: '#121212', color: '#fff', showConfirmButton: true
-        });
+        const { value: choice } = await Swal.fire({ title: 'Message Options', input: 'radio', inputOptions: actions.reduce((acc, curr) => ({...acc, [curr]: curr}), {}), background: '#121212', color: '#fff', showConfirmButton: true });
         if(choice === 'Edit' && isMe) {
             const { value: newText } = await Swal.fire({ input: 'text', inputValue: text, background: '#121212', color: '#fff' });
             if(newText) await updateDoc(doc(db, "messages", mid), { text: newText + " (edited)" });
@@ -1133,76 +849,52 @@
     };
 
     window.deleteChatConversation = async () => {
-        const res = await Swal.fire({ 
-            title: 'Delete Chat?', text: "This will remove the conversation record.",
-            icon: 'warning', showCancelButton: true, background: '#121212', color: '#fff' 
-        });
+        const res = await Swal.fire({ title: 'Delete Chat?', text: "This will remove the conversation record.", icon: 'warning', showCancelButton: true, background: '#121212', color: '#fff' });
         if(res.isConfirmed) { closeChat(); }
     };
 
     window.viewSinglePost = async (postId) => {
-        const snap = await getDoc(doc(db, "posts", postId));
-        if(!snap.exists()) return;
+        const snap = await getDoc(doc(db, "posts", postId)); if(!snap.exists()) return;
         const postDiv = await createPostElement(snap.data(), postId);
-        document.getElementById('post-detail-content').innerHTML = "";
-        document.getElementById('post-detail-content').appendChild(postDiv);
+        document.getElementById('post-detail-content').innerHTML = ""; document.getElementById('post-detail-content').appendChild(postDiv);
         document.getElementById('post-detail-view').style.display = 'flex';
     };
 
     window.saveProfile = async () => {
-        const data = {
-            displayName: document.getElementById('edit-name').value || me.displayName,
-            bio: document.getElementById('edit-bio').value || "",
-            dob: document.getElementById('edit-dob').value || "",
-            work: document.getElementById('edit-work').value || "",
-            org: document.getElementById('edit-work').value || "",
-            website: document.getElementById('edit-web').value || "",
-            social: document.getElementById('edit-social').value || ""
-        };
-        await updateDoc(doc(db, "users", me.uid), data);
-        await updateProfile(auth.currentUser, { displayName: data.displayName });
-        toggleEdit();
-        Swal.fire({icon: 'success', title: 'Profile Updated', timer: 1500, showConfirmButton: false, background: '#121212', color: '#fff'});
+        const data = { displayName: document.getElementById('edit-name').value || me.displayName, bio: document.getElementById('edit-bio').value || "", dob: document.getElementById('edit-dob').value || "", work: document.getElementById('edit-work').value || "", org: document.getElementById('edit-work').value || "", website: document.getElementById('edit-web').value || "", social: document.getElementById('edit-social').value || "" };
+        await updateDoc(doc(db, "users", me.uid), data); await updateProfile(auth.currentUser, { displayName: data.displayName });
+        toggleEdit(); Swal.fire({icon: 'success', title: 'Profile Updated', timer: 1500, showConfirmButton: false, background: '#121212', color: '#fff'});
     };
 
     window.toggleEdit = async () => {
         const e = document.getElementById('edit-form');
         if(e.style.display === 'none') {
-            const snap = await getDoc(doc(db, "users", me.uid));
-            const d = snap.data();
+            const snap = await getDoc(doc(db, "users", me.uid)); const d = snap.data();
             ['name','bio','dob','work','org','web','social'].forEach(f => document.getElementById('edit-'+f).value = d[f==='name'?'displayName':(f==='web'?'website':f)] || "");
             e.style.display = 'block';
         } else { e.style.display = 'none'; }
     };
 
-    async function toggleLike(id, liked, p) { 
+    async function toggleLike(id, liked) { 
         await updateDoc(doc(db, "posts", id), { likes: liked ? arrayRemove(me.uid) : arrayUnion(me.uid) }); 
-        if (!liked) triggerNotification('like', p.uid, { postId: id, postImg: p.img || null });
+        if(!liked) {
+            const pSnap = await getDoc(doc(db, "posts", id));
+            if(pSnap.data().uid !== me.uid) triggerNotification('like', { toUserId: pSnap.data().uid, postId: id, message: `${me.displayName} liked your post.` });
+        }
     }
 
     async function uploadToCloudinary(file, onProg) {
         return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', 'https://api.cloudinary.com/v1_1/dpgawb5sl/auto/upload');
+            const xhr = new XMLHttpRequest(); xhr.open('POST', 'https://api.cloudinary.com/v1_1/dpgawb5sl/auto/upload');
             xhr.upload.onprogress = (e) => { if (e.lengthComputable && onProg) onProg((e.loaded / e.total) * 100); };
-            xhr.onload = () => {
-                const resp = JSON.parse(xhr.responseText);
-                if(resp.secure_url) resolve(resp.secure_url);
-                else reject(new Error("Cloudinary Error"));
-            };
+            xhr.onload = () => { const resp = JSON.parse(xhr.responseText); if(resp.secure_url) resolve(resp.secure_url); else reject(new Error("Cloudinary Error")); };
             xhr.onerror = () => reject(new Error("Network Error"));
-            const fd = new FormData();
-            fd.append('file', file);
-            fd.append('upload_preset', 'Meetwoyou');
-            xhr.send(fd);
+            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Meetwoyou'); xhr.send(fd);
         });
     }
 
     async function postMenu(postId, oldText) {
-        const { value: action } = await Swal.fire({
-            title: 'Manage Post', showDenyButton: true, confirmButtonText: 'Edit', denyButtonText: 'Delete',
-            background: '#121212', color: '#fff', confirmButtonColor: '#0095f6', denyButtonColor: '#ed4956'
-        });
+        const { value: action } = await Swal.fire({ title: 'Manage Post', showDenyButton: true, confirmButtonText: 'Edit', denyButtonText: 'Delete', background: '#121212', color: '#fff', confirmButtonColor: '#0095f6', denyButtonColor: '#ed4956' });
         if(action === true) { 
             const { value: newText } = await Swal.fire({ input: 'textarea', inputValue: oldText, title: 'Edit Post', background: '#121212', color: '#fff' });
             if(newText) await updateDoc(doc(db, "posts", postId), { text: newText });
@@ -1212,19 +904,15 @@
         }
     }
 
-    async function showComments(postId, p) {
-        const snap = await getDoc(doc(db, "posts", postId));
-        const comments = snap.data().comments || [];
+    async function showComments(postId) {
+        const snap = await getDoc(doc(db, "posts", postId)); const comments = snap.data().comments || [];
         let html = '<div style="max-height:200px; overflow-y:auto; text-align:left;">';
         comments.forEach(c => html += `<p style="font-size:13px; margin:5px 0;"><b>${c.user}:</b> ${c.text}</p>`);
         html += '</div>';
-        const { value: newComment } = await Swal.fire({
-            title: 'Comments', html: html, input: 'text', inputPlaceholder: 'Write a comment...',
-            showCancelButton: true, confirmButtonText: 'Post', background: '#121212', color: '#fff'
-        });
+        const { value: newComment } = await Swal.fire({ title: 'Comments', html: html, input: 'text', inputPlaceholder: 'Write a comment...', showCancelButton: true, confirmButtonText: 'Post', background: '#121212', color: '#fff' });
         if(newComment) {
             await updateDoc(doc(db, "posts", postId), { comments: arrayUnion({ user: me.displayName, text: newComment }) });
-            triggerNotification('comment', p.uid, { postId, text: newComment, postImg: p.img || null });
+            if(snap.data().uid !== me.uid) triggerNotification('comment', { toUserId: snap.data().uid, postId: postId, message: `${me.displayName} commented: ${newComment.substring(0, 15)}...` });
         }
     }
 
@@ -1232,8 +920,7 @@
         onSnapshot(doc(db, "users", me.uid), (snap) => {
             const d = snap.data(); if(!d) return;
             document.getElementById('p-name').innerHTML = d.displayName + (d.isVerified?vB:'');
-            document.getElementById('p-img').src = d.photoURL;
-            document.getElementById('p-bio').innerText = d.bio || "";
+            document.getElementById('p-img').src = d.photoURL; document.getElementById('p-bio').innerText = d.bio || "";
             document.getElementById('count-followers').innerText = formatCount(d.followers?.length);
             document.getElementById('count-following').innerText = formatCount(d.following?.length);
             let detBox = document.getElementById('p-details-box'); detBox.innerHTML = "";
@@ -1248,11 +935,10 @@
             document.getElementById('count-posts').innerText = snap.size;
             const grid = document.getElementById('my-posts-grid'); grid.innerHTML = "";
             snap.forEach(d => {
-                const pd = d.data();
-                const item = document.createElement('div'); item.className = "grid-item";
+                const pd = d.data(); const item = document.createElement('div'); item.className = "grid-item";
                 item.onclick = () => viewSinglePost(d.id);
-                if(pd.video) item.innerHTML = `<video src="${pd.video}#t=0.1" muted playsinline></video>`;
-                else item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
+                if(pd.video) { item.innerHTML = `<video src="${pd.video}#t=0.1" muted playsinline></video>`; } 
+                else { item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`; }
                 grid.appendChild(item);
             });
         });
@@ -1260,74 +946,25 @@
 
     window.openSettings = () => document.getElementById('settings-view').style.display = 'flex';
     window.closeSettings = () => document.getElementById('settings-view').style.display = 'none';
-
     window.changePassword = async () => {
-        const { value: pass } = await Swal.fire({
-            title: 'Enter New Password', input: 'password', background: '#121212', color: '#fff', showCancelButton: true
-        });
-        if(pass) {
-            try {
-                await updatePassword(auth.currentUser, pass);
-                Swal.fire({icon: 'success', title: 'Password Updated', background: '#121212', color: '#fff'});
-            } catch (e) { Swal.fire({icon: 'error', title: 'Error', text: 'Re-login required for this action.', background: '#121212', color: '#fff'}); }
-        }
+        const { value: pass } = await Swal.fire({ title: 'Enter New Password', input: 'password', background: '#121212', color: '#fff', showCancelButton: true });
+        if(pass) { try { await updatePassword(auth.currentUser, pass); Swal.fire({icon: 'success', title: 'Password Updated', background: '#121212', color: '#fff'}); } catch (e) { Swal.fire({icon: 'error', title: 'Error', text: 'Re-login required.', background: '#121212', color: '#fff'}); } }
     };
-
     window.changeEmail = async () => {
-        const { value: email } = await Swal.fire({
-            title: 'Enter New Email', input: 'email', background: '#121212', color: '#fff', showCancelButton: true
-        });
-        if(email) {
-            try {
-                await updateEmail(auth.currentUser, email);
-                Swal.fire({icon: 'success', title: 'Email Updated', background: '#121212', color: '#fff'});
-            } catch (e) { Swal.fire({icon: 'error', title: 'Error', text: 'Re-login required for this action.', background: '#121212', color: '#fff'}); }
-        }
+        const { value: email } = await Swal.fire({ title: 'Enter New Email', input: 'email', background: '#121212', color: '#fff', showCancelButton: true });
+        if(email) { try { await updateEmail(auth.currentUser, email); Swal.fire({icon: 'success', title: 'Email Updated', background: '#121212', color: '#fff'}); } catch (e) { Swal.fire({icon: 'error', title: 'Error', text: 'Re-login required.', background: '#121212', color: '#fff'}); } }
     };
-
     window.deleteAccount = async () => {
-        const res = await Swal.fire({
-            title: 'Are you sure?', text: 'All your posts and data will be lost forever!',
-            icon: 'warning', showCancelButton: true, confirmButtonColor: '#ed4956', background: '#121212', color: '#fff'
-        });
-        if(res.isConfirmed) {
-            try {
-                const uid = me.uid;
-                await deleteUser(auth.currentUser);
-                await deleteDoc(doc(db, "users", uid));
-                window.location.href = "index.html";
-            } catch (e) { Swal.fire({icon: 'error', title: 'Error', text: 'Please re-login and try again.', background: '#121212', color: '#fff'}); }
-        }
+        const res = await Swal.fire({ title: 'Are you sure?', text: 'Data will be lost forever!', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ed4956', background: '#121212', color: '#fff' });
+        if(res.isConfirmed) { try { const uid = me.uid; await deleteUser(auth.currentUser); await deleteDoc(doc(db, "users", uid)); window.location.href = "index.html"; } catch (e) { Swal.fire({icon: 'error', title: 'Error', text: 'Please re-login.', background: '#121212', color: '#fff'}); } }
     };
-
-    window.showSec = (id) => {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById(id + '-sec').classList.add('active');
-    };
+    window.showSec = (id) => { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(id + '-sec').classList.add('active'); };
     window.userLogout = () => signOut(auth);
-    window.closeChat = () => {
-        document.getElementById('chat-screen').style.display = 'none';
-        if(chatUnsubscribe) chatUnsubscribe();
-        if(statusUnsubscribe) statusUnsubscribe();
-    };
+    window.closeChat = () => { document.getElementById('chat-screen').style.display = 'none'; if(chatUnsubscribe) chatUnsubscribe(); if(statusUnsubscribe) statusUnsubscribe(); };
     window.closeProfileView = () => document.getElementById('user-profile-view').style.display = 'none';
-    window.sharePost = (id, p) => { 
-        navigator.clipboard.writeText(window.location.origin + "?post=" + id);
-        triggerNotification('share', p.uid, { postId: id, postImg: p.img || null });
-        Swal.fire({ title: "Link Copied!", icon: "success", timer: 1000, showConfirmButton: false, background: '#121212', color: '#fff' });
-    };
-    window.shareMyProfile = () => {
-        navigator.clipboard.writeText(window.location.origin + "?u=" + me.uid);
-        Swal.fire({ title: "Profile Link Copied!", icon: "success", timer: 1000, showConfirmButton: false, background: '#121212', color: '#fff' });
-    };
-    window.updateProfilePic = async (input) => {
-        if(!input.files[0]) return;
-        Swal.fire({title: 'Uploading...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'});
-        const url = await uploadToCloudinary(input.files[0]);
-        await updateDoc(doc(db, "users", me.uid), { photoURL: url });
-        await updateProfile(auth.currentUser, { photoURL: url });
-        location.reload();
-    };
+    window.sharePost = (id) => { navigator.clipboard.writeText(window.location.origin + "?post=" + id); Swal.fire({ title: "Link Copied!", icon: "success", timer: 1000, showConfirmButton: false, background: '#121212', color: '#fff' }); };
+    window.shareMyProfile = () => { navigator.clipboard.writeText(window.location.origin + "?u=" + me.uid); Swal.fire({ title: "Profile Link Copied!", icon: "success", timer: 1000, showConfirmButton: false, background: '#121212', color: '#fff' }); };
+    window.updateProfilePic = async (input) => { if(!input.files[0]) return; Swal.fire({title: 'Uploading...', didOpen: () => Swal.showLoading(), background: '#121212', color: '#fff'}); const url = await uploadToCloudinary(input.files[0]); await updateDoc(doc(db, "users", me.uid), { photoURL: url }); await updateProfile(auth.currentUser, { photoURL: url }); location.reload(); };
 </script>
 </body>
 </html>
