@@ -100,12 +100,16 @@
         /* Chat Media CSS */
         .chat-media { max-width: 100%; border-radius: 12px; margin-top: 5px; cursor: pointer; }
 
-        /* Notification Injections */
-        #notification-view { position: fixed; inset: 0; background: #000; z-index: 2500; display: none; flex-direction: column; overflow-y: auto; }
-        .notif-item { display: flex; align-items: center; gap: 12px; padding: 15px; border-bottom: 1px solid #262626; cursor: pointer; }
-        .notif-item.unread { background: #121212; }
-        .notif-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
-        .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--danger); font-size: 9px; padding: 2px 5px; border-radius: 10px; }
+        /* NOTIFICATION UI */
+        #notification-sec { display: none; max-width: 500px; margin: auto; animation: slideUp 0.3s ease; }
+        #notification-sec.active { display: block; }
+        .notif-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-bottom: 1px solid #121212; cursor: pointer; position: relative; transition: background 0.2s; }
+        .notif-item.unread { background: rgba(0, 149, 246, 0.05); }
+        .notif-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+        .notif-content { flex: 1; font-size: 14px; }
+        .notif-time { font-size: 11px; color: var(--gray); display: block; margin-top: 2px; }
+        .notif-media { width: 44px; height: 44px; border-radius: 4px; object-fit: cover; }
+        #notif-nav-badge { position: absolute; top: -5px; right: -8px; background: var(--danger); font-size: 9px; padding: 2px 5px; border-radius: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -118,9 +122,9 @@
 <div class="header">
     <i class="fas fa-power-off" onclick="userLogout()" style="font-size:20px; color:var(--danger); cursor:pointer;"></i>
     <h2 style="margin:0; font-family: 'Grand Hotel', cursive;">Meetwoyou</h2>
-    <div style="position: relative;" onclick="openNotifications()">
-        <i class="far fa-bell" style="font-size:22px; cursor:pointer;"></i>
-        <span id="notif-badge" class="notif-badge" style="display:none;">0</span>
+    <div style="position: relative;" onclick="showSec('notification')">
+        <i class="far fa-bell" style="font-size:22px;"></i>
+        <span id="notif-nav-badge">0</span>
     </div>
 </div>
 
@@ -174,6 +178,14 @@
     <div id="chat-list"></div>
 </div>
 
+<div id="notification-sec" class="section">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:15px;">
+        <h3 style="margin:0;">Notifications</h3>
+        <small style="color:var(--primary); cursor:pointer;" onclick="markAllNotificationsRead()">Mark all as read</small>
+    </div>
+    <div id="notif-list"></div>
+</div>
+
 <div id="profile-sec" class="section">
     <div style="text-align: center; padding: 10px 15px;">
         <div style="display: flex; justify-content: flex-end; padding-bottom: 10px;">
@@ -212,14 +224,6 @@
         </div>
     </div>
     <div id="my-posts-grid" class="profile-grid"></div>
-</div>
-
-<div id="notification-view">
-    <div style="padding:15px; border-bottom:1px solid #262626; display:flex; align-items:center; gap:15px;">
-        <i class="fas fa-arrow-left" onclick="closeNotifications()" style="cursor:pointer;"></i>
-        <b style="font-size: 18px;">Notifications</b>
-    </div>
-    <div id="notif-list"></div>
 </div>
 
 <div id="story-viewer">
@@ -366,6 +370,7 @@
     let activeStories = [];
     let storyTimer = null;
     const vB = ` <i class="fas fa-check-circle v-badge"></i>`;
+    const VAPID_KEY = "BACoJ-l3z872JhrtTUZHEVPw5RA7OPieKjcDfKAgXM900xd6A69DMXZnO92Gj7HId6iByi7Pfd5tLD9eTjfwHKA";
 
     const videoObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -407,21 +412,17 @@
             document.getElementById('composer-user-img').src = user.photoURL || "https://via.placeholder.com/40";
             document.getElementById('composer-user-name').innerText = user.displayName;
             init(); 
-            setupNotifications(); // Added Notification Init
-            setTimeout(() => {
-                const loader = document.getElementById('app-loader');
-                if(loader) loader.style.display = 'none';
-            }, 1200);
+            
+            // Notification System Init
+            initNotifications();
+            
+            setTimeout(() => document.getElementById('app-loader').style.display = 'none', 1200);
         } else { window.location.href = "index.html"; }
     });
 
-    // Global Loader Fallback
-    window.onload = () => {
-        setTimeout(() => {
-            const loader = document.getElementById('app-loader');
-            if(loader && loader.style.display !== 'none') loader.style.display = 'none';
-        }, 5000);
-    };
+    // --- LOADER FALLBACK ---
+    window.onerror = () => { document.getElementById('app-loader').style.display = 'none'; };
+    setTimeout(() => { if(document.getElementById('app-loader').style.display !== 'none') document.getElementById('app-loader').style.display = 'none'; }, 8000);
 
     function init() { 
         loadMyProfile(); 
@@ -431,6 +432,88 @@
         loadStories();
         setupSearch();
     }
+
+    // --- NOTIFICATION SYSTEM LOGIC ---
+    async function initNotifications() {
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+                if (token) {
+                    await updateDoc(doc(db, "users", me.uid), { fcmToken: token });
+                }
+            }
+        } catch (err) { console.error("FCM Token failed", err); }
+
+        onMessage(messaging, (payload) => {
+            const { title, body } = payload.notification;
+            Swal.fire({
+                toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+                title: title, text: body, icon: 'info', background: '#121212', color: '#fff'
+            });
+        });
+
+        const qNotif = query(collection(db, "notifications"), where("targetUid", "==", me.uid), orderBy("timestamp", "desc"), limit(30));
+        onSnapshot(qNotif, (snap) => {
+            const list = document.getElementById('notif-list');
+            const badge = document.getElementById('notif-nav-badge');
+            let unreadCount = 0;
+            list.innerHTML = snap.empty ? '<p style="text-align:center; color:gray; padding:20px;">No notifications yet.</p>' : "";
+            
+            snap.forEach(d => {
+                const n = d.data();
+                if (!n.read) unreadCount++;
+                const item = document.createElement('div');
+                item.className = `notif-item ${n.read ? '' : 'unread'}`;
+                item.onclick = () => handleNotifClick(d.id, n);
+                item.innerHTML = `
+                    <img src="${n.senderImg}" class="notif-avatar">
+                    <div class="notif-content">
+                        <b>${n.senderName}</b> ${n.message}
+                        <span class="notif-time">${timeAgo(n.timestamp)}</span>
+                    </div>
+                    ${n.postImg ? `<img src="${n.postImg}" class="notif-media">` : ''}
+                `;
+                list.appendChild(item);
+            });
+            badge.innerText = unreadCount;
+            badge.style.display = unreadCount > 0 ? 'block' : 'none';
+        });
+    }
+
+    async function triggerNotification(type, targetUid, data = {}) {
+        if (targetUid === me.uid) return;
+        try {
+            let message = "";
+            switch (type) {
+                case 'like': message = "liked your post"; break;
+                case 'comment': message = `commented: "${data.text}"`; break;
+                case 'follow': message = "started following you"; break;
+                case 'message': message = "sent you a message"; break;
+                case 'share': message = "shared your post"; break;
+            }
+            await addDoc(collection(db, "notifications"), {
+                targetUid, senderUid: me.uid, senderName: me.displayName,
+                senderImg: me.photoURL, type, message, read: false,
+                timestamp: serverTimestamp(), ...data
+            });
+        } catch (e) { console.error("Notif trigger failed", e); }
+    }
+
+    async function handleNotifClick(notifId, n) {
+        await updateDoc(doc(db, "notifications", notifId), { read: true });
+        if (n.postId) viewSinglePost(n.postId);
+        else if (n.type === 'follow' || n.type === 'message') viewUser(n.senderUid);
+        showSec('home'); // or keep in current section
+    }
+
+    window.markAllNotificationsRead = async () => {
+        const q = query(collection(db, "notifications"), where("targetUid", "==", me.uid), where("read", "==", false));
+        const snap = await getDocs(q);
+        const batch = writeBatch(db);
+        snap.forEach(d => batch.update(d.ref, { read: true }));
+        await batch.commit();
+    };
 
     function setupSearch() {
         const searchInput = document.getElementById('user-search');
@@ -556,11 +639,11 @@
         imgContainer.addEventListener('dblclick', () => {
             heart.classList.add('active');
             setTimeout(() => heart.classList.remove('active'), 800);
-            if(!isLiked) toggleLike(id, false, p.uid); // Trigger Notif
+            if(!isLiked) toggleLike(id, false, p);
         });
-        likeBtn.onclick = () => toggleLike(id, isLiked, p.uid); // Trigger Notif
-        div.querySelector('.comment-btn').onclick = () => showComments(id, p.uid);
-        div.querySelector('.share-btn').onclick = () => sharePost(id, p.uid);
+        likeBtn.onclick = () => toggleLike(id, isLiked, p);
+        div.querySelector('.comment-btn').onclick = () => showComments(id, p);
+        div.querySelector('.share-btn').onclick = () => sharePost(id, p);
         const menuBtn = div.querySelector('.post-menu-trigger');
         if(menuBtn) menuBtn.onclick = (e) => { e.stopPropagation(); postMenu(id, p.text); };
         return div;
@@ -693,10 +776,7 @@
             likes: isLiked ? arrayRemove(me.uid) : arrayUnion(me.uid)
         });
         if(isLiked) story.likes = story.likes.filter(id => id !== me.uid);
-        else {
-            story.likes.push(me.uid);
-            triggerNotification("like_story", {targetUid: story.uid, storyId: story.id});
-        }
+        else story.likes.push(me.uid);
         showStory(currentStoryIndex);
     };
 
@@ -829,7 +909,7 @@
             } else {
                 await updateDoc(myRef, { following: arrayUnion(targetUid) });
                 await updateDoc(targetRef, { followers: arrayUnion(me.uid) });
-                triggerNotification("follow", {targetUid: targetUid}); // Trigger Notif
+                triggerNotification('follow', targetUid);
             }
         } catch (e) { console.error(e); }
     };
@@ -883,7 +963,6 @@
     let chatUnsubscribe = null;
     let statusUnsubscribe = null;
 
-    // --- FIX START: CHAT & PRIVATE MESSAGING LOGIC ---
     window.loadAllUsers = () => {
         onSnapshot(doc(db, "users", me.uid), (mySnap) => {
             const myFollowing = mySnap.data()?.following || [];
@@ -908,11 +987,7 @@
             });
         });
 
-        const msgQuery = query(
-            collection(db, "messages"),
-            orderBy("timestamp", "desc")
-        );
-
+        const msgQuery = query(collection(db, "messages"), orderBy("timestamp", "desc"));
         onSnapshot(msgQuery, async (mSnap) => {
             const chatList = document.getElementById('chat-list');
             const navBadge = document.getElementById('msg-nav-badge');
@@ -922,7 +997,6 @@
             mSnap.forEach(mDoc => {
                 const m = mDoc.data();
                 if(m.sender !== me.uid && m.receiver !== me.uid) return;
-
                 const otherUid = m.sender === me.uid ? m.receiver : m.sender;
                 if(!interactedMap.has(otherUid)) {
                     interactedMap.set(otherUid, {
@@ -936,7 +1010,6 @@
             });
 
             chatList.innerHTML = interactedMap.size === 0 ? '<p style="text-align:center; color:gray; padding:20px;">No messages yet.</p>' : "";
-            
             for(let [uid, data] of interactedMap) {
                 totalUnread += data.unread;
                 const uSnap = await getDoc(doc(db, "users", uid));
@@ -974,14 +1047,11 @@
         const headerImg = document.getElementById('chat-h-img');
         const headerStatus = document.getElementById('chat-h-status');
         const onlineIndicator = document.getElementById('chat-online-indicator');
-        
         headerName.innerHTML = name;
         headerImg.src = img;
         document.getElementById('chat-screen').style.display = 'flex';
-
         if(chatUnsubscribe) chatUnsubscribe();
         if(statusUnsubscribe) statusUnsubscribe();
-
         statusUnsubscribe = onSnapshot(doc(db, "users", uid), (snap) => {
             const data = snap.data();
             if(data?.isVerified) headerName.innerHTML = name + vB;
@@ -990,46 +1060,30 @@
             headerStatus.innerText = isOnline ? 'Active now' : `Last seen: ${timeAgo(data?.lastActive)}`;
             onlineIndicator.style.display = isOnline ? 'block' : 'none';
         });
-
-        const qChat = query(
-            collection(db, "messages"),
-            orderBy("timestamp", "asc")
-        );
-
+        const qChat = query(collection(db, "messages"), orderBy("timestamp", "asc"));
         chatUnsubscribe = onSnapshot(qChat, (snap) => {
             const box = document.getElementById('chat-box');
             box.innerHTML = "";
             let batch = writeBatch(db);
             let hasUnseen = false;
-
             snap.forEach(d => {
                 const m = d.data();
                 const betweenUs = (m.sender === me.uid && m.receiver === activeChatID) || (m.sender === activeChatID && m.receiver === me.uid);
                 if(!betweenUs) return;
-
                 const isMe = m.sender === me.uid;
                 const statusIcon = m.seen ? '<i class="fas fa-check-double" style="color:#0095f6;"></i>' : '<i class="fas fa-check"></i>';
-                
                 let mediaContent = "";
                 if(m.mediaUrl) {
-                    if(m.mediaType === 'video') {
-                        mediaContent = `<video src="${m.mediaUrl}" class="chat-media" controls></video>`;
-                    } else {
-                        mediaContent = `<img src="${m.mediaUrl}" class="chat-media" onclick="window.open('${m.mediaUrl}', '_blank')">`;
-                    }
+                    if(m.mediaType === 'video') mediaContent = `<video src="${m.mediaUrl}" class="chat-media" controls></video>`;
+                    else mediaContent = `<img src="${m.mediaUrl}" class="chat-media" onclick="window.open('${m.mediaUrl}', '_blank')">`;
                 }
-
                 box.innerHTML += `
                     <div class="chat-bubble ${isMe?'sent':'recv'}" onclick="manageMessage('${d.id}', '${m.text}', ${isMe})">
                         ${m.text ? `<div>${m.text}</div>` : ''}
                         ${mediaContent}
                         <span class="chat-status">${timeAgo(m.timestamp)} ${isMe ? statusIcon : ''}</span>
                     </div>`;
-                
-                if(!isMe && !m.seen) {
-                    batch.update(doc(db, "messages", d.id), { seen: true });
-                    hasUnseen = true;
-                }
+                if(!isMe && !m.seen) { batch.update(doc(db, "messages", d.id), { seen: true }); hasUnseen = true; }
             });
             if(hasUnseen) batch.commit();
             box.scrollTop = box.scrollHeight;
@@ -1042,13 +1096,10 @@
         if(!text || !activeChatID) return;
         i.value = "";
         await addDoc(collection(db, "messages"), { 
-            sender: me.uid, 
-            receiver: activeChatID, 
-            text: text, 
-            seen: false,
-            timestamp: serverTimestamp() 
+            sender: me.uid, receiver: activeChatID, text: text, 
+            seen: false, timestamp: serverTimestamp() 
         });
-        triggerNotification("message", {targetUid: activeChatID, text: text}); // Trigger Notif
+        triggerNotification('message', activeChatID);
     };
 
     window.sendChatMedia = async (input) => {
@@ -1059,47 +1110,34 @@
         try {
             const url = await uploadToCloudinary(file);
             await addDoc(collection(db, "messages"), {
-                sender: me.uid,
-                receiver: activeChatID,
-                mediaUrl: url,
-                mediaType: type,
-                seen: false,
-                timestamp: serverTimestamp()
+                sender: me.uid, receiver: activeChatID, mediaUrl: url,
+                mediaType: type, seen: false, timestamp: serverTimestamp()
             });
-            triggerNotification("message", {targetUid: activeChatID, text: `Sent a ${type}`}); // Trigger Notif
+            triggerNotification('message', activeChatID);
             Swal.close();
-        } catch (e) {
-            Swal.fire({icon: 'error', title: 'Failed to send media', background: '#121212', color: '#fff'});
-        }
+        } catch (e) { Swal.fire({icon: 'error', title: 'Failed to send media', background: '#121212', color: '#fff'}); }
         input.value = "";
     };
 
     window.manageMessage = async (mid, text, isMe) => {
         const actions = isMe ? ['Edit', 'Delete for me', 'Cancel'] : ['Delete for me', 'Cancel'];
         const { value: choice } = await Swal.fire({
-            title: 'Message Options',
-            input: 'radio',
+            title: 'Message Options', input: 'radio',
             inputOptions: actions.reduce((acc, curr) => ({...acc, [curr]: curr}), {}),
             background: '#121212', color: '#fff', showConfirmButton: true
         });
-
         if(choice === 'Edit' && isMe) {
             const { value: newText } = await Swal.fire({ input: 'text', inputValue: text, background: '#121212', color: '#fff' });
             if(newText) await updateDoc(doc(db, "messages", mid), { text: newText + " (edited)" });
-        } else if(choice === 'Delete for me') {
-            await deleteDoc(doc(db, "messages", mid));
-        }
+        } else if(choice === 'Delete for me') { await deleteDoc(doc(db, "messages", mid)); }
     };
 
     window.deleteChatConversation = async () => {
         const res = await Swal.fire({ 
-            title: 'Delete Chat?', 
-            text: "This will remove the conversation record.",
+            title: 'Delete Chat?', text: "This will remove the conversation record.",
             icon: 'warning', showCancelButton: true, background: '#121212', color: '#fff' 
         });
-        if(res.isConfirmed) {
-            closeChat();
-        }
+        if(res.isConfirmed) { closeChat(); }
     };
 
     window.viewSinglePost = async (postId) => {
@@ -1137,9 +1175,9 @@
         } else { e.style.display = 'none'; }
     };
 
-    async function toggleLike(id, liked, targetUid) { 
+    async function toggleLike(id, liked, p) { 
         await updateDoc(doc(db, "posts", id), { likes: liked ? arrayRemove(me.uid) : arrayUnion(me.uid) }); 
-        if(!liked) triggerNotification("like", {targetUid: targetUid, postId: id}); // Trigger Notif
+        if (!liked) triggerNotification('like', p.uid, { postId: id, postImg: p.img || null });
     }
 
     async function uploadToCloudinary(file, onProg) {
@@ -1174,7 +1212,7 @@
         }
     }
 
-    async function showComments(postId, targetUid) {
+    async function showComments(postId, p) {
         const snap = await getDoc(doc(db, "posts", postId));
         const comments = snap.data().comments || [];
         let html = '<div style="max-height:200px; overflow-y:auto; text-align:left;">';
@@ -1186,7 +1224,7 @@
         });
         if(newComment) {
             await updateDoc(doc(db, "posts", postId), { comments: arrayUnion({ user: me.displayName, text: newComment }) });
-            triggerNotification("comment", {targetUid: targetUid, postId: postId, text: newComment}); // Trigger Notif
+            triggerNotification('comment', p.uid, { postId, text: newComment, postImg: p.img || null });
         }
     }
 
@@ -1213,11 +1251,8 @@
                 const pd = d.data();
                 const item = document.createElement('div'); item.className = "grid-item";
                 item.onclick = () => viewSinglePost(d.id);
-                if(pd.video) {
-                    item.innerHTML = `<video src="${pd.video}#t=0.1" muted playsinline></video>`;
-                } else {
-                    item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
-                }
+                if(pd.video) item.innerHTML = `<video src="${pd.video}#t=0.1" muted playsinline></video>`;
+                else item.innerHTML = pd.img ? `<img src="${pd.img}">` : `<div style="padding:10px; font-size:10px; color:gray;">${pd.text}</div>`;
                 grid.appendChild(item);
             });
         });
@@ -1234,9 +1269,7 @@
             try {
                 await updatePassword(auth.currentUser, pass);
                 Swal.fire({icon: 'success', title: 'Password Updated', background: '#121212', color: '#fff'});
-            } catch (e) {
-                Swal.fire({icon: 'error', title: 'Error', text: 'Re-login required for this action.', background: '#121212', color: '#fff'});
-            }
+            } catch (e) { Swal.fire({icon: 'error', title: 'Error', text: 'Re-login required for this action.', background: '#121212', color: '#fff'}); }
         }
     };
 
@@ -1248,9 +1281,7 @@
             try {
                 await updateEmail(auth.currentUser, email);
                 Swal.fire({icon: 'success', title: 'Email Updated', background: '#121212', color: '#fff'});
-            } catch (e) {
-                Swal.fire({icon: 'error', title: 'Error', text: 'Re-login required for this action.', background: '#121212', color: '#fff'});
-            }
+            } catch (e) { Swal.fire({icon: 'error', title: 'Error', text: 'Re-login required for this action.', background: '#121212', color: '#fff'}); }
         }
     };
 
@@ -1265,9 +1296,7 @@
                 await deleteUser(auth.currentUser);
                 await deleteDoc(doc(db, "users", uid));
                 window.location.href = "index.html";
-            } catch (e) {
-                Swal.fire({icon: 'error', title: 'Error', text: 'Please re-login and try again.', background: '#121212', color: '#fff'});
-            }
+            } catch (e) { Swal.fire({icon: 'error', title: 'Error', text: 'Please re-login and try again.', background: '#121212', color: '#fff'}); }
         }
     };
 
@@ -1282,9 +1311,9 @@
         if(statusUnsubscribe) statusUnsubscribe();
     };
     window.closeProfileView = () => document.getElementById('user-profile-view').style.display = 'none';
-    window.sharePost = (id, targetUid) => { 
+    window.sharePost = (id, p) => { 
         navigator.clipboard.writeText(window.location.origin + "?post=" + id);
-        triggerNotification("share", {targetUid: targetUid, postId: id}); // Trigger Notif
+        triggerNotification('share', p.uid, { postId: id, postImg: p.img || null });
         Swal.fire({ title: "Link Copied!", icon: "success", timer: 1000, showConfirmButton: false, background: '#121212', color: '#fff' });
     };
     window.shareMyProfile = () => {
@@ -1299,98 +1328,6 @@
         await updateProfile(auth.currentUser, { photoURL: url });
         location.reload();
     };
-
-    /** 🔔 NOTIFICATION SYSTEM INJECTION **/
-
-    async function setupNotifications() {
-        try {
-            const token = await getToken(messaging, { vapidKey: 'BC8lSjL8YhL_Gf-f_H3W7_5J6oF_xX_oH_X_N_K_F_R_A_I_N' });
-            if (token) {
-                await updateDoc(doc(db, "users", me.uid), { fcmToken: token });
-            }
-
-            // Real-time listener for badge and list
-            onSnapshot(query(collection(db, "notifications"), where("receiver", "==", me.uid), orderBy("timestamp", "desc"), limit(50)), (snap) => {
-                const list = document.getElementById('notif-list');
-                const badge = document.getElementById('notif-badge');
-                let unreadCount = 0;
-                list.innerHTML = "";
-                
-                snap.forEach(d => {
-                    const n = d.data();
-                    if(!n.seen) unreadCount++;
-                    
-                    const item = document.createElement('div');
-                    item.className = `notif-item ${n.seen ? '' : 'unread'}`;
-                    item.onclick = () => handleNotifClick(d.id, n);
-                    item.innerHTML = `
-                        <img src="${n.senderImg}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-                        <div style="flex:1;">
-                            <span style="font-size:14px;"><b>${n.senderName}</b> ${n.message}</span><br>
-                            <small style="color:var(--gray); font-size:10px;">${timeAgo(n.timestamp)}</small>
-                        </div>
-                        ${!n.seen ? '<div class="notif-dot"></div>' : ''}
-                    `;
-                    list.appendChild(item);
-                });
-
-                badge.innerText = unreadCount;
-                badge.style.display = unreadCount > 0 ? 'block' : 'none';
-            });
-
-            onMessage(messaging, (payload) => {
-                Swal.fire({
-                    toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
-                    title: payload.notification.title, text: payload.notification.body, background: '#121212', color: '#fff'
-                });
-            });
-
-        } catch (e) { console.warn("FCM Permission denied or error:", e); }
-    }
-
-    async function triggerNotification(type, data) {
-        if(data.targetUid === me.uid) return; // Don't notify self
-        
-        const messages = {
-            follow: "started following you.",
-            like: "liked your post.",
-            comment: `commented: ${data.text || ""}`,
-            share: "shared your post.",
-            message: `sent you a message: ${data.text || ""}`,
-            like_story: "liked your story."
-        };
-
-        try {
-            await addDoc(collection(db, "notifications"), {
-                receiver: data.targetUid,
-                sender: me.uid,
-                senderName: me.displayName,
-                senderImg: me.photoURL,
-                type: type,
-                message: messages[type],
-                postId: data.postId || null,
-                storyId: data.storyId || null,
-                seen: false,
-                timestamp: serverTimestamp()
-            });
-        } catch(e) { console.error("Notification Error:", e); }
-    }
-
-    window.openNotifications = () => document.getElementById('notification-view').style.display = 'flex';
-    window.closeNotifications = () => document.getElementById('notification-view').style.display = 'none';
-
-    async function handleNotifClick(id, n) {
-        await updateDoc(doc(db, "notifications", id), { seen: true });
-        closeNotifications();
-        if(n.type === 'message') {
-            openChat(n.sender, n.senderName, n.senderImg);
-        } else if(n.postId) {
-            viewSinglePost(n.postId);
-        } else {
-            viewUser(n.sender);
-        }
-    }
-
 </script>
 </body>
 </html>
